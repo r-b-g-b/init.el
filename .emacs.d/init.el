@@ -77,7 +77,6 @@ There are two things you can do about this warning:
   (load-theme 'zenburn t))
 
 (winner-mode t)
-(tool-bar-mode -1)
 (show-paren-mode t)
 (add-hook 'prog-mode-hook 'linum-mode)
 (setq linum-format "%4d\u2502 ")
