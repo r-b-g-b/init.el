@@ -116,7 +116,7 @@ There are two things you can do about this warning:
  '(ivy-use-virtual-buffers t)
  '(package-selected-packages
    (quote
-	(counsel-projectile magit json-mode jsonnet-mode dockerfile-mode ivy yaml-mode projectile elpy jedi pythonic markdown-mode+ anaconda-mode dracula-theme company flycheck ace-window transpose-frame gnu-elpa-keyring-update mmm-mode markdown-mode conda)))
+	(ag counsel-projectile magit json-mode jsonnet-mode dockerfile-mode ivy yaml-mode projectile elpy jedi pythonic markdown-mode+ anaconda-mode dracula-theme company flycheck ace-window transpose-frame gnu-elpa-keyring-update mmm-mode markdown-mode conda)))
  '(tool-bar-mode nil))
 
 (custom-set-faces
