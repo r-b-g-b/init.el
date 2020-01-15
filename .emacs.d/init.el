@@ -82,6 +82,8 @@ There are two things you can do about this warning:
 (setq linum-format "%4d\u2502 ")
 (setq default-tab-width 4)
 (setq markdown-fontify-code-blocks-natively t)
+(setq scroll-margin 5)
+(setq scroll-conservatively 5)
 
 (global-set-key (kbd "S-C-<left>") 'shrink-window-horizontally)
 (global-set-key (kbd "S-C-<right>") 'enlarge-window-horizontally)
