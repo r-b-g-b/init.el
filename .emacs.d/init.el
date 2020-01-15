@@ -87,6 +87,8 @@ There are two things you can do about this warning:
 (global-set-key (kbd "S-C-<right>") 'enlarge-window-horizontally)
 (global-set-key (kbd "S-C-<down>") 'shrink-window)
 (global-set-key (kbd "S-C-<up>") 'enlarge-window)
+(global-set-key [mouse-8] 'previous-buffer)
+(global-set-key [mouse-9] 'next-buffer)
 
 ;; ;; https://emacs.stackexchange.com/questions/30082/your-python-shell-interpreter-doesn-t-seem-to-support-readline
 ;; (with-eval-after-load 'python
@@ -116,7 +118,7 @@ There are two things you can do about this warning:
  '(ivy-use-virtual-buffers t)
  '(package-selected-packages
    (quote
-	(ag counsel-projectile magit json-mode jsonnet-mode dockerfile-mode ivy yaml-mode projectile elpy jedi pythonic markdown-mode+ anaconda-mode dracula-theme company flycheck ace-window transpose-frame gnu-elpa-keyring-update mmm-mode markdown-mode conda)))
+	(ess company-jedi ag counsel-projectile magit json-mode jsonnet-mode dockerfile-mode ivy yaml-mode projectile elpy jedi pythonic markdown-mode+ anaconda-mode dracula-theme company flycheck ace-window transpose-frame gnu-elpa-keyring-update mmm-mode markdown-mode conda)))
  '(tool-bar-mode nil))
 
 (custom-set-faces
