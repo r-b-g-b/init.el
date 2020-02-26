@@ -92,16 +92,23 @@ There are two things you can do about this warning:
 (global-set-key [mouse-8] 'previous-buffer)
 (global-set-key [mouse-9] 'next-buffer)
 
-;; ;; https://emacs.stackexchange.com/questions/30082/your-python-shell-interpreter-doesn-t-seem-to-support-readline
-;; (with-eval-after-load 'python
-;;   (defun python-shell-completion-native-try ()
-;;     "Return non-nil if can trigger native completion."
-;;     (let ((python-shell-completion-native-enable t)
-;;           (python-shell-completion-native-output-timeout
-;;            python-shell-completion-native-try-output-timeout))
-;;       (python-shell-completion-native-get-completions
-;;        (get-buffer-process (current-buffer))
-;;        nil "_"))))
+;; M-backspace does not copy to clipboard
+;; https://www.emacswiki.org/emacs/BackwardDeleteWord
+(defun delete-word (arg)
+  "Delete characters forward until encountering the end of a word.
+With ARG, do this that many times."
+  (interactive "p")
+  (if (use-region-p)
+      (delete-region (region-beginning) (region-end))
+    (delete-region (point) (progn (forward-word arg) (point)))))
+
+(defun backward-delete-word (arg)
+  "Delete characters backward until encountering the end of a word.
+With ARG, do this that many times."
+  (interactive "p")
+  (delete-word (- arg)))
+
+(global-set-key (read-kbd-macro "<M-DEL>") 'backward-delete-word)
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Emacs managed configs
