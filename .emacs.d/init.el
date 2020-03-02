@@ -79,6 +79,8 @@ There are two things you can do about this warning:
 (winner-mode t)
 (show-paren-mode t)
 (add-hook 'prog-mode-hook 'linum-mode)
+(add-hook 'python-mode-hook 'subword-mode)
+
 (setq linum-format "%4d\u2502 ")
 (setq default-tab-width 4)
 (setq markdown-fontify-code-blocks-natively t)
