@@ -71,6 +71,11 @@ There are two things you can do about this warning:
   :bind (("C-s" . swiper)
          ("C-r" . swiper)))
 
+(use-package magit
+  :ensure t
+  :bind ("C-x g" . magit-status)
+  )
+
 (use-package zenburn-theme
   :ensure t
   :init
