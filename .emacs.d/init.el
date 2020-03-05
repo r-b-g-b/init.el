@@ -90,6 +90,9 @@ There are two things you can do about this warning:
 (winner-mode t)
 
 (add-hook 'prog-mode-hook 'linum-mode)
+(add-hook 'prog-mode-hook 'hs-minor-mode)
+(add-hook 'json-mode-hook 'hs-minor-mode)
+
 (add-hook 'python-mode-hook 'subword-mode)
 
 (setq linum-format "%4d\u2502 ")
