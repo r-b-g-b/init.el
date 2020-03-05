@@ -76,13 +76,19 @@ There are two things you can do about this warning:
   :bind ("C-x g" . magit-status)
   )
 
+(use-package which-key
+  :ensure t
+  )
+
 (use-package zenburn-theme
   :ensure t
   :init
   (load-theme 'zenburn t))
 
-(winner-mode t)
 (show-paren-mode t)
+(which-key-mode t)
+(winner-mode t)
+
 (add-hook 'prog-mode-hook 'linum-mode)
 (add-hook 'python-mode-hook 'subword-mode)
 
@@ -134,7 +140,7 @@ With ARG, do this that many times."
  '(ivy-use-virtual-buffers t)
  '(package-selected-packages
    (quote
-	(ess company-jedi ag counsel-projectile magit json-mode jsonnet-mode dockerfile-mode ivy yaml-mode projectile elpy jedi pythonic markdown-mode+ anaconda-mode dracula-theme company flycheck ace-window transpose-frame gnu-elpa-keyring-update mmm-mode markdown-mode conda)))
+	(hideshow-org ess company-jedi ag counsel-projectile magit json-mode jsonnet-mode dockerfile-mode ivy yaml-mode projectile elpy jedi pythonic markdown-mode+ anaconda-mode dracula-theme company flycheck ace-window transpose-frame gnu-elpa-keyring-update mmm-mode markdown-mode conda)))
  '(tool-bar-mode nil))
 
 (custom-set-faces
