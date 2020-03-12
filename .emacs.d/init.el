@@ -86,6 +86,13 @@ There are two things you can do about this warning:
   :ensure t
   )
 
+(use-package neotree
+  :ensure t
+  :config
+  (setq projectile-switch-project-action 'neotree-projectile-action)
+  (setq neo-smart-open t)
+  )
+
 (use-package zenburn-theme
   :ensure t
   :init
