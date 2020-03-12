@@ -121,6 +121,8 @@ There are two things you can do about this warning:
 (global-set-key (kbd "S-C-<up>") 'enlarge-window)
 (global-set-key [mouse-8] 'previous-buffer)
 (global-set-key [mouse-9] 'next-buffer)
+(global-set-key [mouse-10] 'next-buffer)
+(global-set-key [mouse-11] 'previous-buffer)
 
 ;; M-backspace does not copy to clipboard
 ;; https://www.emacswiki.org/emacs/BackwardDeleteWord
