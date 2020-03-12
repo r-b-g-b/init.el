@@ -27,10 +27,16 @@ There are two things you can do about this warning:
   :ensure t
   :config (global-flycheck-mode))
 
+(use-package jedi
+  :ensure t)
+
 (use-package elpy
   :ensure t
+  :after (jedi)
   :init
   (elpy-enable))
+(use-package pylint
+  :ensure t)
 
 (use-package projectile
   :bind-keymap
