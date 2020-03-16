@@ -35,6 +35,7 @@ There are two things you can do about this warning:
   :after (jedi)
   :init
   (elpy-enable))
+
 (use-package pylint
   :ensure t)
 
@@ -114,6 +115,7 @@ There are two things you can do about this warning:
 (setq markdown-fontify-code-blocks-natively t)
 (setq scroll-margin 5)
 (setq scroll-conservatively 5)
+(setq elpy-rpc-virtualenv-path 'current)
 
 (global-set-key (kbd "S-C-<left>") 'shrink-window-horizontally)
 (global-set-key (kbd "S-C-<right>") 'enlarge-window-horizontally)
