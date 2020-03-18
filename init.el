@@ -166,7 +166,7 @@ With ARG, do this that many times."
  '(ivy-virtual-abbreviate (quote full))
  '(package-selected-packages
    (quote
-	(counsel ivy-rich neotree hideshow-org ess company-jedi ag counsel-projectile magit json-mode jsonnet-mode dockerfile-mode ivy yaml-mode projectile elpy jedi pythonic markdown-mode+ anaconda-mode dracula-theme company flycheck ace-window transpose-frame gnu-elpa-keyring-update mmm-mode markdown-mode conda)))
+	(counsel ivy-rich neotree hideshow-org ess company-jedi ag counsel-projectile magit json-mode jsonnet-mode dockerfile-mode ivy yaml-mode projectile elpy jedi markdown-mode+ anaconda-mode dracula-theme company flycheck ace-window transpose-frame gnu-elpa-keyring-update mmm-mode markdown-mode conda)))
  '(show-paren-mode t)
  '(tool-bar-mode nil))
 
