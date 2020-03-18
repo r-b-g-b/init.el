@@ -94,6 +94,9 @@ There are two things you can do about this warning:
   (setq neo-smart-open t)
   )
 
+(use-package transpose-frame
+  :ensure t)
+
 (use-package zenburn-theme
   :ensure t
   :init
@@ -152,13 +155,14 @@ With ARG, do this that many times."
  ;; If you edit it by hand, you could mess it up, so be careful.
  ;; Your init file should contain only one such instance.
  ;; If there is more than one, they won't work right.
+ '(column-number-mode t)
  '(conda-anaconda-home "/home/galileo/anaconda3")
  '(custom-safe-themes
    (quote
 	("28caf31770f88ffaac6363acfda5627019cac57ea252ceb2d41d98df6d87e240" default)))
  '(initial-buffer-choice "~/projects")
- '(ivy-count-format "(%d/%d) " t)
- '(ivy-use-virtual-buffers t t)
+ '(ivy-count-format "(%d/%d) ")
+ '(ivy-use-virtual-buffers t)
  '(ivy-virtual-abbreviate (quote full))
  '(package-selected-packages
    (quote
@@ -171,4 +175,4 @@ With ARG, do this that many times."
  ;; If you edit it by hand, you could mess it up, so be careful.
  ;; Your init file should contain only one such instance.
  ;; If there is more than one, they won't work right.
- '(default ((t (:family "Noto Mono" :foundry "monotype" :slant normal :weight normal :height 122 :width normal)))))
+ '(default ((t (:family "Noto Mono" :foundry "monotype" :slant normal :weight normal :height 79 :width normal)))))
