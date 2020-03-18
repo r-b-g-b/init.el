@@ -1,0 +1,13 @@
+.cache
+anaconda-mode
+auto-save-list
+elpa
+elpy
+eshell
+projectile*
+recentf
+session*
+snippers
+transient
+url
+*~
