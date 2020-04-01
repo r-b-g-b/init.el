@@ -161,8 +161,8 @@ With ARG, do this that many times."
    (quote
     ("28caf31770f88ffaac6363acfda5627019cac57ea252ceb2d41d98df6d87e240" default)))
  '(initial-buffer-choice "~/projects")
- '(ivy-count-format "(%d/%d) ")
- '(ivy-use-virtual-buffers t)
+ '(ivy-count-format "(%d/%d) " t)
+ '(ivy-use-virtual-buffers t t)
  '(ivy-virtual-abbreviate (quote full))
  '(package-selected-packages
    (quote
