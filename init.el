@@ -33,8 +33,13 @@ There are two things you can do about this warning:
 (use-package elpy
   :ensure t
   :after (jedi)
-  :init
-  (elpy-enable))
+  :init (elpy-enable))
+
+(use-package pyvenv
+  :ensure t
+  :init (setenv "WORKON_HOME" "~/anaconda3/envs/")
+	(pyvenv-mode 1)
+	(pyvenv-tracking-mode 1))
 
 (use-package pylint
   :ensure t)
@@ -112,6 +117,7 @@ There are two things you can do about this warning:
 (add-hook 'json-mode-hook 'hs-minor-mode)
 (add-hook 'yaml-mode-hook 'hs-minor-mode)
 (add-hook 'python-mode-hook 'subword-mode)
+(add-hook 'elpy-mode-hook (lambda () (elpy-shell-toggle-dedicated-shell 1)))
 
 (setq linum-format "%4d\u2502 ")
 (setq default-tab-width 4)
@@ -156,17 +162,17 @@ With ARG, do this that many times."
  ;; Your init file should contain only one such instance.
  ;; If there is more than one, they won't work right.
  '(column-number-mode t)
- '(conda-anaconda-home "/home/galileo/anaconda3")
  '(custom-safe-themes
    (quote
     ("28caf31770f88ffaac6363acfda5627019cac57ea252ceb2d41d98df6d87e240" default)))
  '(initial-buffer-choice "~/projects")
- '(ivy-count-format "(%d/%d) " t)
- '(ivy-use-virtual-buffers t t)
+ '(ivy-count-format "(%d/%d) ")
+ '(ivy-use-virtual-buffers t)
  '(ivy-virtual-abbreviate (quote full))
  '(package-selected-packages
    (quote
-    (arduino-mode counsel ivy-rich neotree hideshow-org ess ag counsel-projectile magit json-mode jsonnet-mode dockerfile-mode ivy yaml-mode projectile elpy markdown-mode+ anaconda-mode dracula-theme company flycheck ace-window transpose-frame gnu-elpa-keyring-update mmm-mode markdown-mode conda)))
+    (arduino-mode counsel ivy-rich neotree hideshow-org ess ag counsel-projectile magit json-mode jsonnet-mode dockerfile-mode ivy yaml-mode projectile elpy markdown-mode+ dracula-theme company flycheck ace-window transpose-frame gnu-elpa-keyring-update mmm-mode markdown-mode)))
+ '(safe-local-variable-values (quote ((pyvenv-workon . hbr))))
  '(show-paren-mode t)
  '(tool-bar-mode nil))
 
