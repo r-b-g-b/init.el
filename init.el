@@ -102,6 +102,14 @@ There are two things you can do about this warning:
 (use-package transpose-frame
   :ensure t)
 
+(use-package impatient-mode
+  :ensure t
+  :config
+  (defun markdown-html (buffer)
+    (princ (with-current-buffer buffer
+      (format "<!DOCTYPE html><html><title>Impatient Markdown</title><xmp theme=\"united\" style=\"display:none;\"> %s  </xmp><script src=\"http://strapdownjs.com/v/0.2/strapdown.js\"></script></html>" (buffer-substring-no-properties (point-min) (point-max))))
+    (current-buffer))))
+
 (use-package zenburn-theme
   :ensure t
   :init
@@ -171,8 +179,12 @@ With ARG, do this that many times."
  '(ivy-virtual-abbreviate (quote full))
  '(package-selected-packages
    (quote
-    (arduino-mode counsel ivy-rich neotree hideshow-org ess ag counsel-projectile magit json-mode jsonnet-mode dockerfile-mode ivy yaml-mode projectile elpy markdown-mode+ dracula-theme company flycheck ace-window transpose-frame gnu-elpa-keyring-update mmm-mode markdown-mode)))
- '(safe-local-variable-values (quote ((pyvenv-workon . hbr))))
+    (impatient-mode arduino-mode counsel ivy-rich neotree hideshow-org ess ag counsel-projectile magit json-mode jsonnet-mode dockerfile-mode ivy yaml-mode projectile elpy markdown-mode+ dracula-theme company flycheck ace-window transpose-frame gnu-elpa-keyring-update mmm-mode markdown-mode)))
+ '(safe-local-variable-values
+   (quote
+    ((pyvenv-workon . loggingisfun)
+     (pyvenv-workon . typingisfun)
+     (pyvenv-workon . hbr))))
  '(show-paren-mode t)
  '(tool-bar-mode nil))
 
