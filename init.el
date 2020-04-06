@@ -182,7 +182,9 @@ With ARG, do this that many times."
     (impatient-mode arduino-mode counsel ivy-rich neotree hideshow-org ess ag counsel-projectile magit json-mode jsonnet-mode dockerfile-mode ivy yaml-mode projectile elpy markdown-mode+ dracula-theme company flycheck ace-window transpose-frame gnu-elpa-keyring-update mmm-mode markdown-mode)))
  '(safe-local-variable-values
    (quote
-    ((pyvenv-workon . loggingisfun)
+    ((pyvenv-workon . stallcatchers)
+     (pyvenv-workon . rapidsos-covid-911)
+     (pyvenv-workon . loggingisfun)
      (pyvenv-workon . typingisfun)
      (pyvenv-workon . hbr))))
  '(show-paren-mode t)
