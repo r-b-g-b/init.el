@@ -189,10 +189,11 @@ With ARG, do this that many times."
  '(safe-local-variable-values
    (quote
     ((pyvenv-workon . stallcatchers)
-     (pyvenv-workon . rapidsos-covid-911)
-     (pyvenv-workon . loggingisfun)
-     (pyvenv-workon . typingisfun)
-     (pyvenv-workon . hbr))))
+     (pyvenv-workon . stallcatchers/)
+     (pyvenv-workon . rapidsos-covid-911/)
+     (pyvenv-workon . loggingisfun/)
+     (pyvenv-workon . typingisfun/)
+     (pyvenv-workon . hbr/))))
  '(show-paren-mode t)
  '(tool-bar-mode nil))
 
