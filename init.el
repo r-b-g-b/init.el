@@ -45,19 +45,23 @@ There are two things you can do about this warning:
   :ensure t)
 
 (use-package projectile
+  :ensure t
   :bind-keymap
   ("C-c p" . projectile-command-map))
 
 (use-package counsel
+  :ensure t
   :after ivy
   :config (counsel-mode))
 
 (use-package counsel-projectile
+  :ensure t
   :after (counsel ivy)
   :config (counsel-projectile-mode)
 )
 
 (use-package ivy
+  :ensure t
   :defer 0.1
   :diminish
   :bind (("C-c C-r" . ivy-resume)
@@ -68,6 +72,7 @@ There are two things you can do about this warning:
   :config (ivy-mode))
 
 (use-package ivy-rich
+  :ensure t
   :after ivy
   :custom
   (ivy-virtual-abbreviate 'full
@@ -79,6 +84,7 @@ There are two things you can do about this warning:
   (ivy-rich-mode))
 
 (use-package swiper
+  :ensure t
   :after ivy
   :bind (("C-s" . swiper)
          ("C-r" . swiper)))
@@ -179,7 +185,7 @@ With ARG, do this that many times."
  '(ivy-virtual-abbreviate (quote full))
  '(package-selected-packages
    (quote
-    (impatient-mode arduino-mode counsel ivy-rich neotree hideshow-org ess ag counsel-projectile magit json-mode jsonnet-mode dockerfile-mode ivy yaml-mode projectile elpy markdown-mode+ dracula-theme company flycheck ace-window transpose-frame gnu-elpa-keyring-update mmm-mode markdown-mode)))
+    (swiper impatient-mode arduino-mode counsel ivy-rich neotree hideshow-org ess ag counsel-projectile magit json-mode jsonnet-mode dockerfile-mode ivy yaml-mode projectile elpy markdown-mode+ dracula-theme company flycheck ace-window transpose-frame gnu-elpa-keyring-update mmm-mode markdown-mode)))
  '(safe-local-variable-values
    (quote
     ((pyvenv-workon . stallcatchers)
