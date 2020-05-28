@@ -38,8 +38,7 @@ There are two things you can do about this warning:
 (use-package pyvenv
   :ensure t
   :init (setenv "WORKON_HOME" "~/anaconda3/envs/")
-	(pyvenv-mode 1)
-	(pyvenv-tracking-mode 1))
+	(pyvenv-mode 1))
 
 (use-package pylint
   :ensure t)
