@@ -19,12 +19,18 @@ There are two things you can do about this warning:
 
 (package-initialize)
 
+;; Bootstrap `use-package'
+(unless (package-installed-p 'use-package)
+  (package-refresh-contents)
+  (package-install 'use-package))
+
 (use-package ace-window
   :ensure t
   :bind ("M-o" . ace-window))
 
 (use-package flycheck
   :ensure t
+  :init
   :config (global-flycheck-mode))
 
 (use-package jedi
@@ -32,8 +38,9 @@ There are two things you can do about this warning:
 
 (use-package elpy
   :ensure t
-  :after (jedi)
-  :init (elpy-enable))
+  :defer t
+  :init
+  (advice-add 'python-mode :before 'elpy-enable))
 
 (use-package pyvenv
   :ensure t
@@ -41,6 +48,9 @@ There are two things you can do about this warning:
 	(pyvenv-mode 1))
 
 (use-package pylint
+  :ensure t)
+
+(use-package blacken
   :ensure t)
 
 (use-package projectile
@@ -82,6 +92,11 @@ There are two things you can do about this warning:
                                'ivy-rich-switch-buffer-transformer)
   (ivy-rich-mode))
 
+(use-package better-shell
+    :ensure t
+    :bind (("C-'" . better-shell-shell)
+           ("C-;" . better-shell-remote-open)))
+
 (use-package swiper
   :ensure t
   :after ivy
@@ -115,22 +130,43 @@ There are two things you can do about this warning:
       (format "<!DOCTYPE html><html><title>Impatient Markdown</title><xmp theme=\"united\" style=\"display:none;\"> %s  </xmp><script src=\"http://strapdownjs.com/v/0.2/strapdown.js\"></script></html>" (buffer-substring-no-properties (point-min) (point-max))))
     (current-buffer))))
 
+(use-package origami
+  :ensure t)
+
+(use-package undo-tree
+  :ensure t
+  :init
+  (global-undo-tree-mode))
+
+(use-package direx
+  :ensure t
+  :init
+  (global-set-key (kbd "C-x C-j") 'direx:jump-to-directory))
+
 (use-package zenburn-theme
   :ensure t
   :init
   (load-theme 'zenburn t))
 
+(use-package doom-themes
+  :ensure t)
+
+(use-package doom-modeline
+  :ensure t
+  :init (doom-modeline-mode 1))
+
 (show-paren-mode t)
 (which-key-mode t)
 (winner-mode t)
 
-(add-hook 'prog-mode-hook 'linum-mode)
+(add-hook 'elpy-mode-hook (lambda () (elpy-shell-toggle-dedicated-shell 1)))
+(add-hook 'json-mode-hook 'hs-minor-mode)
 (add-hook 'prog-mode-hook 'column-number-mode)
 (add-hook 'prog-mode-hook 'hs-minor-mode)
-(add-hook 'json-mode-hook 'hs-minor-mode)
-(add-hook 'yaml-mode-hook 'hs-minor-mode)
+(add-hook 'prog-mode-hook 'linum-mode)
+(add-hook 'python-mode-hook 'blacken-mode)
 (add-hook 'python-mode-hook 'subword-mode)
-(add-hook 'elpy-mode-hook (lambda () (elpy-shell-toggle-dedicated-shell 1)))
+(add-hook 'yaml-mode-hook 'hs-minor-mode)
 
 (setq linum-format "%4d\u2502 ")
 (setq default-tab-width 4)
@@ -147,6 +183,7 @@ There are two things you can do about this warning:
 (global-set-key [mouse-9] 'next-buffer)
 (global-set-key [mouse-10] 'next-buffer)
 (global-set-key [mouse-11] 'previous-buffer)
+(global-hl-line-mode t)
 
 ;; M-backspace does not copy to clipboard
 ;; https://www.emacswiki.org/emacs/BackwardDeleteWord
@@ -178,21 +215,24 @@ With ARG, do this that many times."
  '(custom-safe-themes
    (quote
     ("28caf31770f88ffaac6363acfda5627019cac57ea252ceb2d41d98df6d87e240" default)))
+ '(elpy-rpc-backend "jedi" t)
+ '(elpy-rpc-timeout 10)
  '(initial-buffer-choice "~/projects")
  '(ivy-count-format "(%d/%d) ")
  '(ivy-use-virtual-buffers t)
  '(ivy-virtual-abbreviate (quote full))
  '(package-selected-packages
    (quote
-    (toml-mode docker-compose-mode swiper impatient-mode arduino-mode counsel ivy-rich neotree hideshow-org ess ag counsel-projectile magit json-mode jsonnet-mode dockerfile-mode ivy yaml-mode projectile elpy markdown-mode+ dracula-theme company flycheck ace-window transpose-frame gnu-elpa-keyring-update mmm-mode markdown-mode)))
+    (direx ztree blacken snakemake-mode company-jedi toml-mode docker-compose-mode swiper impatient-mode arduino-mode counsel ivy-rich neotree hideshow-org ess ag counsel-projectile magit json-mode jsonnet-mode dockerfile-mode ivy yaml-mode projectile elpy markdown-mode+ dracula-theme company flycheck ace-window transpose-frame gnu-elpa-keyring-update mmm-mode markdown-mode)))
  '(safe-local-variable-values
    (quote
     ((pyvenv-workon . stallcatchers)
+     (pyvenv-workon . buildseg_1)
      (pyvenv-workon . stallcatchers/)
      (pyvenv-workon . rapidsos-covid-911/)
      (pyvenv-workon . loggingisfun/)
      (pyvenv-workon . typingisfun/)
-     (pyvenv-workon . hbr/))))
+     (pyvenv-workon . hbr-retention-analysis/))))
  '(show-paren-mode t)
  '(tool-bar-mode nil))
 
