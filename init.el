@@ -33,9 +33,6 @@ There are two things you can do about this warning:
   :init
   :config (global-flycheck-mode))
 
-(use-package jedi
-  :ensure t)
-
 (use-package elpy
   :ensure t
   :defer t
