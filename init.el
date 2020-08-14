@@ -176,6 +176,7 @@ There are two things you can do about this warning:
 (global-set-key (kbd "S-C-<right>") 'enlarge-window-horizontally)
 (global-set-key (kbd "S-C-<down>") 'shrink-window)
 (global-set-key (kbd "S-C-<up>") 'enlarge-window)
+(global-set-key (kbd "<deletechar>") 'backward-kill-word)
 (global-set-key [mouse-8] 'previous-buffer)
 (global-set-key [mouse-9] 'next-buffer)
 (global-set-key [mouse-10] 'next-buffer)
