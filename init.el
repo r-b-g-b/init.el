@@ -152,6 +152,12 @@ There are two things you can do about this warning:
   :ensure t
   :init (doom-modeline-mode 1))
 
+(use-package yaml-mode
+  :ensure t)
+
+(use-package dockerfile-mode
+  :ensure t)
+
 (show-paren-mode t)
 (which-key-mode t)
 (winner-mode t)
@@ -165,21 +171,23 @@ There are two things you can do about this warning:
 (add-hook 'python-mode-hook 'subword-mode)
 (add-hook 'yaml-mode-hook 'hs-minor-mode)
 
-(setq linum-format "%4d\u2502 ")
 (setq default-tab-width 4)
-(setq markdown-fontify-code-blocks-natively t)
-(setq scroll-margin 5)
-(setq scroll-conservatively 5)
 (setq elpy-rpc-virtualenv-path 'current)
+(setq linum-format "%4d\u2502 ")
+(setq markdown-fontify-code-blocks-natively t)
+(setq ring-bell-function 'ignore)
+(setq scroll-conservatively 5)
+(setq scroll-margin 5)
+(setq-default flycheck-disabled-checkers '(python-pylint))
 
+(global-set-key (kbd "S-C-<down>") 'shrink-window)
 (global-set-key (kbd "S-C-<left>") 'shrink-window-horizontally)
 (global-set-key (kbd "S-C-<right>") 'enlarge-window-horizontally)
-(global-set-key (kbd "S-C-<down>") 'shrink-window)
 (global-set-key (kbd "S-C-<up>") 'enlarge-window)
-(global-set-key [mouse-8] 'previous-buffer)
-(global-set-key [mouse-9] 'next-buffer)
 (global-set-key [mouse-10] 'next-buffer)
 (global-set-key [mouse-11] 'previous-buffer)
+(global-set-key [mouse-8] 'previous-buffer)
+(global-set-key [mouse-9] 'next-buffer)
 (global-hl-line-mode t)
 
 ;; M-backspace does not copy to clipboard
