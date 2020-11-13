@@ -63,8 +63,7 @@ There are two things you can do about this warning:
 (use-package counsel-projectile
   :ensure t
   :after (counsel ivy)
-  :config (counsel-projectile-mode)
-)
+  :config (counsel-projectile-mode))
 
 (use-package ivy
   :ensure t
@@ -102,19 +101,16 @@ There are two things you can do about this warning:
 
 (use-package magit
   :ensure t
-  :bind ("C-x g" . magit-status)
-  )
+  :bind ("C-x g" . magit-status))
 
 (use-package which-key
-  :ensure t
-  )
+  :ensure t)
 
 (use-package neotree
   :ensure t
   :config
   (setq projectile-switch-project-action 'neotree-projectile-action)
-  (setq neo-smart-open t)
-  )
+  (setq neo-smart-open t))
 
 (use-package transpose-frame
   :ensure t)
@@ -152,10 +148,22 @@ There are two things you can do about this warning:
   :ensure t
   :init (doom-modeline-mode 1))
 
+(use-package json-mode
+  :ensure t)
+
 (use-package yaml-mode
   :ensure t)
 
 (use-package dockerfile-mode
+  :ensure t)
+
+(use-package kotlin-mode
+  :ensure t)
+
+(use-package csharp-mode
+  :ensure t)
+
+(use-package stan-mode
   :ensure t)
 
 (show-paren-mode t)
@@ -177,7 +185,7 @@ There are two things you can do about this warning:
 (setq markdown-fontify-code-blocks-natively t)
 (setq ring-bell-function 'ignore)
 (setq scroll-conservatively 5)
-(setq scroll-margin 5)
+(setq scroll-margin 10)
 (setq-default flycheck-disabled-checkers '(python-pylint))
 
 (global-set-key (kbd "S-C-<down>") 'shrink-window)
@@ -218,26 +226,24 @@ With ARG, do this that many times."
  ;; If there is more than one, they won't work right.
  '(column-number-mode t)
  '(custom-safe-themes
-   (quote
-    ("28caf31770f88ffaac6363acfda5627019cac57ea252ceb2d41d98df6d87e240" default)))
+   '("28caf31770f88ffaac6363acfda5627019cac57ea252ceb2d41d98df6d87e240" default))
  '(elpy-rpc-backend "jedi" t)
  '(elpy-rpc-timeout 10)
  '(initial-buffer-choice "~/projects")
  '(ivy-count-format "(%d/%d) ")
  '(ivy-use-virtual-buffers t)
- '(ivy-virtual-abbreviate (quote full))
+ '(ivy-virtual-abbreviate 'full)
  '(package-selected-packages
-   (quote
-    (direx ztree blacken snakemake-mode company-jedi toml-mode docker-compose-mode swiper impatient-mode arduino-mode counsel ivy-rich neotree hideshow-org ess ag counsel-projectile magit json-mode jsonnet-mode dockerfile-mode ivy yaml-mode projectile elpy markdown-mode+ dracula-theme company flycheck ace-window transpose-frame gnu-elpa-keyring-update mmm-mode markdown-mode)))
+   '(csharp-mode stan-mode ranger kotlin-mode multiple-cursors direx ztree blacken snakemake-mode company-jedi toml-mode docker-compose-mode swiper impatient-mode arduino-mode counsel ivy-rich neotree hideshow-org ess ag counsel-projectile magit json-mode jsonnet-mode dockerfile-mode ivy yaml-mode projectile elpy markdown-mode+ dracula-theme company flycheck ace-window transpose-frame gnu-elpa-keyring-update mmm-mode markdown-mode))
  '(safe-local-variable-values
-   (quote
-    ((pyvenv-workon . stallcatchers)
+   '((pyvenv-workon . deriveone-wwl-transcript-parsing)
+     (pyvenv-workon . stallcatchers)
      (pyvenv-workon . buildseg_1)
      (pyvenv-workon . stallcatchers/)
      (pyvenv-workon . rapidsos-covid-911/)
      (pyvenv-workon . loggingisfun/)
      (pyvenv-workon . typingisfun/)
-     (pyvenv-workon . hbr-retention-analysis/))))
+     (pyvenv-workon . hbr-retention-analysis/)))
  '(show-paren-mode t)
  '(tool-bar-mode nil))
 
