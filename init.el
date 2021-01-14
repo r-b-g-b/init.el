@@ -218,6 +218,8 @@ With ARG, do this that many times."
   (delete-word (- arg)))
 
 (global-set-key (read-kbd-macro "<M-DEL>") 'backward-delete-word)
+(setq backup-directory-alist '(("" . "~/.emacs.d/backup")))
+(setq create-lockfiles nil)
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Emacs managed configs
