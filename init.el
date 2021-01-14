@@ -33,12 +33,6 @@ There are two things you can do about this warning:
   :init
   :config (global-flycheck-mode))
 
-(use-package elpy
-  :ensure t
-  :defer t
-  :init
-  (advice-add 'python-mode :before 'elpy-enable))
-
 (use-package pyvenv
   :ensure t
   :init (setenv "WORKON_HOME" "~/anaconda3/envs/")
@@ -176,7 +170,8 @@ There are two things you can do about this warning:
 (which-key-mode t)
 (winner-mode t)
 
-(add-hook 'elpy-mode-hook (lambda () (elpy-shell-toggle-dedicated-shell 1)))
+(add-hook 'python-mode-hook 'anaconda-mode)
+(add-hook 'python-mode-hook 'anaconda-eldoc-mode)
 (add-hook 'json-mode-hook 'hs-minor-mode)
 (add-hook 'prog-mode-hook 'column-number-mode)
 (add-hook 'prog-mode-hook 'hs-minor-mode)
@@ -186,7 +181,6 @@ There are two things you can do about this warning:
 (add-hook 'yaml-mode-hook 'hs-minor-mode)
 
 (setq default-tab-width 4)
-(setq elpy-rpc-virtualenv-path 'current)
 (setq linum-format "%4d\u2502 ")
 (setq markdown-fontify-code-blocks-natively t)
 (setq python-shell-interpreter "python"
@@ -240,15 +234,12 @@ With ARG, do this that many times."
    (quote
     ("28caf31770f88ffaac6363acfda5627019cac57ea252ceb2d41d98df6d87e240" default)))
  '(ein:output-area-inlined-images t)
- '(elpy-rpc-backend "jedi" t)
- '(elpy-rpc-timeout 10)
  '(initial-buffer-choice "~/projects")
  '(ivy-count-format "(%d/%d) ")
  '(ivy-use-virtual-buffers t)
- '(ivy-virtual-abbreviate (quote full))
  '(package-selected-packages
    (quote
-    (scad-mode typescript-mode ranger ein csv-mode csharp-mode stan-mode kotlin-mode multiple-cursors direx ztree blacken snakemake-mode company-jedi toml-mode docker-compose-mode swiper impatient-mode arduino-mode counsel ivy-rich neotree hideshow-org ess ag counsel-projectile magit json-mode jsonnet-mode dockerfile-mode ivy yaml-mode projectile elpy markdown-mode+ dracula-theme company flycheck ace-window transpose-frame gnu-elpa-keyring-update mmm-mode markdown-mode)))
+    (company-anaconda anaconda-mode scad-mode typescript-mode ranger ein csv-mode csharp-mode stan-mode kotlin-mode multiple-cursors direx ztree blacken snakemake-mode company-jedi toml-mode docker-compose-mode swiper impatient-mode arduino-mode counsel ivy-rich neotree hideshow-org ess ag counsel-projectile magit json-mode jsonnet-mode dockerfile-mode ivy yaml-mode projectile markdown-mode+ dracula-theme company flycheck ace-window transpose-frame gnu-elpa-keyring-update mmm-mode markdown-mode)))
  '(safe-local-variable-values
    (quote
     ((pyvenv-workon . deriveone-wwl-skill-package)
