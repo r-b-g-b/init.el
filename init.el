@@ -234,24 +234,31 @@ With ARG, do this that many times."
  ;; If there is more than one, they won't work right.
  '(column-number-mode t)
  '(custom-safe-themes
-   '("28caf31770f88ffaac6363acfda5627019cac57ea252ceb2d41d98df6d87e240" default))
+   (quote
+    ("28caf31770f88ffaac6363acfda5627019cac57ea252ceb2d41d98df6d87e240" default)))
+ '(ein:output-area-inlined-images t)
  '(elpy-rpc-backend "jedi" t)
  '(elpy-rpc-timeout 10)
  '(initial-buffer-choice "~/projects")
  '(ivy-count-format "(%d/%d) ")
  '(ivy-use-virtual-buffers t)
- '(ivy-virtual-abbreviate 'full)
+ '(ivy-virtual-abbreviate (quote full))
  '(package-selected-packages
-   '(csharp-mode stan-mode ranger kotlin-mode multiple-cursors direx ztree blacken snakemake-mode company-jedi toml-mode docker-compose-mode swiper impatient-mode arduino-mode counsel ivy-rich neotree hideshow-org ess ag counsel-projectile magit json-mode jsonnet-mode dockerfile-mode ivy yaml-mode projectile elpy markdown-mode+ dracula-theme company flycheck ace-window transpose-frame gnu-elpa-keyring-update mmm-mode markdown-mode))
+   (quote
+    (scad-mode typescript-mode ranger ein csv-mode csharp-mode stan-mode kotlin-mode multiple-cursors direx ztree blacken snakemake-mode company-jedi toml-mode docker-compose-mode swiper impatient-mode arduino-mode counsel ivy-rich neotree hideshow-org ess ag counsel-projectile magit json-mode jsonnet-mode dockerfile-mode ivy yaml-mode projectile elpy markdown-mode+ dracula-theme company flycheck ace-window transpose-frame gnu-elpa-keyring-update mmm-mode markdown-mode)))
  '(safe-local-variable-values
-   '((pyvenv-workon . deriveone-wwl-transcript-parsing)
+   (quote
+    ((pyvenv-workon . deriveone-wwl-skill-package)
+     (pyvenv-workon . deriveone-wwl-nerherder-service)
+     (pyvenv-workon . candid-orgmatch)
+     (pyvenv-workon . deriveone-wwl-transcript-parsing)
      (pyvenv-workon . stallcatchers)
      (pyvenv-workon . buildseg_1)
      (pyvenv-workon . stallcatchers/)
      (pyvenv-workon . rapidsos-covid-911/)
      (pyvenv-workon . loggingisfun/)
      (pyvenv-workon . typingisfun/)
-     (pyvenv-workon . hbr-retention-analysis/)))
+     (pyvenv-workon . hbr-retention-analysis/))))
  '(show-paren-mode t)
  '(tool-bar-mode nil))
 
