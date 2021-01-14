@@ -154,6 +154,9 @@ There are two things you can do about this warning:
 (use-package yaml-mode
   :ensure t)
 
+(use-package typescript-mode
+  :ensure t)
+
 (use-package dockerfile-mode
   :ensure t)
 
