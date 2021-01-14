@@ -189,6 +189,9 @@ There are two things you can do about this warning:
 (setq elpy-rpc-virtualenv-path 'current)
 (setq linum-format "%4d\u2502 ")
 (setq markdown-fontify-code-blocks-natively t)
+(setq python-shell-interpreter "python"
+      python-shell-interpreter-args "-i")
+
 (setq ring-bell-function 'ignore)
 (setq scroll-conservatively 5)
 (setq scroll-margin 10)
