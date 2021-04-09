@@ -100,6 +100,18 @@ There are two things you can do about this warning:
 (use-package which-key
   :ensure t)
 
+(use-package ag
+  :ensure t)
+
+(use-package multiple-cursors
+  :ensure t)
+
+(use-package markdown-mode
+  :ensure t)
+
+(use-package poly-markdown
+  :ensure t)
+
 (use-package neotree
   :ensure t
   :config
@@ -166,6 +178,42 @@ There are two things you can do about this warning:
 (use-package stan-mode
   :ensure t)
 
+(use-package anaconda-mode
+  :ensure t)
+
+(use-package ein
+  :ensure t)
+
+(use-package diminish
+  :ensure t)
+
+(use-package company-anaconda
+  :ensure t)
+
+;; https://martinralbrecht.wordpress.com/2015/02/12/sage-development-with-emacs/
+(use-package company
+  :ensure t
+  :diminish company-mode
+  :init (progn
+          (setq company-minimum-prefix-length 2)
+          (bind-key "C-<tab>" #'company-complete)
+          (global-company-mode 1)
+          )
+  :config (progn
+            (setq company-tooltip-limit 20) ; bigger popup window
+            (setq company-idle-delay 0.5)   ; decrease delay before autocompletion popup shows
+            (setq company-echo-delay 0)     ; remove annoying blinking
+
+            (add-to-list 'company-backends #'company-anaconda)
+
+            (bind-key "C-n" #'company-select-next company-active-map)
+            (bind-key "C-p" #'company-select-previous company-active-map)
+            (bind-key "<tab>" #'company-complete company-active-map)
+            (bind-key "M-?" #'company-show-doc-buffer company-active-map)
+            (bind-key "M-." #'company-show-location company-active-map)
+            )
+  )
+
 (show-paren-mode t)
 (which-key-mode t)
 (winner-mode t)
@@ -229,6 +277,7 @@ With ARG, do this that many times."
  ;; If you edit it by hand, you could mess it up, so be careful.
  ;; Your init file should contain only one such instance.
  ;; If there is more than one, they won't work right.
+ '(Buffer-menu-name-width 50)
  '(column-number-mode t)
  '(custom-safe-themes
    (quote
@@ -239,10 +288,11 @@ With ARG, do this that many times."
  '(ivy-use-virtual-buffers t)
  '(package-selected-packages
    (quote
-    (company-anaconda anaconda-mode scad-mode typescript-mode ranger ein csv-mode csharp-mode stan-mode kotlin-mode multiple-cursors direx ztree blacken snakemake-mode company-jedi toml-mode docker-compose-mode swiper impatient-mode arduino-mode counsel ivy-rich neotree hideshow-org ess ag counsel-projectile magit json-mode jsonnet-mode dockerfile-mode ivy yaml-mode projectile markdown-mode+ dracula-theme company flycheck ace-window transpose-frame gnu-elpa-keyring-update mmm-mode markdown-mode)))
+    (poly-markdown jq-format python-black company-anaconda anaconda-mode scad-mode typescript-mode ranger ein csv-mode csharp-mode stan-mode kotlin-mode multiple-cursors direx ztree blacken snakemake-mode company-jedi toml-mode docker-compose-mode swiper impatient-mode arduino-mode counsel ivy-rich neotree hideshow-org ess ag counsel-projectile magit json-mode jsonnet-mode dockerfile-mode ivy yaml-mode projectile markdown-mode+ dracula-theme company flycheck ace-window transpose-frame gnu-elpa-keyring-update mmm-mode markdown-mode)))
  '(safe-local-variable-values
    (quote
-    ((pyvenv-workon . deriveone-wwl-skill-package)
+    ((pyvenv-workon . candid-entity-graph)
+     (pyvenv-workon . deriveone-wwl-skill-package)
      (pyvenv-workon . deriveone-wwl-nerherder-service)
      (pyvenv-workon . candid-orgmatch)
      (pyvenv-workon . deriveone-wwl-transcript-parsing)
@@ -254,6 +304,7 @@ With ARG, do this that many times."
      (pyvenv-workon . typingisfun/)
      (pyvenv-workon . hbr-retention-analysis/))))
  '(show-paren-mode t)
+ '(split-height-threshold 100)
  '(tool-bar-mode nil))
 
 (custom-set-faces
@@ -262,3 +313,4 @@ With ARG, do this that many times."
  ;; Your init file should contain only one such instance.
  ;; If there is more than one, they won't work right.
  '(default ((t (:family "Noto Mono" :foundry "monotype" :slant normal :weight normal :height 79 :width normal)))))
+(put 'upcase-region 'disabled nil)
