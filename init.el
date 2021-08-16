@@ -193,6 +193,28 @@ There are two things you can do about this warning:
 (use-package company-anaconda
   :ensure t)
 
+(use-package company-tabnine :ensure t)
+
+(use-package ligature
+  :load-path "/home/robert/.emacs.d/elisp/ligature/"
+  :config
+  ;; Enable the "www" ligature in every possible major mode
+  (ligature-set-ligatures 't '("www"))
+
+  ;; Enable ligatures in programming modes
+  (ligature-set-ligatures 'prog-mode '("www" "**" "***" "**/" "*>" "*/" "\\\\" "\\\\\\"
+    "{-" "[]" "::" ":::" ":=" "!!" "!=" "!==" "-}"
+    "--" "---" "-->" "->" "->>" "-<" "-<<" "-~"
+    "#{" "#[" "##" "###" "####" "#(" "#?" "#_" "#_("
+    "/**" "/=" "/==" "/>" "//" "///" "&&" "||" "||="
+    "|=" "|>" "^=" "$>" "++" "+++" "+>" "=:=" "=="
+    "===" "==>" "=>" "=>>" "<=" "=<<" "=/=" ">-" ">="
+    ">=>" ">>" ">>-" ">>=" ">>>" "<*" "<*>" "<|" "<|>"
+    "<$" "<$>" "<!--" "<-" "<--" "<->" "<+" "<+>" "<="
+    "<==" "<=>" "<=<" "<>" "<<" "<<-" "<<=" "<<<" "<~"
+    "<~~" "</" "</>" "~@" "~-" "~=" "~>" "~~" "~~>" "%%"))
+  (global-ligature-mode t))
+
 (use-package indent-tools
   :ensure t
   )
@@ -253,6 +275,8 @@ With ARG, do this that many times."
 (global-set-key (read-kbd-macro "<M-DEL>") 'backward-delete-word)
 (setq backup-directory-alist '(("" . "~/.emacs.d/backup")))
 (setq create-lockfiles nil)
+
+(set-frame-font "Fira Code 8" nil t)
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Emacs managed configs
