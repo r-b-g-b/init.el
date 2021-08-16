@@ -245,6 +245,11 @@ There are two things you can do about this warning:
 (setq scroll-conservatively 5)
 (setq scroll-margin 10)
 (setq-default flycheck-disabled-checkers '(python-pylint))
+;; Trigger completion immediately.
+(setq company-idle-delay 0)
+
+;; Number the candidates (use M-1, M-2 etc to select completions).
+(setq company-show-numbers t)
 
 (global-set-key (kbd "S-C-<down>") 'shrink-window)
 (global-set-key (kbd "S-C-<left>") 'shrink-window-horizontally)
