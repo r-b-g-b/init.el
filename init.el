@@ -321,10 +321,10 @@ With ARG, do this that many times."
  '(split-height-threshold 100)
  '(tool-bar-mode nil))
 
+(put 'upcase-region 'disabled nil)
 (custom-set-faces
  ;; custom-set-faces was added by Custom.
  ;; If you edit it by hand, you could mess it up, so be careful.
  ;; Your init file should contain only one such instance.
  ;; If there is more than one, they won't work right.
- '(default ((t (:family "Noto Mono" :foundry "monotype" :slant normal :weight normal :height 79 :width normal)))))
-(put 'upcase-region 'disabled nil)
+ )
