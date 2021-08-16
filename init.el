@@ -193,19 +193,25 @@ There are two things you can do about this warning:
 (use-package company-anaconda
   :ensure t)
 
+(use-package indent-tools
+  :ensure t
+  )
+
 (show-paren-mode t)
 (which-key-mode t)
 (winner-mode t)
 
-(add-hook 'python-mode-hook 'anaconda-mode)
-(add-hook 'python-mode-hook 'anaconda-eldoc-mode)
 (add-hook 'json-mode-hook 'hs-minor-mode)
 (add-hook 'prog-mode-hook 'column-number-mode)
 (add-hook 'prog-mode-hook 'hs-minor-mode)
 (add-hook 'prog-mode-hook 'linum-mode)
+(add-hook 'python-mode-hook 'anaconda-eldoc-mode)
+(add-hook 'python-mode-hook 'anaconda-mode)
 (add-hook 'python-mode-hook 'blacken-mode)
+(add-hook 'python-mode-hook 'indent-tools-mode)
 (add-hook 'python-mode-hook 'subword-mode)
 (add-hook 'yaml-mode-hook 'hs-minor-mode)
+(add-to-list 'company-backends #'company-tabnine)
 
 (setq default-tab-width 4)
 (setq linum-format "%4d\u2502 ")
@@ -267,7 +273,7 @@ With ARG, do this that many times."
  '(ivy-use-virtual-buffers t)
  '(package-selected-packages
    (quote
-    (js2-mode poly-markdown jq-format python-black company-anaconda anaconda-mode scad-mode typescript-mode ranger ein csv-mode csharp-mode stan-mode kotlin-mode multiple-cursors direx ztree blacken snakemake-mode company-jedi toml-mode docker-compose-mode swiper impatient-mode arduino-mode counsel ivy-rich neotree hideshow-org ess ag counsel-projectile magit json-mode jsonnet-mode dockerfile-mode ivy yaml-mode projectile markdown-mode+ dracula-theme company flycheck ace-window transpose-frame gnu-elpa-keyring-update mmm-mode markdown-mode)))
+    (indent-tools company-tabnine js2-mode poly-markdown jq-format python-black company-anaconda anaconda-mode scad-mode typescript-mode ranger ein csv-mode csharp-mode stan-mode kotlin-mode multiple-cursors direx ztree blacken snakemake-mode company-jedi toml-mode docker-compose-mode swiper impatient-mode arduino-mode counsel ivy-rich neotree hideshow-org ess ag counsel-projectile magit json-mode jsonnet-mode dockerfile-mode ivy yaml-mode projectile markdown-mode+ dracula-theme company flycheck ace-window transpose-frame gnu-elpa-keyring-update mmm-mode markdown-mode)))
  '(safe-local-variable-values
    (quote
     ((pyvenv-workon . candid-entity-graph)
