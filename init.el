@@ -249,7 +249,8 @@ There are two things you can do about this warning:
 (add-hook 'python-mode-hook 'anaconda-eldoc-mode)
 (add-hook 'python-mode-hook 'anaconda-mode)
 (add-hook 'python-mode-hook 'blacken-mode)
-(add-hook 'python-mode-hook 'indent-tools-mode)
+(add-hook 'python-mode-hook 'display-fill-column-indicator-mode)
+(add-hook 'python-mode-hook 'indent-tools-minor-mode)
 (add-hook 'python-mode-hook 'subword-mode)
 (add-hook 'yaml-mode-hook 'hs-minor-mode)
 (add-to-list 'company-backends #'company-tabnine)
@@ -268,8 +269,9 @@ There are two things you can do about this warning:
 (setq company-idle-delay 0)
 
 ;; Number the candidates (use M-1, M-2 etc to select completions).
-(setq company-show-numbers t)
+(setq company-show-quick-access t)
 
+(global-set-key (kbd "C-x C-b") 'ibuffer)
 (global-set-key (kbd "S-C-<down>") 'shrink-window)
 (global-set-key (kbd "S-C-<left>") 'shrink-window-horizontally)
 (global-set-key (kbd "S-C-<right>") 'enlarge-window-horizontally)
@@ -278,8 +280,9 @@ There are two things you can do about this warning:
 (global-set-key [mouse-11] 'previous-buffer)
 (global-set-key [mouse-8] 'previous-buffer)
 (global-set-key [mouse-9] 'next-buffer)
-(global-hl-line-mode t)
+(global-set-key [f9] 'toggle-menu-bar-mode-from-frame)
 
+(global-hl-line-mode t)
 ;; M-backspace does not copy to clipboard
 ;; https://www.emacswiki.org/emacs/BackwardDeleteWord
 (defun delete-word (arg)
