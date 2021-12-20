@@ -316,18 +316,28 @@ With ARG, do this that many times."
  '(Buffer-menu-name-width 50)
  '(column-number-mode t)
  '(custom-safe-themes
-   (quote
-    ("28caf31770f88ffaac6363acfda5627019cac57ea252ceb2d41d98df6d87e240" default)))
+   '("cf922a7a5c514fad79c483048257c5d8f242b21987af0db813d3f0b138dfaf53" "28caf31770f88ffaac6363acfda5627019cac57ea252ceb2d41d98df6d87e240" default))
  '(ein:output-area-inlined-images t)
+ '(fill-column 100)
+ '(ibuffer-formats
+   '((mark modified read-only locked " "
+	   (name 50 50 :left :elide)
+	   " "
+	   (size 9 -1 :right)
+	   " "
+	   (mode 16 16 :left :elide)
+	   " " filename-and-process)
+     (mark " "
+	   (name 16 -1)
+	   " " filename)))
  '(initial-buffer-choice "~/projects")
  '(ivy-count-format "(%d/%d) ")
  '(ivy-use-virtual-buffers t)
  '(package-selected-packages
-   (quote
-    (indent-tools company-tabnine js2-mode poly-markdown jq-format python-black company-anaconda anaconda-mode scad-mode typescript-mode ranger ein csv-mode csharp-mode stan-mode kotlin-mode multiple-cursors direx ztree blacken snakemake-mode company-jedi toml-mode docker-compose-mode swiper impatient-mode arduino-mode counsel ivy-rich neotree hideshow-org ess ag counsel-projectile magit json-mode jsonnet-mode dockerfile-mode ivy yaml-mode projectile markdown-mode+ dracula-theme company flycheck ace-window transpose-frame gnu-elpa-keyring-update mmm-mode markdown-mode)))
+   '(evil jenkinsfile-mode github-review forge browse-at-remote gh spacemacs-theme csharp-mode ssh-config-mode realgud-ipdb realgud indent-tools company-tabnine js2-mode poly-markdown jq-format python-black company-anaconda anaconda-mode scad-mode typescript-mode ranger ein csv-mode stan-mode kotlin-mode multiple-cursors direx ztree blacken snakemake-mode company-jedi toml-mode docker-compose-mode swiper impatient-mode arduino-mode counsel ivy-rich neotree hideshow-org ess ag counsel-projectile magit json-mode jsonnet-mode dockerfile-mode ivy yaml-mode projectile markdown-mode+ dracula-theme company flycheck ace-window transpose-frame gnu-elpa-keyring-update mmm-mode markdown-mode))
+ '(projectile-project-search-path '("/home/robert/code" "/home/robert/projects"))
  '(safe-local-variable-values
-   (quote
-    ((pyvenv-workon . candid-entity-graph)
+   '((pyvenv-workon . candid-entity-graph)
      (pyvenv-workon . deriveone-wwl-skill-package)
      (pyvenv-workon . deriveone-wwl-nerherder-service)
      (pyvenv-workon . candid-orgmatch)
@@ -338,7 +348,7 @@ With ARG, do this that many times."
      (pyvenv-workon . rapidsos-covid-911/)
      (pyvenv-workon . loggingisfun/)
      (pyvenv-workon . typingisfun/)
-     (pyvenv-workon . hbr-retention-analysis/))))
+     (pyvenv-workon . hbr-retention-analysis/)))
  '(show-paren-mode t)
  '(split-height-threshold 100)
  '(tool-bar-mode nil))
