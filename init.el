@@ -28,6 +28,13 @@ There are two things you can do about this warning:
   :ensure t
   :bind ("M-o" . ace-window))
 
+;; (use-package evil
+;;   :ensure t
+;;   :config
+;;   (evil-mode 0)
+;;   (add-hook 'direx:direx-mode-hook 'evil-mode)
+;;   (add-hook 'python-mode-hook 'evil-mode))
+
 (use-package flycheck
   :ensure t
   :init
