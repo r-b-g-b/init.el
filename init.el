@@ -97,6 +97,19 @@ There are two things you can do about this warning:
   :ensure t
   :bind ("C-x g" . magit-status))
 
+(use-package forge
+  :after magit)
+
+(use-package github-review
+  :ensure t
+  :config
+  (setq github-review-view-comments-in-code-lines t)
+  (setq github-review-reply-inline-comments t))
+
+(use-package browse-at-remote
+  :ensure t
+  :bind ("C-c g g" . 'browse-at-remote))
+
 (use-package which-key
   :ensure t)
 
