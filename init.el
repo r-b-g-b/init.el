@@ -85,8 +85,6 @@ There are two things you can do about this warning:
                           ivy-rich-switch-buffer-align-virtual-buffer t
                           ivy-rich-path-style 'abbrev)
   :config
-  (ivy-set-display-transformer 'ivy-switch-buffer
-                               'ivy-rich-switch-buffer-transformer)
   (ivy-rich-mode))
 
 (use-package better-shell
@@ -149,9 +147,6 @@ There are two things you can do about this warning:
       (format "<!DOCTYPE html><html><title>Impatient Markdown</title><xmp theme=\"united\" style=\"display:none;\"> %s  </xmp><script src=\"http://strapdownjs.com/v/0.2/strapdown.js\"></script></html>" (buffer-substring-no-properties (point-min) (point-max))))
     (current-buffer))))
 
-(use-package origami
-  :ensure t)
-
 (use-package undo-tree
   :ensure t
   :init
@@ -163,12 +158,14 @@ There are two things you can do about this warning:
   (global-set-key (kbd "C-x C-j") 'direx:jump-to-directory))
 
 (use-package zenburn-theme
-  :ensure t
-  :init
-  (load-theme 'zenburn t))
+  :ensure t)
 
 (use-package doom-themes
   :ensure t)
+
+(use-package spacemacs-common
+    :ensure spacemacs-theme
+    :config (load-theme 'spacemacs-dark t))
 
 (use-package doom-modeline
   :ensure t
@@ -193,9 +190,6 @@ There are two things you can do about this warning:
   :ensure t)
 
 (use-package kotlin-mode
-  :ensure t)
-
-(use-package csharp-mode
   :ensure t)
 
 (use-package stan-mode
@@ -236,8 +230,13 @@ There are two things you can do about this warning:
   (global-ligature-mode t))
 
 (use-package indent-tools
-  :ensure t
-  )
+  :ensure t)
+
+(use-package realgud
+  :ensure t)
+
+(use-package realgud-ipdb
+  :ensure t)
 
 (show-paren-mode t)
 (which-key-mode t)
