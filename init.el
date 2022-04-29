@@ -1,3 +1,7 @@
+;;; package --- Summary
+;;; Commentary:
+;;; Code:
+
 ;; https://melpa.org/#/getting-started
 (require 'package)
 (let* ((no-ssl (and (memq system-type '(windows-nt ms-dos))
@@ -27,13 +31,6 @@ There are two things you can do about this warning:
 (use-package ace-window
   :ensure t
   :bind ("M-o" . ace-window))
-
-;; (use-package evil
-;;   :ensure t
-;;   :config
-;;   (evil-mode 0)
-;;   (add-hook 'direx:direx-mode-hook 'evil-mode)
-;;   (add-hook 'python-mode-hook 'evil-mode))
 
 (use-package flycheck
   :ensure t
@@ -105,12 +102,6 @@ There are two things you can do about this warning:
 (use-package forge
   :after magit)
 
-(use-package github-review
-  :ensure t
-  :config
-  (setq github-review-view-comments-in-code-lines t)
-  (setq github-review-reply-inline-comments t))
-
 (use-package browse-at-remote
   :ensure t
   :bind ("C-c g g" . 'browse-at-remote))
@@ -130,11 +121,6 @@ There are two things you can do about this warning:
 (use-package poly-markdown
   :ensure t)
 
-(use-package neotree
-  :ensure t
-  :config
-  (setq projectile-switch-project-action 'neotree-projectile-action)
-  (setq neo-smart-open t))
 
 (use-package transpose-frame
   :ensure t)
@@ -256,8 +242,6 @@ There are two things you can do about this warning:
 (winner-mode t)
 
 (add-hook 'json-mode-hook 'hs-minor-mode)
-(add-hook 'org-mode-hook #'toggle-word-wrap)
-(add-hook 'org-mode-hook 'visual-line-mode)
 (add-hook 'prog-mode-hook 'column-number-mode)
 (add-hook 'prog-mode-hook 'hs-minor-mode)
 (add-hook 'prog-mode-hook 'linum-mode)
@@ -279,9 +263,6 @@ There are two things you can do about this warning:
 (setq ring-bell-function 'ignore)
 (setq scroll-conservatively 5)
 (setq scroll-margin 10)
-
-;; Trigger completion immediately.
-(setq company-idle-delay 0)
 
 ;; Number the candidates (use M-1, M-2 etc to select completions).
 (setq company-show-quick-access t)
@@ -320,9 +301,6 @@ With ARG, do this that many times."
 
 (set-frame-font "Fira Code 8" nil t)
 
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;; Emacs managed configs
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 (custom-set-variables
  ;; custom-set-variables was added by Custom.
  ;; If you edit it by hand, you could mess it up, so be careful.
@@ -351,22 +329,10 @@ With ARG, do this that many times."
  '(ivy-use-virtual-buffers t)
  '(js-indent-level 2)
  '(org-agenda-files '("~/.org"))
- '(package-selected-packages
-   '(web-mode scad-preview evil jenkinsfile-mode github-review forge browse-at-remote gh spacemacs-theme csharp-mode ssh-config-mode realgud-ipdb realgud indent-tools company-tabnine js2-mode poly-markdown jq-format python-black company-anaconda anaconda-mode scad-mode typescript-mode ranger ein csv-mode stan-mode kotlin-mode multiple-cursors direx ztree blacken snakemake-mode company-jedi toml-mode docker-compose-mode swiper impatient-mode arduino-mode counsel ivy-rich neotree hideshow-org ess ag counsel-projectile magit json-mode jsonnet-mode dockerfile-mode ivy yaml-mode projectile markdown-mode+ dracula-theme company flycheck ace-window transpose-frame gnu-elpa-keyring-update mmm-mode markdown-mode))
- '(projectile-project-search-path '("/home/robert/code" "/home/robert/projects"))
+ '(package-selected-packages '(forge ivy-rich ace-window use-package ein))
  '(safe-local-variable-values
    '((pyvenv-workon . candid-entity-graph)
-     (pyvenv-workon . deriveone-wwl-skill-package)
-     (pyvenv-workon . deriveone-wwl-nerherder-service)
-     (pyvenv-workon . candid-orgmatch)
-     (pyvenv-workon . deriveone-wwl-transcript-parsing)
-     (pyvenv-workon . stallcatchers)
-     (pyvenv-workon . buildseg_1)
-     (pyvenv-workon . stallcatchers/)
-     (pyvenv-workon . rapidsos-covid-911/)
-     (pyvenv-workon . loggingisfun/)
-     (pyvenv-workon . typingisfun/)
-     (pyvenv-workon . hbr-retention-analysis/)))
+     (pyvenv-workon . candid-orgmatch)))
  '(scad-preview-image-size '(800 . 800))
  '(scad-preview-window-size 90)
  '(show-paren-mode t)
@@ -380,3 +346,5 @@ With ARG, do this that many times."
  ;; Your init file should contain only one such instance.
  ;; If there is more than one, they won't work right.
  )
+
+;;; init.el ends here
