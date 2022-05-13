@@ -50,6 +50,8 @@ There are two things you can do about this warning:
 
 (use-package projectile
   :ensure t
+  :config
+  (setq projectile-project-search-path '("~/projects", "~/code"))
   :bind-keymap
   ("C-c p" . projectile-command-map))
 
@@ -60,7 +62,7 @@ There are two things you can do about this warning:
 
 (use-package counsel-projectile
   :ensure t
-  :after (counsel ivy)
+  :after (counsel ivy projectile)
   :config (counsel-projectile-mode))
 
 (use-package ivy
@@ -99,6 +101,13 @@ There are two things you can do about this warning:
   :ensure t
   :bind ("C-x g" . magit-status))
 
+(use-package docker
+  :ensure t
+  :bind ("C-c d" . docker))
+
+(use-package ox-reveal
+  :ensure t)
+
 (use-package forge
   :after magit)
 
@@ -113,6 +122,9 @@ There are two things you can do about this warning:
   :ensure t)
 
 (use-package multiple-cursors
+  :ensure t)
+
+(use-package markdown-mode
   :ensure t)
 
 (use-package markdown-mode
@@ -135,6 +147,8 @@ There are two things you can do about this warning:
 
 (use-package undo-tree
   :ensure t
+  :config
+  (setq undo-tree-auto-save-history f)
   :init
   (global-undo-tree-mode))
 
@@ -182,6 +196,9 @@ There are two things you can do about this warning:
   :ensure t)
 
 (use-package anaconda-mode
+  :ensure t)
+
+(use-package python-black
   :ensure t)
 
 (use-package web-mode
@@ -242,6 +259,7 @@ There are two things you can do about this warning:
 (winner-mode t)
 
 (add-hook 'json-mode-hook 'hs-minor-mode)
+(add-hook 'org-mode-hook #'visual-line-mode)
 (add-hook 'prog-mode-hook 'column-number-mode)
 (add-hook 'prog-mode-hook 'hs-minor-mode)
 (add-hook 'prog-mode-hook 'linum-mode)
@@ -263,6 +281,7 @@ There are two things you can do about this warning:
 (setq ring-bell-function 'ignore)
 (setq scroll-conservatively 5)
 (setq scroll-margin 10)
+(setq undo-tree-history-directory-alist '(("." . "~/.emacs.d/undo")))
 
 ;; Number the candidates (use M-1, M-2 etc to select completions).
 (setq company-show-quick-access t)
@@ -325,11 +344,7 @@ With ARG, do this that many times."
 	   (name 16 -1)
 	   " " filename)))
  '(initial-buffer-choice "~/projects")
- '(ivy-count-format "(%d/%d) ")
- '(ivy-use-virtual-buffers t)
- '(js-indent-level 2)
  '(org-agenda-files '("~/.org"))
- '(package-selected-packages '(forge ivy-rich ace-window use-package ein))
  '(safe-local-variable-values
    '((pyvenv-workon . candid-entity-graph)
      (pyvenv-workon . candid-orgmatch)))
@@ -338,7 +353,6 @@ With ARG, do this that many times."
  '(show-paren-mode t)
  '(split-height-threshold 100)
  '(tool-bar-mode nil))
-
 (put 'upcase-region 'disabled nil)
 (custom-set-faces
  ;; custom-set-faces was added by Custom.
