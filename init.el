@@ -148,7 +148,8 @@ There are two things you can do about this warning:
 (use-package undo-tree
   :ensure t
   :config
-  (setq undo-tree-auto-save-history f)
+  (setq undo-tree-auto-save-history t)
+  (setq undo-tree-history-directory-alist '(("." . "~/.emacs.d/undo")))
   :init
   (global-undo-tree-mode))
 
@@ -226,7 +227,7 @@ There are two things you can do about this warning:
   :ensure t)
 
 (use-package ligature
-  :load-path "/home/robert/.emacs.d/elisp/ligature/"
+  :load-path "/home/robert/.emacs.d/elisp/ligature.el/"
   :config
   ;; Enable the "www" ligature in every possible major mode
   (ligature-set-ligatures 't '("www"))
@@ -281,7 +282,6 @@ There are two things you can do about this warning:
 (setq ring-bell-function 'ignore)
 (setq scroll-conservatively 5)
 (setq scroll-margin 10)
-(setq undo-tree-history-directory-alist '(("." . "~/.emacs.d/undo")))
 
 ;; Number the candidates (use M-1, M-2 etc to select completions).
 (setq company-show-quick-access t)
@@ -315,7 +315,7 @@ With ARG, do this that many times."
   (delete-word (- arg)))
 
 (global-set-key (read-kbd-macro "<M-DEL>") 'backward-delete-word)
-(setq backup-directory-alist '(("" . "~/.emacs.d/backup")))
+(setq backup-directory-alist '(("" . "~/.emacs.d/backups")))
 (setq create-lockfiles nil)
 
 (set-frame-font "Fira Code 8" nil t)
@@ -353,7 +353,6 @@ With ARG, do this that many times."
  '(show-paren-mode t)
  '(split-height-threshold 100)
  '(tool-bar-mode nil))
-(put 'upcase-region 'disabled nil)
 (custom-set-faces
  ;; custom-set-faces was added by Custom.
  ;; If you edit it by hand, you could mess it up, so be careful.
