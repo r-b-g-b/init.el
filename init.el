@@ -76,6 +76,17 @@ There are two things you can do about this warning:
   (ivy-use-virtual-buffers t)
   :config (ivy-mode))
 
+(use-package org-bullets
+  :ensure t
+  :config
+  (add-hook 'org-mode-hook (lambda () (org-bullets-mode 1)))
+  (setq org-hide-emphasis-markers t)
+  (font-lock-add-keywords
+   'org-mode '(("^ *\\([-]\\) " (0 (prog1 () (compose-region (match-beginning 1) (match-end 1) "•")))))))
+
+(use-package org-variable-pitch
+  :ensure t)
+
 (use-package ivy-rich
   :ensure t
   :after ivy
@@ -158,12 +169,6 @@ There are two things you can do about this warning:
   :init
   (global-set-key (kbd "C-x C-j") 'direx:jump-to-directory))
 
-(use-package zenburn-theme
-  :ensure t)
-
-(use-package doom-themes
-  :ensure t)
-
 (use-package spacemacs-common
     :ensure spacemacs-theme
     :config (load-theme 'spacemacs-dark t))
@@ -173,9 +178,6 @@ There are two things you can do about this warning:
   :init (doom-modeline-mode 1))
 
 (use-package json-mode
-  :ensure t)
-
-(use-package js2-mode
   :ensure t)
 
 (use-package yaml-mode
@@ -261,6 +263,7 @@ There are two things you can do about this warning:
 
 (add-hook 'json-mode-hook 'hs-minor-mode)
 (add-hook 'org-mode-hook #'visual-line-mode)
+(add-hook 'org-mode-hook 'org-variable-pitch-minor-mode)
 (add-hook 'prog-mode-hook 'column-number-mode)
 (add-hook 'prog-mode-hook 'hs-minor-mode)
 (add-hook 'prog-mode-hook 'linum-mode)
@@ -318,8 +321,6 @@ With ARG, do this that many times."
 (setq backup-directory-alist '(("" . "~/.emacs.d/backups")))
 (setq create-lockfiles nil)
 
-(set-frame-font "Fira Code 8" nil t)
-
 (custom-set-variables
  ;; custom-set-variables was added by Custom.
  ;; If you edit it by hand, you could mess it up, so be careful.
@@ -344,7 +345,10 @@ With ARG, do this that many times."
 	   (name 16 -1)
 	   " " filename)))
  '(initial-buffer-choice "~/projects")
- '(org-agenda-files '("~/.org"))
+ '(org-agenda-files
+   '("~/org/hrwg.org" "/home/robert/org/todo.org" "/home/robert/projects/drivendata-platform/org/platform.org" "/home/robert/projects/candid-orgmatch/org/candid.org"))
+ '(org-babel-load-languages '((emacs-lisp . t) (python . t)))
+ '(org-babel-python-command "ipython --no-banner --classic --no-confirm-exit")
  '(safe-local-variable-values
    '((pyvenv-workon . candid-entity-graph)
      (pyvenv-workon . candid-orgmatch)))
@@ -359,5 +363,4 @@ With ARG, do this that many times."
  ;; Your init file should contain only one such instance.
  ;; If there is more than one, they won't work right.
  )
-
 ;;; init.el ends here
