@@ -391,6 +391,7 @@ There are two things you can do about this warning:
 (add-hook 'python-mode-hook 'subword-mode)
 (add-hook 'yaml-mode-hook 'hs-minor-mode)
 
+(set-face-attribute 'default nil :height 86)
 (setq-default flycheck-disabled-checkers '(python-pylint))
 (setq-default electric-indent-inhibit t)
 (setq default-tab-width 4)
@@ -410,6 +411,10 @@ There are two things you can do about this warning:
 (global-set-key (kbd "S-C-<left>") 'shrink-window-horizontally)
 (global-set-key (kbd "S-C-<right>") 'enlarge-window-horizontally)
 (global-set-key (kbd "S-C-<up>") 'enlarge-window)
+(global-set-key (kbd "C-S-<tab>") 'tab-bar-switch-to-prev-tab)
+(global-set-key (kbd "C-<prior>") 'tab-bar-switch-to-prev-tab)
+(global-set-key (kbd "C-<next>") 'tab-bar-switch-to-next-tab)
+(global-set-key (kbd "C-<tab>") 'tab-bar-switch-to-recent-tab)
 (global-set-key [mouse-10] 'next-buffer)
 (global-set-key [mouse-11] 'previous-buffer)
 (global-set-key [mouse-8] 'previous-buffer)
@@ -463,8 +468,9 @@ With ARG, do this that many times."
  '(initial-buffer-choice "~/projects")
  '(org-agenda-files
    '("~/org/hrwg.org" "/home/robert/org/todo.org" "/home/robert/projects/drivendata-platform/org/platform.org" "/home/robert/projects/candid-orgmatch/org/candid.org"))
- '(org-babel-load-languages '((emacs-lisp . t) (python . t)))
+ '(org-babel-load-languages '((emacs-lisp . t) (python . t) (shell . t)))
  '(org-babel-python-command "ipython --no-banner --classic --no-confirm-exit")
+ '(org-startup-indented t)
  '(safe-local-variable-values
    '((pyvenv-workon . candid-entity-graph)
      (pyvenv-workon . candid-orgmatch)))
