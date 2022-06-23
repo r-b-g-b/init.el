@@ -195,6 +195,9 @@ There are two things you can do about this warning:
 (use-package kotlin-mode
   :ensure t)
 
+(use-package csharp-mode
+  :ensure t)
+
 (use-package stan-mode
   :ensure t)
 
