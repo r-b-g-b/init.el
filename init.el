@@ -50,10 +50,11 @@ There are two things you can do about this warning:
 
 (use-package projectile
   :ensure t
-  :config
-  (setq projectile-project-search-path '("~/projects", "~/code"))
-  :bind-keymap
-  ("C-c p" . projectile-command-map))
+  :init
+  (projectile-mode +1)
+  :bind (:map projectile-mode-map
+              ("s-p" . projectile-command-map)
+              ("C-c p" . projectile-command-map)))
 
 (use-package counsel
   :ensure t
@@ -86,6 +87,10 @@ There are two things you can do about this warning:
 
 (use-package org-variable-pitch
   :ensure t)
+
+(use-package org
+  :bind (("C-c a" . org-agenda)
+	 ("<f6>" . org-capture)))
 
 (use-package ivy-rich
   :ensure t
@@ -346,8 +351,9 @@ There are two things you can do about this warning:
         ("C-x t C-t" . treemacs-find-file)
         ("C-x t M-t" . treemacs-find-tag)))
 
+
 (use-package treemacs-evil
-  :after (treemacs evil)
+  :after (treemacs)
   :ensure t)
 
 (use-package treemacs-projectile
@@ -379,17 +385,19 @@ There are two things you can do about this warning:
 (show-paren-mode t)
 (which-key-mode t)
 (winner-mode t)
+(menu-bar-mode -1)
+(tab-bar-mode t)
 
 (add-hook 'json-mode-hook 'hs-minor-mode)
 (add-hook 'org-mode-hook #'visual-line-mode)
 (add-hook 'org-mode-hook 'org-variable-pitch-minor-mode)
 (add-hook 'prog-mode-hook 'column-number-mode)
 (add-hook 'prog-mode-hook 'hs-minor-mode)
-(add-hook 'prog-mode-hook 'linum-mode)
 (add-hook 'python-mode-hook 'anaconda-eldoc-mode)
 (add-hook 'python-mode-hook 'anaconda-mode)
 (add-hook 'python-mode-hook 'blacken-mode)
 (add-hook 'python-mode-hook 'display-fill-column-indicator-mode)
+(add-hook 'python-mode-hook 'linum-mode)
 (add-hook 'python-mode-hook 'indent-tools-minor-mode)
 (add-hook 'python-mode-hook 'subword-mode)
 (add-hook 'yaml-mode-hook 'hs-minor-mode)
@@ -405,6 +413,7 @@ There are two things you can do about this warning:
 (setq ring-bell-function 'ignore)
 (setq scroll-conservatively 5)
 (setq scroll-margin 10)
+(setq which-func-unknown "n/a")
 
 ;; Number the candidates (use M-1, M-2 etc to select completions).
 (setq company-show-quick-access t)
