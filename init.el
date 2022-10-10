@@ -1,4 +1,4 @@
-;;; package --- Summary
+;; package --- Summary
 ;;; Commentary:
 ;;; Code:
 
@@ -56,6 +56,15 @@ There are two things you can do about this warning:
               ("s-p" . projectile-command-map)
               ("C-c p" . projectile-command-map)))
 
+(use-package org-roam
+  :ensure t
+  :custom (org-roam-directory "~/org-roam")
+  :bind (("C-c n l" . org-roam-buffer-toggle)
+	 ("C-c n f" . org-roam-node-find)
+	 ("C-c n i" . org-roam-node-insert))
+  :config
+  (org-roam-db-autosync-mode))
+
 (use-package counsel
   :ensure t
   :after ivy
@@ -89,8 +98,12 @@ There are two things you can do about this warning:
   :ensure t)
 
 (use-package org
+  :init
+  (setq org-startup-indented t)
   :bind (("C-c a" . org-agenda)
-	 ("<f6>" . org-capture)))
+	 ("<f6>" . org-capture))
+  :config
+  (setq org-support-shift-select t))
 
 (use-package ivy-rich
   :ensure t
@@ -189,7 +202,11 @@ There are two things you can do about this warning:
   :ensure t)
 
 (use-package scad-mode
-  :ensure t)
+  :ensure t
+  :defines scad-preview-image-size scad-preview-window-size
+  :init
+  (setq scad-preview-image-size '(800 . 800))
+  (setq scad-preview-window-size 90))
 
 (use-package typescript-mode
   :ensure t)
@@ -228,7 +245,14 @@ There are two things you can do about this warning:
   (add-to-list 'auto-mode-alist '("\\.djhtml\\'" . web-mode)))
 
 (use-package ein
-  :ensure t)
+  :ensure t
+  :defines ein:output-area-inlined-images
+  :functions ein:worksheet-execute-cell-and-goto-next-km ein:worksheet-execute-cell-and-insert-below-km
+  :bind
+  ("C-<return>" . 'ein:worksheet-execute-cell-and-goto-next-km)
+  ("C-S-<return>" . 'ein:worksheet-execute-cell-and-insert-below-km)
+  :config
+  (setq ein:output-area-inlined-images t))
 
 (use-package diminish
   :ensure t)
@@ -371,22 +395,60 @@ There are two things you can do about this warning:
 (use-package treemacs-tab-bar ;;treemacs-tab-bar if you use tab-bar-mode
   :after (treemacs)
   :ensure t
-  :config (treemacs-set-scope-type 'Tabs))
+  :config
+  (setq treemacs-set-scope-type 'Tabs))
 
+;; (add-to-list 'load-path (expand-file-name "~/.emacs.d/emacs-livedown"))
+(use-package livedown
+  :load-path "emacs-livedown"
+  :config
+  (setq livedown-autostart nil)
+  (setq livedown-browser nil)
+  (setq livedown-open t)
+  (setq livedown-port 1337))
 
-(add-to-list 'load-path (expand-file-name "~/.emacs.d/emacs-livedown"))
-(require 'livedown)
 (custom-set-variables
- '(livedown-autostart nil) ; automatically open preview when opening markdown files
- '(livedown-open t)        ; automatically open the browser window
- '(livedown-port 1337)     ; port for livedown server
- '(livedown-browser nil))  ; browser to use
+ ;; custom-set-variables was added by Custom.
+ ;; If you edit it by hand, you could mess it up, so be careful.
+ ;; Your init file should contain only one such instance.
+ ;; If there is more than one, they won't work right.
+ '(Buffer-menu-name-width 50)
+ '(ag-ignore-list nil)
+ '(column-number-mode t)
+ '(csv-separators '("," "	" ";"))
+ '(fill-column 100)
+ '(ibuffer-formats
+   '((mark modified read-only locked " "
+	   (name 50 50 :left :elide)
+	   " "
+	   (size 9 -1 :right)
+	   " "
+	   (mode 16 16 :left :elide)
+	   " " filename-and-process)
+     (mark " "
+	   (name 16 -1)
+	   " " filename)))
+ '(initial-buffer-choice "~/projects")
+ '(org-agenda-files
+   '("/home/robert/projects/competition-nasa-airport-config/org/airport.org" "/home/robert/projects/candid-orgmatch/org/cds_graph.org" "/home/robert/projects/candid-orgmatch/org/candid.org" "/home/robert/projects/drivendata-platform/org/render-migration.org" "/home/robert/org/todo.org" "/home/robert/org/hrwg/hrwg.org" "/home/robert/projects/drivendata-platform/org/platform.org"))
+ '(org-babel-load-languages '((emacs-lisp . t) (python . t) (shell . t)))
+ '(org-babel-python-command "ipython --no-banner --classic --no-confirm-exit")
+ '(org-edit-src-content-indentation 0)
+ '(package-selected-packages
+   '(all-the-icons org-roam arduino-mode dired-icon keychain-environment evil-collection emojify livedown livedown-mode treemacs-projectile treemacs-evil treemacs jsonl zenburn-theme yaml-mode which-key web-mode use-package undo-tree typescript-mode transpose-frame stan-mode spacemacs-theme scad-mode realgud-ipdb pyvenv python-black pylint poly-markdown ox-reveal org-variable-pitch org-bullets multiple-cursors kotlin-mode ivy-rich indent-tools impatient-mode forge flycheck ein doom-themes doom-modeline dockerfile-mode docker direx diminish csv-mode counsel-projectile company-anaconda browse-at-remote blacken better-shell ag ace-window a))
+ '(projectile-project-search-path '("~/projects"))
+ '(safe-local-variable-values
+   '((pyvenv-workon . candid-entity-graph)
+     (pyvenv-workon . candid-orgmatch)))
+ '(split-height-threshold 100))
 
+(menu-bar-mode -1)
 (show-paren-mode t)
+(tab-bar-mode t)
+(tool-bar-mode -1)
+(which-function-mode t)
 (which-key-mode t)
 (winner-mode t)
-(menu-bar-mode -1)
-(tab-bar-mode t)
 
 (add-hook 'json-mode-hook 'hs-minor-mode)
 (add-hook 'org-mode-hook #'visual-line-mode)
@@ -405,8 +467,8 @@ There are two things you can do about this warning:
 (set-face-attribute 'default nil :height 86)
 (setq-default flycheck-disabled-checkers '(python-pylint))
 (setq-default electric-indent-inhibit t)
-(setq default-tab-width 4)
-(setq linum-format "%4d\u2502 ")
+(setq-default default-tab-width 4)
+(setq-default linum-format "%4d\u2502 ")
 (setq markdown-fontify-code-blocks-natively t)
 (setq python-shell-interpreter "python"
       python-shell-interpreter-args "-i")
@@ -454,47 +516,12 @@ With ARG, do this that many times."
 (setq backup-directory-alist '(("" . "~/.emacs.d/backups")))
 (setq create-lockfiles nil)
 
-(custom-set-variables
- ;; custom-set-variables was added by Custom.
- ;; If you edit it by hand, you could mess it up, so be careful.
- ;; Your init file should contain only one such instance.
- ;; If there is more than one, they won't work right.
- '(Buffer-menu-name-width 50)
- '(ag-ignore-list nil)
- '(column-number-mode t)
- '(custom-safe-themes
-   '("cf922a7a5c514fad79c483048257c5d8f242b21987af0db813d3f0b138dfaf53" "28caf31770f88ffaac6363acfda5627019cac57ea252ceb2d41d98df6d87e240" default))
- '(ein:output-area-inlined-images t)
- '(fill-column 100)
- '(ibuffer-formats
-   '((mark modified read-only locked " "
-	   (name 50 50 :left :elide)
-	   " "
-	   (size 9 -1 :right)
-	   " "
-	   (mode 16 16 :left :elide)
-	   " " filename-and-process)
-     (mark " "
-	   (name 16 -1)
-	   " " filename)))
- '(initial-buffer-choice "~/projects")
- '(org-agenda-files
-   '("~/org/hrwg.org" "/home/robert/org/todo.org" "/home/robert/projects/drivendata-platform/org/platform.org" "/home/robert/projects/candid-orgmatch/org/candid.org"))
- '(org-babel-load-languages '((emacs-lisp . t) (python . t) (shell . t)))
- '(org-babel-python-command "ipython --no-banner --classic --no-confirm-exit")
- '(org-startup-indented t)
- '(safe-local-variable-values
-   '((pyvenv-workon . candid-entity-graph)
-     (pyvenv-workon . candid-orgmatch)))
- '(scad-preview-image-size '(800 . 800))
- '(scad-preview-window-size 90)
- '(show-paren-mode t)
- '(split-height-threshold 100)
- '(tool-bar-mode nil))
+;;; init.el ends here
 (custom-set-faces
  ;; custom-set-faces was added by Custom.
  ;; If you edit it by hand, you could mess it up, so be careful.
  ;; Your init file should contain only one such instance.
  ;; If there is more than one, they won't work right.
  )
-;;; init.el ends here
+(put 'downcase-region 'disabled nil)
+(put 'upcase-region 'disabled nil)
