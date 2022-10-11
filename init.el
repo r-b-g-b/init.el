@@ -30,7 +30,10 @@ There are two things you can do about this warning:
 
 (use-package ace-window
   :ensure t
-  :bind ("M-o" . ace-window))
+  :bind ("M-o" . ace-window)
+  :config
+  (setq aw-keys '(?a ?s ?d ?f ?g ?h ?j ?k ?l))
+  (setq aw-scope 'frame))
 
 (use-package flycheck
   :ensure t
