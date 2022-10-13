@@ -144,6 +144,7 @@ There are two things you can do about this warning:
   :ensure t)
 
 (use-package forge
+  :ensure t
   :after magit)
 
 (use-package browse-at-remote
