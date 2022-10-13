@@ -137,6 +137,9 @@ There are two things you can do about this warning:
   :ensure t
   :bind ("C-c d" . docker))
 
+(use-package keychain-environment
+  :ensure t)
+
 (use-package ox-reveal
   :ensure t)
 
