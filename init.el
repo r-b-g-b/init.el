@@ -157,6 +157,13 @@ There are two things you can do about this warning:
 (use-package ag
   :ensure t)
 
+(use-package all-the-icons
+  :ensure t)
+
+(use-package all-the-icons-dired
+  :ensure t
+  :after all-the-icons)
+
 (use-package multiple-cursors
   :ensure t)
 
@@ -450,6 +457,7 @@ There are two things you can do about this warning:
  '(split-height-threshold 100))
 
 (menu-bar-mode -1)
+(scroll-bar-mode -1)
 (show-paren-mode t)
 (tab-bar-mode t)
 (tool-bar-mode -1)
