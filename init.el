@@ -31,9 +31,9 @@ There are two things you can do about this warning:
 (use-package ace-window
   :ensure t
   :bind ("M-o" . ace-window)
-  :config
-  (setq aw-keys '(?a ?s ?d ?f ?g ?h ?j ?k ?l))
-  (setq aw-scope 'frame))
+  :custom
+  (aw-keys '(?a ?s ?d ?f ?g ?h ?j ?k ?l))
+  (aw-scope 'frame))
 
 (use-package flycheck
   :ensure t
@@ -59,6 +59,15 @@ There are two things you can do about this warning:
               ("s-p" . projectile-command-map)
               ("C-c p" . projectile-command-map)))
 
+(use-package org
+  :init
+  (setq org-startup-indented t)
+  :bind (("C-c a" . org-agenda)
+	 ("<f6>" . org-capture))
+  :custom
+  (org-goto-interface 'outline-path-completion)
+  (org-support-shift-select t))
+
 (use-package org-roam
   :ensure t
   :custom (org-roam-directory "~/org-roam")
@@ -66,7 +75,20 @@ There are two things you can do about this warning:
 	 ("C-c n f" . org-roam-node-find)
 	 ("C-c n i" . org-roam-node-insert))
   :config
-  (org-roam-db-autosync-mode))
+  (org-roam-db-autosync-mode)
+  :custom
+  (org-roam-graph-executable "neato"))
+
+(use-package deft
+  :ensure
+  :after org
+  :bind
+  ("C-c n d" . deft)
+  :custom
+  (deft-recursive t)
+  (deft-use-filter-string-for-filename t)
+  (deft-default-extension "org")
+  (deft-directory org-roam-directory))
 
 (use-package counsel
   :ensure t
@@ -100,13 +122,10 @@ There are two things you can do about this warning:
 (use-package org-variable-pitch
   :ensure t)
 
-(use-package org
-  :init
-  (setq org-startup-indented t)
-  :bind (("C-c a" . org-agenda)
-	 ("<f6>" . org-capture))
-  :config
-  (setq org-support-shift-select t))
+(use-package ob-mermaid
+  :ensure t
+  :custom
+  (ob-mermaid-cli-path "~/.local/bin/mmdc"))
 
 (use-package ivy-rich
   :ensure t
@@ -122,6 +141,11 @@ There are two things you can do about this warning:
     :ensure t
     :bind (("C-'" . better-shell-shell)
            ("C-;" . better-shell-remote-open)))
+
+(use-package w3m
+  :ensure t
+  :custom
+  (w3m-home-page "https://lite.duckduckgo.com/lite"))
 
 (use-package swiper
   :ensure t
@@ -192,11 +216,12 @@ There are two things you can do about this warning:
 
 (use-package undo-tree
   :ensure t
-  :config
-  (setq undo-tree-auto-save-history t)
-  (setq undo-tree-history-directory-alist '(("." . "~/.emacs.d/undo")))
+  :defines undo-tree-auto-save-history undo-tree-history-directory-alist
   :init
   (global-undo-tree-mode))
+  :custom
+  (undo-tree-auto-save-history t)
+  (undo-tree-history-directory-alist '(("." . "~/.emacs.d/undo")))
 
 (use-package direx
   :ensure t
@@ -212,6 +237,9 @@ There are two things you can do about this warning:
   :init (doom-modeline-mode 1))
 
 (use-package json-mode
+  :ensure t)
+
+(use-package mermaid-mode
   :ensure t)
 
 (use-package yaml-mode
@@ -318,11 +346,11 @@ There are two things you can do about this warning:
 ;; (add-to-list 'load-path (expand-file-name "~/.emacs.d/emacs-livedown"))
 (use-package livedown
   :load-path "emacs-livedown"
-  :config
-  (setq livedown-autostart nil)
-  (setq livedown-browser nil)
-  (setq livedown-open t)
-  (setq livedown-port 1337))
+  :custom
+  (livedown-autostart nil)
+  (livedown-browser nil)
+  (livedown-open t)
+  (livedown-port 1337))
 
 (custom-set-variables
  ;; custom-set-variables was added by Custom.
@@ -331,6 +359,7 @@ There are two things you can do about this warning:
  ;; If there is more than one, they won't work right.
  '(Buffer-menu-name-width 50)
  '(ag-ignore-list nil)
+ '(all-the-icons-dired-monochrome nil)
  '(column-number-mode t)
  '(csv-separators '("," "	" ";"))
  '(fill-column 100)
@@ -347,15 +376,18 @@ There are two things you can do about this warning:
 	   " " filename)))
  '(initial-buffer-choice "~/projects")
  '(org-agenda-files
-   '("/home/robert/projects/competition-nasa-airport-config/org/airport.org" "/home/robert/projects/candid-orgmatch/org/cds_graph.org" "/home/robert/projects/candid-orgmatch/org/candid.org" "/home/robert/projects/drivendata-platform/org/render-migration.org" "/home/robert/org/todo.org" "/home/robert/org/hrwg/hrwg.org" "/home/robert/projects/drivendata-platform/org/platform.org"))
+   '("/home/robert/projects/candid-orgmatch/org/cds_graph.org" "/home/robert/projects/candid-orgmatch/org/candid.org" "/home/robert/projects/drivendata-platform/org/render-migration.org" "/home/robert/org/todo.org" "/home/robert/org/hrwg/hrwg.org" "/home/robert/projects/drivendata-platform/org/platform.org"))
  '(org-babel-load-languages '((emacs-lisp . t) (python . t) (shell . t)))
  '(org-babel-python-command "ipython --no-banner --classic --no-confirm-exit")
  '(org-edit-src-content-indentation 0)
+ '(package-selected-packages
+   '(mermaid-mode ob-mermaid w3m deft org-roam-export zenburn-theme yaml-mode which-key web-mode use-package undo-tree typescript-mode treemacs-tab-bar treemacs-magit treemacs-icons-dired transpose-frame stan-mode sqlite3 spacemacs-theme scad-mode realgud-ipdb pyvenv python-black pylint poly-markdown ox-reveal org-variable-pitch org-roam org-bullets multiple-cursors multi-vterm kotlin-mode keychain-environment jsonl json-mode ivy-rich indent-tools impatient-mode forge flycheck evil-collection emojify ein doom-themes doom-modeline dockerfile-mode docker direx dired-icon diminish csv-mode csharp-mode counsel-projectile company-anaconda browse-at-remote blacken better-shell arduino-mode all-the-icons-dired ag a))
  '(projectile-project-search-path '("~/projects"))
  '(safe-local-variable-values
    '((pyvenv-workon . candid-entity-graph)
      (pyvenv-workon . candid-orgmatch)))
- '(split-height-threshold 100))
+ '(split-height-threshold 100)
+ '(w3m-home-page "https://lite.duckduckgo.com/lite"))
 
 (menu-bar-mode -1)
 (scroll-bar-mode -1)
@@ -431,13 +463,3 @@ With ARG, do this that many times."
 (global-set-key (read-kbd-macro "<M-DEL>") 'backward-delete-word)
 (setq backup-directory-alist '(("" . "~/.emacs.d/backups")))
 (setq create-lockfiles nil)
-
-;;; init.el ends here
-(custom-set-faces
- ;; custom-set-faces was added by Custom.
- ;; If you edit it by hand, you could mess it up, so be careful.
- ;; Your init file should contain only one such instance.
- ;; If there is more than one, they won't work right.
- )
-(put 'downcase-region 'disabled nil)
-(put 'upcase-region 'disabled nil)
