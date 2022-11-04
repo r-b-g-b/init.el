@@ -4,23 +4,12 @@
 
 ;; https://melpa.org/#/getting-started
 (require 'package)
-(let* ((no-ssl (and (memq system-type '(windows-nt ms-dos))
-		    (not (gnutls-available-p))))
-       (proto (if no-ssl "http" "https")))
-  (when no-ssl
-        (warn "\
-Your version of Emacs does not support SSL connections,
-which is unsafe because it allows man-in-the-middle attacks.
-There are two things you can do about this warning:
-1. Install an Emacs version that does support SSL and be safe.
-2. Remove this warning from your init file so you won't see it again."))
-  ;; Comment/uncomment these two lines to enable/disable MELPA and MELPA Stable as desired
-  (add-to-list 'package-archives (cons "melpa" (concat proto "://melpa.org/packages/")) t)
-  ;;(add-to-list 'package-archives (cons "melpa-stable" (concat proto "://stable.melpa.org/packages/")) t)
-  (when (< emacs-major-version 24)
-    ;; For important compatibility libraries like cl-lib
-    (add-to-list 'package-archives (cons "gnu" (concat proto "://elpa.gnu.org/packages/")))))
-
+(add-to-list 'package-archives '("melpa" . "https://melpa.org/packages/") t)
+;; Comment/uncomment this line to enable MELPA Stable if desired.
+;; See `package-archive-priorities` and `package-pinned-packages`.
+;; Most users will not need or want to do this.
+;; (add-to-list 'package-archives
+;;              '("melpa-stable" . "https://stable.melpa.org/packages/") t)
 (package-initialize)
 
 ;; Bootstrap `use-package'
@@ -40,6 +29,14 @@ There are two things you can do about this warning:
   :init
   :config (global-flycheck-mode))
 
+(use-package python
+  :config
+  (add-hook 'python-mode-hook (lambda () (define-key python-mode-map (kbd "C-c >") 'indent-tools-hydra/body))))
+
+(use-package json-mode
+  :config
+  (add-hook 'json-mode-hook (lambda () (define-key json-mode-map (kbd "C-c >") 'indent-tools-hydra/body))))
+
 (use-package pyvenv
   :ensure t
   :init (setenv "WORKON_HOME" "~/anaconda3/envs/")
@@ -49,7 +46,8 @@ There are two things you can do about this warning:
   :ensure t)
 
 (use-package blacken
-  :ensure t)
+  :ensure t
+  :hook python-mode)
 
 (use-package projectile
   :ensure t
@@ -59,25 +57,51 @@ There are two things you can do about this warning:
               ("s-p" . projectile-command-map)
               ("C-c p" . projectile-command-map)))
 
+(use-package hydra
+  :ensure t)
+
 (use-package org
   :init
   (setq org-startup-indented t)
-  :bind (("C-c a" . org-agenda)
-	 ("<f6>" . org-capture))
+  :bind
+  ("C-c C-j" . nil)
+  ("C-c a" . org-agenda)
+  ("<f6>" . org-capture)
   :custom
-  (org-goto-interface 'outline-path-completion)
-  (org-support-shift-select t))
+  (org-support-shift-select t)
+  (org-confirm-babel-evaluate nil)
+  :config
+  (progn
+    (unbind-key "C-c C-j")
+    (bind-key "C-c C-j" 'counsel-outline)))
 
 (use-package org-roam
   :ensure t
   :custom (org-roam-directory "~/org-roam")
   :bind (("C-c n l" . org-roam-buffer-toggle)
 	 ("C-c n f" . org-roam-node-find)
-	 ("C-c n i" . org-roam-node-insert))
+	 ("C-c n i" . org-roam-node-insert)
+	 ("C-c n t" . org-roam-dailies-goto-today))
   :config
   (org-roam-db-autosync-mode)
   :custom
   (org-roam-graph-executable "neato"))
+
+(use-package org-bullets
+  :ensure t
+  :hook org-mode
+  :config
+  (setq org-hide-emphasis-markers t)
+  (font-lock-add-keywords
+   'org-mode '(("^ *\\([-]\\) " (0 (prog1 () (compose-region (match-beginning 1) (match-end 1) "•")))))))
+
+(use-package org-variable-pitch
+  :ensure t)
+
+(use-package ob-mermaid
+  :ensure t
+  :custom
+  (ob-mermaid-cli-path "~/.local/bin/mmdc"))
 
 (use-package deft
   :ensure
@@ -111,21 +135,30 @@ There are two things you can do about this warning:
   (ivy-use-virtual-buffers t)
   :config (ivy-mode))
 
-(use-package org-bullets
+
+(use-package undo-tree
+  :after hydra
   :ensure t
+  :init
+  (global-undo-tree-mode))
+  (defhydra hydra-undo-tree (:hint nil)
+      "
+  _p_: undo  _n_: redo _s_: save _l_: load   "
+      ("p"   undo-tree-undo)
+      ("n"   undo-tree-redo)
+      ("s"   undo-tree-save-history)
+      ("l"   undo-tree-load-history)
+      ("u"   undo-tree-visualize "visualize" :color blue)
+      ("q"   nil "quit" :color blue))
   :config
-  (add-hook 'org-mode-hook (lambda () (org-bullets-mode 1)))
-  (setq org-hide-emphasis-markers t)
-  (font-lock-add-keywords
-   'org-mode '(("^ *\\([-]\\) " (0 (prog1 () (compose-region (match-beginning 1) (match-end 1) "•")))))))
+  (setq undo-tree-auto-save-history t)
+  (setq undo-tree-history-directory-alist '(("." . "~/.emacs.d/undo")))
 
-(use-package org-variable-pitch
-  :ensure t)
+(use-package python)
 
-(use-package ob-mermaid
+(use-package ivy-hydra
   :ensure t
-  :custom
-  (ob-mermaid-cli-path "~/.local/bin/mmdc"))
+  :after hydra)
 
 (use-package ivy-rich
   :ensure t
@@ -136,16 +169,6 @@ There are two things you can do about this warning:
                           ivy-rich-path-style 'abbrev)
   :config
   (ivy-rich-mode))
-
-(use-package better-shell
-    :ensure t
-    :bind (("C-'" . better-shell-shell)
-           ("C-;" . better-shell-remote-open)))
-
-(use-package w3m
-  :ensure t
-  :custom
-  (w3m-home-page "https://lite.duckduckgo.com/lite"))
 
 (use-package swiper
   :ensure t
@@ -202,7 +225,6 @@ There are two things you can do about this warning:
 (use-package poly-markdown
   :ensure t)
 
-
 (use-package transpose-frame
   :ensure t)
 
@@ -213,20 +235,6 @@ There are two things you can do about this warning:
     (princ (with-current-buffer buffer
       (format "<!DOCTYPE html><html><title>Impatient Markdown</title><xmp theme=\"united\" style=\"display:none;\"> %s  </xmp><script src=\"http://strapdownjs.com/v/0.2/strapdown.js\"></script></html>" (buffer-substring-no-properties (point-min) (point-max))))
     (current-buffer))))
-
-(use-package undo-tree
-  :ensure t
-  :defines undo-tree-auto-save-history undo-tree-history-directory-alist
-  :init
-  (global-undo-tree-mode))
-  :custom
-  (undo-tree-auto-save-history t)
-  (undo-tree-history-directory-alist '(("." . "~/.emacs.d/undo")))
-
-(use-package direx
-  :ensure t
-  :init
-  (global-set-key (kbd "C-x C-j") 'direx:jump-to-directory))
 
 (use-package spacemacs-common
     :ensure spacemacs-theme
@@ -271,25 +279,18 @@ There are two things you can do about this warning:
   :ensure t)
 
 (use-package anaconda-mode
-  :ensure t)
+  :ensure t
+  :hook python-mode)
 
 (use-package python-black
   :ensure t)
 
 (use-package web-mode
   :ensure t
-  :config
-  (setq web-mode-engines-alist
-	'(("django"    . "\\.html?\\'")))
-  :init
-  (add-to-list 'auto-mode-alist '("\\.html?\\'" . web-mode))
-  (add-to-list 'auto-mode-alist '("\\.phtml\\'" . web-mode))
-  (add-to-list 'auto-mode-alist '("\\.tpl\\.php\\'" . web-mode))
-  (add-to-list 'auto-mode-alist '("\\.[agj]sp\\'" . web-mode))
-  (add-to-list 'auto-mode-alist '("\\.as[cp]x\\'" . web-mode))
-  (add-to-list 'auto-mode-alist '("\\.erb\\'" . web-mode))
-  (add-to-list 'auto-mode-alist '("\\.mustache\\'" . web-mode))
-  (add-to-list 'auto-mode-alist '("\\.djhtml\\'" . web-mode)))
+  :custom
+  (web-mode-engines-alist '(("django"    . "\\.html?\\'")))
+  :mode
+  ("\\.html?\\'" "\\.phtml\\'" "\\.tpl\\.php\\'" "\\.[agj]sp\\'" "\\.as[cp]x\\'" "\\.erb\\'" "\\.mustache\\'" "\\.djhtml\\'"))
 
 (use-package ein
   :ensure t
@@ -303,6 +304,10 @@ There are two things you can do about this warning:
 
 (use-package diminish
   :ensure t)
+
+(use-package yafolding
+  :ensure t
+  :hook (json-mode python-mode))
 
 (use-package company-anaconda
   :ensure t)
@@ -381,7 +386,7 @@ There are two things you can do about this warning:
  '(org-babel-python-command "ipython --no-banner --classic --no-confirm-exit")
  '(org-edit-src-content-indentation 0)
  '(package-selected-packages
-   '(mermaid-mode ob-mermaid w3m deft org-roam-export zenburn-theme yaml-mode which-key web-mode use-package undo-tree typescript-mode treemacs-tab-bar treemacs-magit treemacs-icons-dired transpose-frame stan-mode sqlite3 spacemacs-theme scad-mode realgud-ipdb pyvenv python-black pylint poly-markdown ox-reveal org-variable-pitch org-roam org-bullets multiple-cursors multi-vterm kotlin-mode keychain-environment jsonl json-mode ivy-rich indent-tools impatient-mode forge flycheck evil-collection emojify ein doom-themes doom-modeline dockerfile-mode docker direx dired-icon diminish csv-mode csharp-mode counsel-projectile company-anaconda browse-at-remote blacken better-shell arduino-mode all-the-icons-dired ag a))
+   '(json-navigator org-roam-export zenburn-theme yaml-mode which-key web-mode use-package undo-tree typescript-mode treemacs-tab-bar treemacs-magit treemacs-icons-dired transpose-frame stan-mode sqlite3 spacemacs-theme scad-mode realgud-ipdb pyvenv python-black pylint poly-markdown ox-reveal org-variable-pitch org-roam org-bullets multiple-cursors multi-vterm kotlin-mode keychain-environment jsonl json-mode ivy-rich indent-tools impatient-mode forge flycheck evil-collection emojify ein doom-themes doom-modeline dockerfile-mode docker dired-icon diminish counsel-projectile company-anaconda browse-at-remote blacken better-shell arduino-mode all-the-icons-dired ag a))
  '(projectile-project-search-path '("~/projects"))
  '(safe-local-variable-values
    '((pyvenv-workon . candid-entity-graph)
@@ -398,19 +403,35 @@ There are two things you can do about this warning:
 (which-key-mode t)
 (winner-mode t)
 
-(add-hook 'json-mode-hook 'hs-minor-mode)
-(add-hook 'org-mode-hook #'visual-line-mode)
-(add-hook 'org-mode-hook 'org-variable-pitch-minor-mode)
-(add-hook 'prog-mode-hook 'column-number-mode)
-(add-hook 'prog-mode-hook 'hs-minor-mode)
-(add-hook 'python-mode-hook 'anaconda-eldoc-mode)
-(add-hook 'python-mode-hook 'anaconda-mode)
-(add-hook 'python-mode-hook 'blacken-mode)
-(add-hook 'python-mode-hook 'display-fill-column-indicator-mode)
-(add-hook 'python-mode-hook 'linum-mode)
-(add-hook 'python-mode-hook 'indent-tools-minor-mode)
-(add-hook 'python-mode-hook 'subword-mode)
-(add-hook 'yaml-mode-hook 'hs-minor-mode)
+(use-package hs-minor-mode
+  :hook (json-mode prog-mode yaml-mode))
+
+(use-package json-navigator
+  :ensure t)
+
+(use-package column-number-mode
+  :hook prog-mode)
+
+(use-package column-number-mode
+  :hook prog-mode)
+
+(use-package linum-mode
+  :hook python-mode)
+
+(use-package subword-mode
+  :hook python-mode)
+
+(use-package display-fill-column-indicator-mode
+  :hook python-mode)
+
+(use-package anaconda-eldoc-mode
+  :hook python-mode)
+
+(use-package column-number-mode
+  :hook prog-mode)
+
+(use-package org-variable-pitch-minor-mode
+  :hook org-mode)
 
 (set-face-attribute 'default nil :height 86)
 (setq-default flycheck-disabled-checkers '(python-pylint))
@@ -444,6 +465,7 @@ There are two things you can do about this warning:
 (global-set-key [f9] 'toggle-menu-bar-mode-from-frame)
 
 (global-hl-line-mode t)
+
 ;; M-backspace does not copy to clipboard
 ;; https://www.emacswiki.org/emacs/BackwardDeleteWord
 (defun delete-word (arg)
@@ -463,3 +485,9 @@ With ARG, do this that many times."
 (global-set-key (read-kbd-macro "<M-DEL>") 'backward-delete-word)
 (setq backup-directory-alist '(("" . "~/.emacs.d/backups")))
 (setq create-lockfiles nil)
+(custom-set-faces
+ ;; custom-set-faces was added by Custom.
+ ;; If you edit it by hand, you could mess it up, so be careful.
+ ;; Your init file should contain only one such instance.
+ ;; If there is more than one, they won't work right.
+ )
