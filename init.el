@@ -228,6 +228,20 @@
 (use-package transpose-frame
   :ensure t)
 
+(use-package mastodon
+  :ensure t
+  :custom
+  (mastodon-instance-url "https://mastodon.sdf.org")
+  (mastodon-active-user "rbgb"))
+
+(use-package elpher
+  :ensure t)
+
+(use-package eww
+  :bind (:map eww-mode-map ("C-<return>" . eww-open-in-new-buffer))
+  :custom
+  (browse-url-browser-function 'eww-browse-url))
+
 (use-package impatient-mode
   :ensure t
   :config
@@ -251,7 +265,9 @@
   :ensure t)
 
 (use-package yaml-mode
-  :ensure t)
+  :ensure t
+  :config
+  (add-hook 'yaml-mode-hook (lambda () (define-key yaml-mode-map (kbd "C-c >") 'indent-tools-hydra/body))))
 
 (use-package scad-mode
   :ensure t
@@ -285,6 +301,9 @@
 (use-package python-black
   :ensure t)
 
+(use-package csv-mode
+  :ensure t)
+
 (use-package web-mode
   :ensure t
   :custom
@@ -293,21 +312,35 @@
   ("\\.html?\\'" "\\.phtml\\'" "\\.tpl\\.php\\'" "\\.[agj]sp\\'" "\\.as[cp]x\\'" "\\.erb\\'" "\\.mustache\\'" "\\.djhtml\\'"))
 
 (use-package ein
-  :ensure t
-  :defines ein:output-area-inlined-images
-  :functions ein:worksheet-execute-cell-and-goto-next-km ein:worksheet-execute-cell-and-insert-below-km
-  :bind
-  ("C-<return>" . 'ein:worksheet-execute-cell-and-goto-next-km)
-  ("C-S-<return>" . 'ein:worksheet-execute-cell-and-insert-below-km)
+  :ensure t)
+
+(use-package ein-notebook
+  :ensure ein
+  :bind (:map ein:notebook-mode-map
+	 ("C-<return>" . ein:worksheet-execute-cell-and-goto-next-km)
+	 ("C-S-<return>" . ein:worksheet-execute-cell-and-insert-below-km))
+  :custom
+  (ein:output-area-inlined-images t)
   :config
-  (setq ein:output-area-inlined-images t))
+  (defhydra ein:notebook-navigation (ein:notebook-mode-map "C-c h")
+    "navigate"
+    ("<up>" ein:worksheet-move-cell-up-km)
+    ("<down>" ein:worksheet-move-cell-down-km)
+    ("a" ein:worksheet-insert-cell-above-km)
+    ("b" ein:worksheet-insert-cell-below-km)
+    ("k" ein:worksheet-kill-cell-km)
+    ("y" ein:worksheet-yank-cell-km)
+    ("n" ein:worksheet-goto-next-input-km)
+    ("p" ein:worksheet-goto-prev-input-km)
+    ("m" ein:worksheet-merge-cell-km)
+    ("q" nil :color blue)))
 
 (use-package diminish
   :ensure t)
 
 (use-package yafolding
   :ensure t
-  :hook (json-mode python-mode))
+  :hook json-mode)
 
 (use-package company-anaconda
   :ensure t)
@@ -342,7 +375,9 @@
   :ensure t)
 
 (use-package vterm
-  :ensure t)
+  :ensure t
+  :custom
+  (vterm-always-compile-module t))
 
 (use-package multi-vterm
   :ensure t
@@ -357,6 +392,9 @@
   (livedown-open t)
   (livedown-port 1337))
 
+(use-package pdf-tools
+  :ensure t)
+
 (custom-set-variables
  ;; custom-set-variables was added by Custom.
  ;; If you edit it by hand, you could mess it up, so be careful.
@@ -367,6 +405,7 @@
  '(all-the-icons-dired-monochrome nil)
  '(column-number-mode t)
  '(csv-separators '("," "	" ";"))
+ '(ediff-window-setup-function 'ediff-setup-windows-plain)
  '(fill-column 100)
  '(ibuffer-formats
    '((mark modified read-only locked " "
@@ -380,13 +419,12 @@
 	   (name 16 -1)
 	   " " filename)))
  '(initial-buffer-choice "~/projects")
- '(org-agenda-files
-   '("/home/robert/projects/candid-orgmatch/org/cds_graph.org" "/home/robert/projects/candid-orgmatch/org/candid.org" "/home/robert/projects/drivendata-platform/org/render-migration.org" "/home/robert/org/todo.org" "/home/robert/org/hrwg/hrwg.org" "/home/robert/projects/drivendata-platform/org/platform.org"))
+ '(org-agenda-files '("~/org/hrwg.org" "~/org/todo.org" "~/org/ppml.org"))
  '(org-babel-load-languages '((emacs-lisp . t) (python . t) (shell . t)))
  '(org-babel-python-command "ipython --no-banner --classic --no-confirm-exit")
  '(org-edit-src-content-indentation 0)
  '(package-selected-packages
-   '(json-navigator org-roam-export zenburn-theme yaml-mode which-key web-mode use-package undo-tree typescript-mode treemacs-tab-bar treemacs-magit treemacs-icons-dired transpose-frame stan-mode sqlite3 spacemacs-theme scad-mode realgud-ipdb pyvenv python-black pylint poly-markdown ox-reveal org-variable-pitch org-roam org-bullets multiple-cursors multi-vterm kotlin-mode keychain-environment jsonl json-mode ivy-rich indent-tools impatient-mode forge flycheck evil-collection emojify ein doom-themes doom-modeline dockerfile-mode docker dired-icon diminish counsel-projectile company-anaconda browse-at-remote blacken better-shell arduino-mode all-the-icons-dired ag a))
+   '(docker-tramp csv-mode org-roam-ui elpher gopher mastodon forge deft ob-mermaid pdf-tools json-navigator org-roam-export zenburn-theme yaml-mode which-key web-mode use-package undo-tree typescript-mode treemacs-tab-bar treemacs-icons-dired transpose-frame stan-mode sqlite3 spacemacs-theme scad-mode realgud-ipdb pyvenv python-black pylint poly-markdown ox-reveal org-variable-pitch org-roam org-bullets multiple-cursors multi-vterm kotlin-mode keychain-environment jsonl json-mode ivy-rich indent-tools impatient-mode flycheck evil-collection emojify ein doom-themes doom-modeline dockerfile-mode docker dired-icon diminish counsel-projectile company-anaconda browse-at-remote blacken better-shell arduino-mode all-the-icons-dired ag a))
  '(projectile-project-search-path '("~/projects"))
  '(safe-local-variable-values
    '((pyvenv-workon . candid-entity-graph)
@@ -430,8 +468,21 @@
 (use-package column-number-mode
   :hook prog-mode)
 
+(use-package visual-line-mode
+  :hook org-mode)
+
 (use-package org-variable-pitch-minor-mode
   :hook org-mode)
+
+(use-package org-roam-ui
+  :ensure t
+  :after org-roam
+  :custom
+  (org-roam-ui-sync-theme t)
+  (org-roam-ui-follow t)
+  (org-roam-ui-update-on-save t)
+  (org-roam-ui-open-on-start t))
+
 
 (set-face-attribute 'default nil :height 86)
 (setq-default flycheck-disabled-checkers '(python-pylint))
