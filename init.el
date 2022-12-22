@@ -2,130 +2,35 @@
 ;;; Commentary:
 ;;; Code:
 
-;; https://melpa.org/#/getting-started
-(require 'package)
-(add-to-list 'package-archives '("melpa" . "https://melpa.org/packages/") t)
-;; Comment/uncomment this line to enable MELPA Stable if desired.
-;; See `package-archive-priorities` and `package-pinned-packages`.
-;; Most users will not need or want to do this.
-;; (add-to-list 'package-archives
-;;              '("melpa-stable" . "https://stable.melpa.org/packages/") t)
-(package-initialize)
+(defvar bootstrap-version)
+(let ((bootstrap-file
+       (expand-file-name "straight/repos/straight.el/bootstrap.el" user-emacs-directory))
+      (bootstrap-version 6))
+  (unless (file-exists-p bootstrap-file)
+    (with-current-buffer
+        (url-retrieve-synchronously
+         "https://raw.githubusercontent.com/radian-software/straight.el/develop/install.el"
+         'silent 'inhibit-cookies)
+      (goto-char (point-max))
+      (eval-print-last-sexp)))
+  (load bootstrap-file nil 'nomessage))
 
-;; Bootstrap `use-package'
-(unless (package-installed-p 'use-package)
-  (package-refresh-contents)
-  (package-install 'use-package))
+(straight-use-package 'use-package)
 
 (use-package ace-window
-  :ensure t
+  :straight t
   :bind ("M-o" . ace-window)
   :custom
   (aw-keys '(?a ?s ?d ?f ?g ?h ?j ?k ?l))
   (aw-scope 'frame))
 
-(use-package flycheck
-  :ensure t
-  :init
-  :config (global-flycheck-mode))
-
-(use-package python
-  :config
-  (add-hook 'python-mode-hook (lambda () (define-key python-mode-map (kbd "C-c >") 'indent-tools-hydra/body))))
-
-(use-package json-mode
-  :config
-  (add-hook 'json-mode-hook (lambda () (define-key json-mode-map (kbd "C-c >") 'indent-tools-hydra/body))))
-
-(use-package pyvenv
-  :ensure t
-  :init (setenv "WORKON_HOME" "~/anaconda3/envs/")
-	(pyvenv-mode 1))
-
-(use-package pylint
-  :ensure t)
-
-(use-package blacken
-  :ensure t
-  :hook python-mode)
-
-(use-package projectile
-  :ensure t
-  :init
-  (projectile-mode +1)
-  :bind (:map projectile-mode-map
-              ("s-p" . projectile-command-map)
-              ("C-c p" . projectile-command-map)))
-
-(use-package hydra
-  :ensure t)
-
-(use-package org
-  :init
-  (setq org-startup-indented t)
-  :bind
-  ("C-c C-j" . nil)
-  ("C-c a" . org-agenda)
-  ("<f6>" . org-capture)
-  :custom
-  (org-support-shift-select t)
-  (org-confirm-babel-evaluate nil)
-  :config
-  (progn
-    (unbind-key "C-c C-j")
-    (bind-key "C-c C-j" 'counsel-outline)))
-
-(use-package org-roam
-  :ensure t
-  :custom (org-roam-directory "~/org-roam")
-  :bind (("C-c n l" . org-roam-buffer-toggle)
-	 ("C-c n f" . org-roam-node-find)
-	 ("C-c n i" . org-roam-node-insert)
-	 ("C-c n t" . org-roam-dailies-goto-today))
-  :config
-  (org-roam-db-autosync-mode)
-  :custom
-  (org-roam-graph-executable "neato"))
-
-(use-package org-bullets
-  :ensure t
-  :hook org-mode
-  :config
-  (setq org-hide-emphasis-markers t)
-  (font-lock-add-keywords
-   'org-mode '(("^ *\\([-]\\) " (0 (prog1 () (compose-region (match-beginning 1) (match-end 1) "•")))))))
-
-(use-package org-variable-pitch
-  :ensure t)
-
-(use-package ob-mermaid
-  :ensure t
-  :custom
-  (ob-mermaid-cli-path "~/.local/bin/mmdc"))
-
-(use-package deft
-  :ensure
-  :after org
-  :bind
-  ("C-c n d" . deft)
-  :custom
-  (deft-recursive t)
-  (deft-use-filter-string-for-filename t)
-  (deft-default-extension "org")
-  (deft-directory org-roam-directory))
-
 (use-package counsel
-  :ensure t
+  :straight t
   :after ivy
   :config (counsel-mode))
 
-(use-package counsel-projectile
-  :ensure t
-  :after (counsel ivy projectile)
-  :config (counsel-projectile-mode))
-
 (use-package ivy
-  :ensure t
+  :straight t
   :defer 0.1
   :diminish
   :bind (("C-c C-r" . ivy-resume)
@@ -135,12 +40,14 @@
   (ivy-use-virtual-buffers t)
   :config (ivy-mode))
 
+(use-package hydra
+  :straight t)
 
 (use-package undo-tree
   :after hydra
-  :ensure t
+  :straight t
   :init
-  (global-undo-tree-mode))
+  (global-undo-tree-mode)
   (defhydra hydra-undo-tree (:hint nil)
       "
   _p_: undo  _n_: redo _s_: save _l_: load   "
@@ -152,16 +59,14 @@
       ("q"   nil "quit" :color blue))
   :config
   (setq undo-tree-auto-save-history t)
-  (setq undo-tree-history-directory-alist '(("." . "~/.emacs.d/undo")))
-
-(use-package python)
+  (setq undo-tree-history-directory-alist '(("." . "~/.emacs.d/undo"))))
 
 (use-package ivy-hydra
-  :ensure t
+  :straight t
   :after hydra)
 
 (use-package ivy-rich
-  :ensure t
+  :straight t
   :after ivy
   :custom
   (ivy-virtual-abbreviate 'full
@@ -170,152 +75,168 @@
   :config
   (ivy-rich-mode))
 
+(use-package tree-sitter
+  :straight t)
+
+(use-package tree-sitter-langs
+  :straight t)
+
 (use-package swiper
-  :ensure t
+  :straight t
   :after ivy
   :bind (("C-s" . swiper)
          ("C-r" . swiper)))
 
-(use-package magit
-  :ensure t
-  :bind ("C-x g" . magit-status))
-
-(use-package docker
-  :ensure t
-  :bind ("C-c d" . docker))
-
-(use-package keychain-environment
-  :ensure t)
-
-(use-package ox-reveal
-  :ensure t)
-
-(use-package forge
-  :ensure t
-  :after magit)
-
-(use-package browse-at-remote
-  :ensure t
-  :bind ("C-c g g" . 'browse-at-remote))
-
-(use-package which-key
-  :ensure t)
-
-(use-package ag
-  :ensure t)
-
 (use-package all-the-icons
-  :ensure t)
+  :straight t)
 
 (use-package all-the-icons-dired
-  :ensure t
+  :straight t
   :after all-the-icons
   :hook (dired-mode . all-the-icons-dired-mode)
   :config (setq all-the-icons-dired-monochrome nil))
 
 (use-package multiple-cursors
-  :ensure t)
+  :straight t)
 
-(use-package markdown-mode
-  :ensure t)
+(use-package magit
+  :straight t
+  :bind ("C-x g" . magit-status))
 
-(use-package markdown-mode
-  :ensure t)
+(use-package forge
+  :straight t
+  :after magit)
 
-(use-package poly-markdown
-  :ensure t)
+(use-package spacemacs-theme
+  :straight t
+  :defer t
+  :init (load-theme 'spacemacs-dark t))
 
-(use-package transpose-frame
-  :ensure t)
+(use-package doom-modeline
+  :straight t
+  :init (doom-modeline-mode 1))
+
+(use-package rainbow-delimiters
+  :straight t
+  :hook
+  ((python-mode scad-mode) . rainbow-delimiters-mode))
+
+(use-package vterm
+  :straight t
+  :custom
+  (vterm-always-compile-module t))
+
+(use-package multi-vterm
+  :straight t
+  :after vterm)
+
+(use-package projectile
+  :straight t
+  :diminish projectile-mode
+  :config (projectile-mode)
+  :custom ((projectile-completion-system 'ivy))
+  :bind-keymap
+  ("C-c p" . projectile-command-map)
+  :init
+  ;; NOTE: Set this to the folder where you keep your Git repos!
+  (when (file-directory-p "~/code")
+    (setq projectile-project-search-path '("~/code")))
+  (setq projectile-switch-project-action #'projectile-dired))
+
+(use-package counsel-projectile
+  :straight t
+  :after (counsel ivy projectile)
+  :config (counsel-projectile-mode))
 
 (use-package mastodon
-  :ensure t
+  :straight t
   :custom
   (mastodon-instance-url "https://mastodon.sdf.org")
   (mastodon-active-user "rbgb"))
 
 (use-package elpher
-  :ensure t)
+  :straight t)
+
+(use-package which-key
+  :straight t)
 
 (use-package eww
   :bind (:map eww-mode-map ("C-<return>" . eww-open-in-new-buffer))
   :custom
   (browse-url-browser-function 'eww-browse-url))
 
-(use-package impatient-mode
-  :ensure t
-  :config
-  (defun markdown-html (buffer)
-    (princ (with-current-buffer buffer
-      (format "<!DOCTYPE html><html><title>Impatient Markdown</title><xmp theme=\"united\" style=\"display:none;\"> %s  </xmp><script src=\"http://strapdownjs.com/v/0.2/strapdown.js\"></script></html>" (buffer-substring-no-properties (point-min) (point-max))))
-    (current-buffer))))
-
-(use-package spacemacs-common
-    :ensure spacemacs-theme
-    :config (load-theme 'spacemacs-dark t))
-
-(use-package doom-modeline
-  :ensure t
-  :init (doom-modeline-mode 1))
-
-(use-package json-mode
-  :ensure t)
-
-(use-package mermaid-mode
-  :ensure t)
-
-(use-package yaml-mode
-  :ensure t
-  :config
-  (add-hook 'yaml-mode-hook (lambda () (define-key yaml-mode-map (kbd "C-c >") 'indent-tools-hydra/body))))
-
-(use-package scad-mode
-  :ensure t
-  :defines scad-preview-image-size scad-preview-window-size
-  :init
-  (setq scad-preview-image-size '(800 . 800))
-  (setq scad-preview-window-size 90))
-
-(use-package typescript-mode
-  :ensure t)
-
-(use-package dockerfile-mode
-  :ensure t)
-
-(use-package kotlin-mode
-  :ensure t)
-
-(use-package csharp-mode
-  :ensure t)
-
-(use-package stan-mode
-  :ensure t)
-
-(use-package arduino-mode
-  :ensure t)
-
-(use-package anaconda-mode
-  :ensure t
-  :hook python-mode)
-
-(use-package python-black
-  :ensure t)
-
-(use-package csv-mode
-  :ensure t)
-
-(use-package web-mode
-  :ensure t
+(use-package company
+  :straight t
+  :after lsp-mode
+  :hook (lsp-mode . company-mode)
+  :bind
+  (:map company-active-map ("<tab>" . company-complete-selection))
+  (:map lsp-mode-map ("<tab>" . company-indent-or-complete-common))
   :custom
-  (web-mode-engines-alist '(("django"    . "\\.html?\\'")))
-  :mode
-  ("\\.html?\\'" "\\.phtml\\'" "\\.tpl\\.php\\'" "\\.[agj]sp\\'" "\\.as[cp]x\\'" "\\.erb\\'" "\\.mustache\\'" "\\.djhtml\\'"))
+  (company-minimum-prefix-length 1)
+  (company-idle-delay 0.0))
+
+(use-package company-box
+  :straight t
+  :hook (company-mode . company-box-mode))
+
+(use-package lsp-mode
+  :straight t
+  :commands (lsp lsp-deferred)
+  ;; :hook (lsp-mode . efs/lsp-mode-setup)
+  :init
+  (setq lsp-keymap-prefix "C-c l")  ;; Or 'C-l', 's-l'
+  :config
+  (lsp-enable-which-key-integration t)
+  (lsp-register-custom-settings
+   '(("pylsp.plugins.pyls_black.enabled" t t)))
+  :custom
+  (lsp-enable-snippet nil))
+
+(use-package lsp-ui
+  :straight t
+  :hook (lsp-mode . lsp-ui-mode)
+  :custom
+  (lsp-ui-doc-position 'bottom))
+
+(use-package lsp-treemacs
+  :straight t
+  :after lsp)
+
+(use-package yasnippet
+  :straight t
+  :hook ((text-mode
+          prog-mode
+          conf-mode
+          snippet-mode) . yas-minor-mode-on)
+  :init
+  (setq yas-snippet-dir "~/.emacs.d/snippets"))
+
+;; python
+(use-package python-mode
+  :hook
+  (python-mode . linum-mode)
+  (python-mode . lsp-deferred)
+  ;; :custom
+  ;; NOTE: Set these if Python 3 is called "python3" on your system!
+  ;; (python-shell-interpreter "python3")
+  ;; (dap-python-executable "python3")
+  ;; (dap-python-debugger 'debugpy)
+  ;; :config
+  ;; (require 'dap-python)
+  )
+
+(use-package pyvenv
+  :straight t
+  :init (setenv "WORKON_HOME" "~/miniconda3/envs/")
+  :config
+  (pyvenv-mode 1))
 
 (use-package ein
-  :ensure t)
+  :straight t)
 
 (use-package ein-notebook
-  :ensure ein
+  :after ein
   :bind (:map ein:notebook-mode-map
 	 ("C-<return>" . ein:worksheet-execute-cell-and-goto-next-km)
 	 ("C-S-<return>" . ein:worksheet-execute-cell-and-insert-below-km))
@@ -335,57 +256,135 @@
     ("m" ein:worksheet-merge-cell-km)
     ("q" nil :color blue)))
 
+
+(use-package flycheck
+  :straight t
+  :config (global-flycheck-mode))
+
+;; org
+(use-package org
+  :init
+  (setq org-startup-indented t)
+  :bind
+  ("C-c C-j" . nil)
+  ("C-c a" . org-agenda)
+  ("<f6>" . org-capture)
+  :custom
+  (org-support-shift-select t)
+  (org-confirm-babel-evaluate nil)
+  :config
+  (progn
+    (unbind-key "C-c C-j")
+    (bind-key "C-c C-j" 'counsel-outline)))
+
+(use-package org-roam
+  :straight t
+  :custom (org-roam-directory "~/org-roam")
+  :bind (("C-c n l" . org-roam-buffer-toggle)
+	 ("C-c n f" . org-roam-node-find)
+	 ("C-c n i" . org-roam-node-insert)
+	 ("C-c n t" . org-roam-dailies-goto-today))
+  :config
+  (org-roam-db-autosync-mode)
+  :custom
+  (org-roam-graph-executable "neato"))
+
+(use-package org-bullets
+  :straight t
+  :hook org-mode
+  :config
+  (setq org-hide-emphasis-markers t)
+  (font-lock-add-keywords
+   'org-mode '(("^ *\\([-]\\) " (0 (prog1 () (compose-region (match-beginning 1) (match-end 1) "•")))))))
+
+(use-package org-variable-pitch
+  :straight t)
+
+(use-package org-variable-pitch-minor-mode
+  :hook org-mode)
+
+(use-package org-roam-ui
+  :straight t
+  :after org-roam
+  :custom
+  (org-roam-ui-sync-theme t)
+  (org-roam-ui-follow t)
+  (org-roam-ui-update-on-save t)
+  (org-roam-ui-open-on-start t))
+
+(use-package ob-mermaid
+  :straight t
+  :custom
+  (ob-mermaid-cli-path "~/.local/bin/mmdc"))
+
+(use-package ox-reveal
+  :straight t)
+
+(use-package deft
+  :straight t
+  :after org
+  :bind
+  ("C-c n d" . deft)
+  :custom
+  (deft-recursive t)
+  (deft-use-filter-string-for-filename t)
+  (deft-default-extension "org")
+  (deft-directory org-roam-directory))
+
+(use-package docker
+  :straight t
+  :bind ("C-c d" . docker))
+
+(use-package keychain-environment
+  :straight t)
+
+(use-package browse-at-remote
+  :straight t
+  :bind ("C-c g g" . 'browse-at-remote))
+
+(use-package ag
+  :straight t)
+
+(use-package transpose-frame
+  :straight t)
+
+(use-package impatient-mode
+  :straight t
+  :config
+  (defun markdown-html (buffer)
+    (princ (with-current-buffer buffer
+      (format "<!DOCTYPE html><html><title>Impatient Markdown</title><xmp theme=\"united\" style=\"display:none;\"> %s  </xmp><script src=\"http://strapdownjs.com/v/0.2/strapdown.js\"></script></html>" (buffer-substring-no-properties (point-min) (point-max))))
+    (current-buffer))))
+
 (use-package diminish
-  :ensure t)
-
-(use-package yafolding
-  :ensure t
-  :hook json-mode)
-
-(use-package company-anaconda
-  :ensure t)
+  :straight t)
 
 (use-package ligature
-  :load-path "/home/robert/.emacs.d/elisp/ligature.el/"
+  :straight t
   :config
-  ;; Enable the "www" ligature in every possible major mode
-  (ligature-set-ligatures 't '("www"))
+  ;; ;; Enable the "www" ligature in every possible major mode
+  ;; (ligature-set-ligatures 't '("www"))
 
-  ;; Enable ligatures in programming modes
-  (ligature-set-ligatures 'prog-mode '("www" "**" "***" "**/" "*>" "*/" "\\\\" "\\\\\\"
-    "{-" "[]" "::" ":::" ":=" "!!" "!=" "!==" "-}"
-    "--" "---" "-->" "->" "->>" "-<" "-<<" "-~"
-    "#{" "#[" "##" "###" "####" "#(" "#?" "#_" "#_("
-    "/**" "/=" "/==" "/>" "//" "///" "&&" "||" "||="
-    "|=" "|>" "^=" "$>" "++" "+++" "+>" "=:=" "=="
-    "===" "==>" "=>" "=>>" "<=" "=<<" "=/=" ">-" ">="
-    ">=>" ">>" ">>-" ">>=" ">>>" "<*" "<*>" "<|" "<|>"
-    "<$" "<$>" "<!--" "<-" "<--" "<->" "<+" "<+>" "<="
-    "<==" "<=>" "<=<" "<>" "<<" "<<-" "<<=" "<<<" "<~"
-    "<~~" "</" "</>" "~@" "~-" "~=" "~>" "~~" "~~>" "%%"))
+  ;; ;; Enable ligatures in programming modes
+  ;; (ligature-set-ligatures 'prog-mode '("www" "**" "***" "**/" "*>" "*/" "\\\\" "\\\\\\"
+  ;;   "{-" "[]" "::" ":::" ":=" "!!" "!=" "!==" "-}"
+  ;;   "--" "---" "-->" "->" "->>" "-<" "-<<" "-~"
+  ;;   "#{" "#[" "##" "###" "####" "#(" "#?" "#_" "#_("
+  ;;   "/**" "/=" "/==" "/>" "//" "///" "&&" "||" "||="
+  ;;   "|=" "|>" "^=" "$>" "++" "+++" "+>" "=:=" "=="
+  ;;   "===" "==>" "=>" "=>>" "<=" "=<<" "=/=" ">-" ">="
+  ;;   ">=>" ">>" ">>-" ">>=" ">>>" "<*" "<*>" "<|" "<|>"
+  ;;   "<$" "<$>" "<!--" "<-" "<--" "<->" "<+" "<+>" "<="
+  ;;   "<==" "<=>" "<=<" "<>" "<<" "<<-" "<<=" "<<<" "<~"
+  ;;   "<~~" "</" "</>" "~@" "~-" "~=" "~>" "~~" "~~>" "%%"))
   (global-ligature-mode t))
 
 (use-package indent-tools
-  :ensure t)
-
-(use-package realgud
-  :ensure t)
-
-(use-package realgud-ipdb
-  :ensure t)
-
-(use-package vterm
-  :ensure t
-  :custom
-  (vterm-always-compile-module t))
-
-(use-package multi-vterm
-  :ensure t
-  :after vterm)
+  :straight t)
 
 ;; (add-to-list 'load-path (expand-file-name "~/.emacs.d/emacs-livedown"))
 (use-package livedown
-  :load-path "emacs-livedown"
+  :straight t
   :custom
   (livedown-autostart nil)
   (livedown-browser nil)
@@ -393,68 +392,67 @@
   (livedown-port 1337))
 
 (use-package pdf-tools
-  :ensure t)
+  :straight t)
 
-(custom-set-variables
- ;; custom-set-variables was added by Custom.
- ;; If you edit it by hand, you could mess it up, so be careful.
- ;; Your init file should contain only one such instance.
- ;; If there is more than one, they won't work right.
- '(Buffer-menu-name-width 50)
- '(ag-ignore-list nil)
- '(all-the-icons-dired-monochrome nil)
- '(column-number-mode t)
- '(csv-separators '("," "	" ";"))
- '(ediff-window-setup-function 'ediff-setup-windows-plain)
- '(fill-column 100)
- '(ibuffer-formats
-   '((mark modified read-only locked " "
-	   (name 50 50 :left :elide)
-	   " "
-	   (size 9 -1 :right)
-	   " "
-	   (mode 16 16 :left :elide)
-	   " " filename-and-process)
-     (mark " "
-	   (name 16 -1)
-	   " " filename)))
- '(initial-buffer-choice "~/projects")
- '(org-agenda-files '("~/org/hrwg.org" "~/org/todo.org" "~/org/ppml.org"))
- '(org-babel-load-languages '((emacs-lisp . t) (python . t) (shell . t)))
- '(org-babel-python-command "ipython --no-banner --classic --no-confirm-exit")
- '(org-edit-src-content-indentation 0)
- '(package-selected-packages
-   '(docker-tramp csv-mode org-roam-ui elpher gopher mastodon forge deft ob-mermaid pdf-tools json-navigator org-roam-export zenburn-theme yaml-mode which-key web-mode use-package undo-tree typescript-mode treemacs-tab-bar treemacs-icons-dired transpose-frame stan-mode sqlite3 spacemacs-theme scad-mode realgud-ipdb pyvenv python-black pylint poly-markdown ox-reveal org-variable-pitch org-roam org-bullets multiple-cursors multi-vterm kotlin-mode keychain-environment jsonl json-mode ivy-rich indent-tools impatient-mode flycheck evil-collection emojify ein doom-themes doom-modeline dockerfile-mode docker dired-icon diminish counsel-projectile company-anaconda browse-at-remote blacken better-shell arduino-mode all-the-icons-dired ag a))
- '(projectile-project-search-path '("~/projects"))
- '(safe-local-variable-values
-   '((pyvenv-workon . candid-entity-graph)
-     (pyvenv-workon . candid-orgmatch)))
- '(split-height-threshold 100)
- '(w3m-home-page "https://lite.duckduckgo.com/lite"))
+;; modes
+;; (use-package json-mode
+;;   :config
+;;   (add-hook 'json-mode-hook (lambda () (define-key json-mode-map (kbd "C-c >") 'indent-tools-hydra/body))))
 
-(menu-bar-mode -1)
-(scroll-bar-mode -1)
-(show-paren-mode t)
-(tab-bar-mode t)
-(tool-bar-mode -1)
-(which-function-mode t)
-(which-key-mode t)
-(winner-mode t)
+(use-package markdown-mode
+  :straight t)
+
+(use-package poly-markdown
+  :straight t)
+
+(use-package mermaid-mode
+  :straight t)
+
+(use-package yaml-mode
+  :straight t
+  :config
+  (add-hook 'yaml-mode-hook (lambda () (define-key yaml-mode-map (kbd "C-c >") 'indent-tools-hydra/body))))
+
+(use-package scad-mode
+  :straight t
+  :defines scad-preview-image-size scad-preview-window-size
+  :init
+  (setq scad-preview-image-size '(800 . 800))
+  (setq scad-preview-window-size 90))
+
+(use-package typescript-mode
+  :straight t)
+
+(use-package dockerfile-mode
+  :straight t)
+
+(use-package kotlin-mode
+  :straight t)
+
+(use-package csharp-mode
+  :straight t)
+
+(use-package stan-mode
+  :straight t)
+
+(use-package arduino-mode
+  :straight t)
+
+(use-package csv-mode
+  :straight t)
+
+;; (use-package web-mode
+;;   :straight t
+;;   :custom
+;;   (web-mode-engines-alist '(("django"    . "\\.html?\\'")))
+;;   :mode
+;;   ("\\.html?\\'" "\\.phtml\\'" "\\.tpl\\.php\\'" "\\.[agj]sp\\'" "\\.as[cp]x\\'" "\\.erb\\'" "\\.mustache\\'" "\\.djhtml\\'"))
 
 (use-package hs-minor-mode
   :hook (json-mode prog-mode yaml-mode))
 
-(use-package json-navigator
-  :ensure t)
-
 (use-package column-number-mode
   :hook prog-mode)
-
-(use-package column-number-mode
-  :hook prog-mode)
-
-(use-package linum-mode
-  :hook python-mode)
 
 (use-package subword-mode
   :hook python-mode)
@@ -470,19 +468,6 @@
 
 (use-package visual-line-mode
   :hook org-mode)
-
-(use-package org-variable-pitch-minor-mode
-  :hook org-mode)
-
-(use-package org-roam-ui
-  :ensure t
-  :after org-roam
-  :custom
-  (org-roam-ui-sync-theme t)
-  (org-roam-ui-follow t)
-  (org-roam-ui-update-on-save t)
-  (org-roam-ui-open-on-start t))
-
 
 (set-face-attribute 'default nil :height 86)
 (setq-default flycheck-disabled-checkers '(python-pylint))
@@ -515,8 +500,6 @@
 (global-set-key [mouse-9] 'next-buffer)
 (global-set-key [f9] 'toggle-menu-bar-mode-from-frame)
 
-(global-hl-line-mode t)
-
 ;; M-backspace does not copy to clipboard
 ;; https://www.emacswiki.org/emacs/BackwardDeleteWord
 (defun delete-word (arg)
@@ -542,3 +525,53 @@ With ARG, do this that many times."
  ;; Your init file should contain only one such instance.
  ;; If there is more than one, they won't work right.
  )
+
+(global-hl-line-mode t)
+(global-tree-sitter-mode t)
+(add-hook 'tree-sitter-after-on-hook #'tree-sitter-hl-mode)
+(menu-bar-mode -1)
+(scroll-bar-mode -1)
+(show-paren-mode t)
+(tab-bar-mode t)
+(tool-bar-mode -1)
+(which-function-mode t)
+(which-key-mode t)
+(winner-mode t)
+
+(custom-set-variables
+ ;; custom-set-variables was added by Custom.
+ ;; If you edit it by hand, you could mess it up, so be careful.
+ ;; Your init file should contain only one such instance.
+ ;; If there is more than one, they won't work right.
+ '(lsp-openscad-server "~/.cargo/bin/openscad-lsp")
+ '(Buffer-menu-name-width 50)
+ '(ag-ignore-list nil)
+ '(all-the-icons-dired-monochrome nil)
+ '(column-number-mode t)
+ '(csv-separators '("," "	" ";"))
+ '(ediff-window-setup-function 'ediff-setup-windows-plain)
+ '(fill-column 100)
+ '(ibuffer-formats
+   '((mark modified read-only locked " "
+	   (name 50 50 :left :elide)
+	   " "
+	   (size 9 -1 :right)
+	   " "
+	   (mode 16 16 :left :elide)
+	   " " filename-and-process)
+     (mark " "
+	   (name 16 -1)
+	   " " filename)))
+ '(initial-buffer-choice "~/projects")
+ '(org-agenda-files '("~/org/hrwg.org" "~/org/todo.org" "~/org/ppml.org"))
+ '(org-babel-load-languages '((emacs-lisp . t) (python . t) (shell . t)))
+ '(org-babel-python-command "ipython --no-banner --classic --no-confirm-exit")
+ '(org-edit-src-content-indentation 0)
+ '(package-selected-packages
+   '(docker-tramp csv-mode org-roam-ui elpher gopher mastodon forge deft ob-mermaid pdf-tools json-navigator org-roam-export zenburn-theme yaml-mode which-key web-mode use-package undo-tree typescript-mode treemacs-tab-bar treemacs-icons-dired transpose-frame stan-mode sqlite3 spacemacs-theme scad-mode realgud-ipdb pyvenv python-black pylint poly-markdown ox-reveal org-variable-pitch org-roam org-bullets multiple-cursors multi-vterm kotlin-mode keychain-environment jsonl json-mode ivy-rich indent-tools impatient-mode flycheck evil-collection emojify ein doom-themes doom-modeline dockerfile-mode docker dired-icon diminish counsel-projectile company-anaconda browse-at-remote blacken better-shell arduino-mode all-the-icons-dired ag a))
+ '(projectile-project-search-path '("~/projects"))
+ '(safe-local-variable-values
+   '((pyvenv-workon . candid-entity-graph)
+     (pyvenv-workon . candid-orgmatch)))
+ '(split-height-threshold 100)
+ '(w3m-home-page "https://lite.duckduckgo.com/lite"))
