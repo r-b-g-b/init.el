@@ -228,7 +228,7 @@
 
 (use-package pyvenv
   :straight t
-  :init (setenv "WORKON_HOME" "~/miniconda3/envs/")
+  :init (setenv "WORKON_HOME" "~/anaconda3/envs/")
   :config
   (pyvenv-mode 1))
 
@@ -460,9 +460,6 @@
 (use-package display-fill-column-indicator-mode
   :hook python-mode)
 
-(use-package anaconda-eldoc-mode
-  :hook python-mode)
-
 (use-package column-number-mode
   :hook prog-mode)
 
@@ -481,6 +478,12 @@
 (setq scroll-conservatively 5)
 (setq scroll-margin 10)
 (setq which-func-unknown "n/a")
+
+;; lsp-doctor suggests
+(setq read-process-output-max (* 1024 1024)) ;; 1mb
+(setq gc-cons-threshold 100000000)
+(setq lsp-idle-delay 0.500)
+(setq lsp-log-io nil) ; if set to true can cause a performance hit
 
 ;; Number the candidates (use M-1, M-2 etc to select completions).
 (setq company-show-quick-access t)
@@ -543,7 +546,6 @@ With ARG, do this that many times."
  ;; If you edit it by hand, you could mess it up, so be careful.
  ;; Your init file should contain only one such instance.
  ;; If there is more than one, they won't work right.
- '(lsp-openscad-server "~/.cargo/bin/openscad-lsp")
  '(Buffer-menu-name-width 50)
  '(ag-ignore-list nil)
  '(all-the-icons-dired-monochrome nil)
@@ -563,6 +565,7 @@ With ARG, do this that many times."
 	   (name 16 -1)
 	   " " filename)))
  '(initial-buffer-choice "~/projects")
+ '(lsp-openscad-server "~/.cargo/bin/openscad-lsp")
  '(org-agenda-files '("~/org/hrwg.org" "~/org/todo.org" "~/org/ppml.org"))
  '(org-babel-load-languages '((emacs-lisp . t) (python . t) (shell . t)))
  '(org-babel-python-command "ipython --no-banner --classic --no-confirm-exit")
