@@ -203,6 +203,12 @@
   :straight t
   :after lsp)
 
+;; lsp-doctor suggests
+(setq read-process-output-max (* 1024 1024)) ;; 1mb
+(setq gc-cons-threshold 100000000)
+(setq lsp-idle-delay 0.500)
+(setq lsp-log-io nil) ; if set to true can cause a performance hit
+
 (use-package yasnippet
   :straight t
   :hook ((text-mode
@@ -471,19 +477,68 @@
 (setq-default electric-indent-inhibit t)
 (setq-default default-tab-width 4)
 (setq-default linum-format "%4d\u2502 ")
+
+(setq auth-source-debug t)
+(setq epg-pinentry-mode 'loopback)
 (setq markdown-fontify-code-blocks-natively t)
 (setq python-shell-interpreter "python"
       python-shell-interpreter-args "-i")
 (setq ring-bell-function 'ignore)
 (setq scroll-conservatively 5)
 (setq scroll-margin 10)
+(setq user-mail-address "rbgb@sdf.org")
+(setq user-full-name "Robert Gibboni")
 (setq which-func-unknown "n/a")
 
-;; lsp-doctor suggests
-(setq read-process-output-max (* 1024 1024)) ;; 1mb
-(setq gc-cons-threshold 100000000)
-(setq lsp-idle-delay 0.500)
-(setq lsp-log-io nil) ; if set to true can cause a performance hit
+;; install mu and mu4e with apt-get
+(use-package mu4e
+  :straight ( :host github
+              :repo "djcb/mu"
+	      :branch "master"
+	      :files ("build/mu4e/*")
+	      :pre-build (("./autogen.sh") ("make")))
+  :custom (mu4e-mu-binary (expand-file-name "build/mu/mu" (straight--repos-dir "mu")))
+  :config
+  (setq mu4e-change-filenames-when-moving t)
+  (setq mu4e-update-interval (* 10 60))
+  (setq mu4e-get-mail-command "mbsync -a")
+  (setq mu4e-maildir "~/.mail")
+  (setq mu4e-contexts
+        (list
+         ;; galileo@gmail.com
+         (make-mu4e-context
+          :name "gmail"
+          :match-func
+          (lambda (msg)
+            (when msg
+              (string-prefix-p "/gmail" (mu4e-message-field msg :maildir))))
+          :vars '((user-mail-address . "galileo@gmail.com")
+                  (user-full-name    . "Robert Gibboni")
+                  (smtpmail-smtp-server  . "smtp.gmail.com")
+                  (smtpmail-smtp-service . 465)
+                  (smtpmail-stream-type  . ssl)
+                  (mu4e-drafts-folder  . "/gmail/[Gmail]/Drafts")
+                  (mu4e-sent-folder  . "/gmail/[Gmail]/Sent Mail")
+                  (mu4e-refile-folder  . "/gmail/[Gmail]/All Mail")
+                  (mu4e-trash-folder  . "/gmail/[Gmail]/Trash")))
+
+         ;; rbgb@sdf.org
+         (make-mu4e-context
+          :name "sdf"
+          :match-func
+          (lambda (msg)
+            (when msg
+              (string-prefix-p "/sdf" (mu4e-message-field msg :maildir))))
+          :vars '((user-mail-address . "rbgb@sdf.org")
+                  (user-full-name    . "Robert Gibboni")
+                  (smtpmail-smtp-server  . "mx.sdf.org")
+                  (smtpmail-smtp-service . 587)
+                  (smtpmail-stream-type  . starttls)
+                  (mu4e-drafts-folder  . "/sdf/INBOX.Drafts")
+                  (mu4e-sent-folder  . "/sdf/INBOX.Sent")
+                  (mu4e-refile-folder  . "/sdf/INBOX.Archive")
+                  (mu4e-trash-folder  . "/sdf/INBOX.Trash"))))))
+
 
 ;; Number the candidates (use M-1, M-2 etc to select completions).
 (setq company-show-quick-access t)
@@ -572,9 +627,10 @@ With ARG, do this that many times."
  '(org-edit-src-content-indentation 0)
  '(package-selected-packages
    '(docker-tramp csv-mode org-roam-ui elpher gopher mastodon forge deft ob-mermaid pdf-tools json-navigator org-roam-export zenburn-theme yaml-mode which-key web-mode use-package undo-tree typescript-mode treemacs-tab-bar treemacs-icons-dired transpose-frame stan-mode sqlite3 spacemacs-theme scad-mode realgud-ipdb pyvenv python-black pylint poly-markdown ox-reveal org-variable-pitch org-roam org-bullets multiple-cursors multi-vterm kotlin-mode keychain-environment jsonl json-mode ivy-rich indent-tools impatient-mode flycheck evil-collection emojify ein doom-themes doom-modeline dockerfile-mode docker dired-icon diminish counsel-projectile company-anaconda browse-at-remote blacken better-shell arduino-mode all-the-icons-dired ag a))
- '(projectile-project-search-path '("~/projects"))
+ '(projectile-project-search-path '("~/projects") t)
  '(safe-local-variable-values
    '((pyvenv-workon . candid-entity-graph)
      (pyvenv-workon . candid-orgmatch)))
+ '(send-mail-function 'smtpmail-send-it)
  '(split-height-threshold 100)
  '(w3m-home-page "https://lite.duckduckgo.com/lite"))
