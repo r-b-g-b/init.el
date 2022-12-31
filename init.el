@@ -494,7 +494,7 @@
 (use-package mu4e
   :straight ( :host github
               :repo "djcb/mu"
-	      :branch "master"
+	      :branch "release/1.8"
 	      :files ("build/mu4e/*")
 	      :pre-build (("./autogen.sh") ("make")))
   :custom (mu4e-mu-binary (expand-file-name "build/mu/mu" (straight--repos-dir "mu")))
