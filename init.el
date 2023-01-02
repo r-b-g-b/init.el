@@ -522,6 +522,23 @@
                   (mu4e-refile-folder  . "/gmail/[Gmail]/All Mail")
                   (mu4e-trash-folder  . "/gmail/[Gmail]/Trash")))
 
+         ;; robert@drivendata.org
+         (make-mu4e-context
+          :name "drivendata"
+          :match-func
+          (lambda (msg)
+            (when msg
+              (string-prefix-p "/gmail" (mu4e-message-field msg :maildir))))
+          :vars '((user-mail-address . "robert@drivendata.org")
+                  (user-full-name    . "Robert Gibboni")
+                  (smtpmail-smtp-server  . "smtp.gmail.com")
+                  (smtpmail-smtp-service . 465)
+                  (smtpmail-stream-type  . ssl)
+                  (mu4e-drafts-folder  . "/drivendata/[Gmail]/Drafts")
+                  (mu4e-sent-folder  . "/drivendata/[Gmail]/Sent Mail")
+                  (mu4e-refile-folder  . "/drivendata/[Gmail]/All Mail")
+                  (mu4e-trash-folder  . "/drivendata/[Gmail]/Trash")))
+
          ;; rbgb@sdf.org
          (make-mu4e-context
           :name "sdf"
