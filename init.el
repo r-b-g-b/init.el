@@ -507,20 +507,20 @@
         (list
          ;; galileo@gmail.com
          (make-mu4e-context
-          :name "gmail"
+          :name "galileo"
           :match-func
           (lambda (msg)
             (when msg
-              (string-prefix-p "/gmail" (mu4e-message-field msg :maildir))))
+              (string-prefix-p "/galileo" (mu4e-message-field msg :maildir))))
           :vars '((user-mail-address . "galileo@gmail.com")
                   (user-full-name    . "Robert Gibboni")
                   (smtpmail-smtp-server  . "smtp.gmail.com")
                   (smtpmail-smtp-service . 465)
                   (smtpmail-stream-type  . ssl)
-                  (mu4e-drafts-folder  . "/gmail/[Gmail]/Drafts")
-                  (mu4e-sent-folder  . "/gmail/[Gmail]/Sent Mail")
-                  (mu4e-refile-folder  . "/gmail/[Gmail]/All Mail")
-                  (mu4e-trash-folder  . "/gmail/[Gmail]/Trash")))
+                  (mu4e-drafts-folder  . "/galileo/[Gmail]/Drafts")
+                  (mu4e-sent-folder  . "/galileo/[Gmail]/Sent Mail")
+                  (mu4e-refile-folder  . "/galileo/[Gmail]/All Mail")
+                  (mu4e-trash-folder  . "/galileo/[Gmail]/Trash")))
 
          ;; robert@drivendata.org
          (make-mu4e-context
@@ -528,7 +528,7 @@
           :match-func
           (lambda (msg)
             (when msg
-              (string-prefix-p "/gmail" (mu4e-message-field msg :maildir))))
+              (string-prefix-p "/drivendata" (mu4e-message-field msg :maildir))))
           :vars '((user-mail-address . "robert@drivendata.org")
                   (user-full-name    . "Robert Gibboni")
                   (smtpmail-smtp-server  . "smtp.gmail.com")
