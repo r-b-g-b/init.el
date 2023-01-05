@@ -551,6 +551,23 @@
                   (mu4e-refile-folder  . "/sdf/INBOX.Archive")
                   (mu4e-trash-folder  . "/sdf/INBOX.Trash"))))))
 
+(add-to-list 'load-path "~/.emacs.d/src")
+(require 'mu4e-thread-folding)
+
+(add-to-list 'mu4e-header-info-custom
+             '(:empty . (:name "Empty"
+                         :shortname ""
+                         :function (lambda (msg) "  "))))
+(setq mu4e-headers-fields '((:empty         .    2)
+                            (:human-date    .   12)
+                            (:flags         .    6)
+                            (:mailing-list  .   10)
+                            (:from          .   22)
+                            (:subject       .   nil)))
+
+'(mu4e-thread-folding-child-face ((t (:extend t :background "gray15" :underline nil))))
+'(mu4e-thread-folding-root-folded-face ((t (:extend t :background "grey10" :overline nil :underline nil))))
+'(mu4e-thread-folding-root-unfolded-face ((t (:extend t :background "gray10" :overline nil :underline nil))))
 
 ;; Number the candidates (use M-1, M-2 etc to select completions).
 (setq company-show-quick-access t)
