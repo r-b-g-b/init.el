@@ -17,6 +17,11 @@
 
 (straight-use-package 'use-package)
 
+(use-package spacemacs-theme
+  :straight t
+  :defer t
+  :init (load-theme 'spacemacs-dark t))
+
 (use-package ace-window
   :straight t
   :bind ("M-o" . ace-window)
@@ -107,19 +112,13 @@
   :straight t
   :after magit)
 
-(use-package spacemacs-theme
-  :straight t
-  :defer t
-  :init (load-theme 'spacemacs-dark t))
-
 (use-package doom-modeline
   :straight t
   :init (doom-modeline-mode 1))
 
 (use-package rainbow-delimiters
   :straight t
-  :hook
-  ((python-mode scad-mode) . rainbow-delimiters-mode))
+  :hook (prog-mode . rainbow-delimiters-mode))
 
 (use-package vterm
   :straight t
@@ -183,15 +182,12 @@
 (use-package lsp-mode
   :straight t
   :commands (lsp lsp-deferred)
-  ;; :hook (lsp-mode . efs/lsp-mode-setup)
   :init
-  (setq lsp-keymap-prefix "C-c l")  ;; Or 'C-l', 's-l'
+  (setq lsp-keymap-prefix "C-c l")
   :config
   (lsp-enable-which-key-integration t)
   (lsp-register-custom-settings
-   '(("pylsp.plugins.pyls_black.enabled" t t)))
-  :custom
-  (lsp-enable-snippet nil))
+   '(("pylsp.plugins.pyls_black.enabled" t t))))
 
 (use-package lsp-ui
   :straight t
@@ -220,16 +216,10 @@
 
 ;; python
 (use-package python-mode
+  :ensure nil
   :hook
   (python-mode . linum-mode)
   (python-mode . lsp-deferred)
-  ;; :custom
-  ;; NOTE: Set these if Python 3 is called "python3" on your system!
-  ;; (python-shell-interpreter "python3")
-  ;; (dap-python-executable "python3")
-  ;; (dap-python-debugger 'debugpy)
-  ;; :config
-  ;; (require 'dap-python)
   )
 
 (use-package pyvenv
@@ -444,6 +434,12 @@
 (use-package arduino-mode
   :straight t)
 
+(use-package vue-mode
+  :straight t
+  :mode "\\.vue\\'"
+  :config
+  (add-hook 'vue-mode-hook #'lsp))
+
 (use-package csv-mode
   :straight t)
 
@@ -490,7 +486,6 @@
 (setq user-full-name "Robert Gibboni")
 (setq which-func-unknown "n/a")
 
-;; install mu and mu4e with apt-get
 (use-package mu4e
   :straight ( :host github
               :repo "djcb/mu"
@@ -623,31 +618,19 @@ With ARG, do this that many times."
  '(all-the-icons-dired-monochrome nil)
  '(column-number-mode t)
  '(csv-separators '("," "	" ";"))
+ '(dired-listing-switches "-alh")
  '(ediff-window-setup-function 'ediff-setup-windows-plain)
+ ;; '(exec-path
+ ;;   '("/home/robert/.deno/bin" "/home/robert/.cargo/bin" "/home/robert/.local/bin" "/home/robert/bin" "/usr/local/sbin" "/usr/local/bin" "/usr/sbin" "/usr/bin" "/sbin" "/bin" "/usr/games" "/usr/local/games" "/snap/bin" "/usr/local/libexec/emacs/28.2/x86_64-pc-linux-gnu"))
  '(fill-column 100)
- '(ibuffer-formats
-   '((mark modified read-only locked " "
-	   (name 50 50 :left :elide)
-	   " "
-	   (size 9 -1 :right)
-	   " "
-	   (mode 16 16 :left :elide)
-	   " " filename-and-process)
-     (mark " "
-	   (name 16 -1)
-	   " " filename)))
  '(initial-buffer-choice "~/projects")
  '(lsp-openscad-server "~/.cargo/bin/openscad-lsp")
  '(org-agenda-files '("~/org/hrwg.org" "~/org/todo.org" "~/org/ppml.org"))
  '(org-babel-load-languages '((emacs-lisp . t) (python . t) (shell . t)))
  '(org-babel-python-command "ipython --no-banner --classic --no-confirm-exit")
  '(org-edit-src-content-indentation 0)
- '(package-selected-packages
-   '(docker-tramp csv-mode org-roam-ui elpher gopher mastodon forge deft ob-mermaid pdf-tools json-navigator org-roam-export zenburn-theme yaml-mode which-key web-mode use-package undo-tree typescript-mode treemacs-tab-bar treemacs-icons-dired transpose-frame stan-mode sqlite3 spacemacs-theme scad-mode realgud-ipdb pyvenv python-black pylint poly-markdown ox-reveal org-variable-pitch org-roam org-bullets multiple-cursors multi-vterm kotlin-mode keychain-environment jsonl json-mode ivy-rich indent-tools impatient-mode flycheck evil-collection emojify ein doom-themes doom-modeline dockerfile-mode docker dired-icon diminish counsel-projectile company-anaconda browse-at-remote blacken better-shell arduino-mode all-the-icons-dired ag a))
  '(projectile-project-search-path '("~/projects") t)
- '(safe-local-variable-values
-   '((pyvenv-workon . candid-entity-graph)
-     (pyvenv-workon . candid-orgmatch)))
+ '(projectile-project-search-path '("~/projects"))
  '(send-mail-function 'smtpmail-send-it)
  '(split-height-threshold 100)
  '(w3m-home-page "https://lite.duckduckgo.com/lite"))
