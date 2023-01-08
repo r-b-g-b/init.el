@@ -482,6 +482,7 @@
 (setq ring-bell-function 'ignore)
 (setq scroll-conservatively 5)
 (setq scroll-margin 10)
+(setq use-short-answers t)
 (setq user-mail-address "rbgb@sdf.org")
 (setq user-full-name "Robert Gibboni")
 (setq which-func-unknown "n/a")
