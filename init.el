@@ -112,6 +112,9 @@
   :straight t
   :after magit)
 
+(use-package github-review
+  :straight t)
+
 (use-package doom-modeline
   :straight t
   :init (doom-modeline-mode 1))
@@ -180,10 +183,21 @@
   :hook (company-mode . company-box-mode))
 
 (use-package lsp-mode
-  :straight t
+  :defines lsp-highlight-symbol-at-point
   :commands (lsp lsp-deferred)
-  :init
-  (setq lsp-keymap-prefix "C-c l")
+  :hook (;; (csharp-mode . lsp)
+         ;; (python-mode . lsp)
+         (css-mode . lsp)
+         (dockerfile-mode . lsp)
+         (sh-mode . lsp)
+         (typescript-mode . lsp)
+         (web-mode . lsp))
+         ;; (lsp-mode . lsp-enable-which-key-integration))
+  :init (setq lsp-eldoc-render-all nil
+              lsp-highlight-symbol-at-point nil
+              lsp-keymap-prefix "C-c l"
+              lsp-lens-enable t
+              lsp-signature-auto-activate nil)
   :config
   (lsp-enable-which-key-integration t)
   (lsp-register-custom-settings
@@ -417,7 +431,9 @@
   (setq scad-preview-window-size 90))
 
 (use-package typescript-mode
-  :straight t)
+  :straight t
+  :custom
+  (typescript-indent-level 2))
 
 (use-package dockerfile-mode
   :straight t)
@@ -434,11 +450,11 @@
 (use-package arduino-mode
   :straight t)
 
-(use-package vue-mode
-  :straight t
-  :mode "\\.vue\\'"
-  :config
-  (add-hook 'vue-mode-hook #'lsp))
+;; (use-package vue-mode
+;;   :straight t
+;;   :mode "\\.vue\\'"
+;;   :config
+;;   (add-hook 'vue-mode-hook #'lsp))
 
 (use-package csv-mode
   :straight t)
@@ -448,7 +464,14 @@
 ;;   :custom
 ;;   (web-mode-engines-alist '(("django"    . "\\.html?\\'")))
 ;;   :mode
-;;   ("\\.html?\\'" "\\.phtml\\'" "\\.tpl\\.php\\'" "\\.[agj]sp\\'" "\\.as[cp]x\\'" "\\.erb\\'" "\\.mustache\\'" "\\.djhtml\\'"))
+;;   ("\\.html?\\'" "\\.phtml\\'" "\\.tpl\\.php\\'" "\\.[agj]sp\\'" "\\.as[cp]x\\'" "\\.erb\\'" "\\.mustache\\'" "\\.djhtml\\'" "\\.vue\\'")
+;;   :hook
+;;   (lsp))
+
+(use-package editorconfig
+  :straight t
+  :config
+  (editorconfig-mode 1))
 
 (use-package hs-minor-mode
   :hook (json-mode prog-mode yaml-mode))
