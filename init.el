@@ -302,15 +302,54 @@
 
 (use-package org-roam
   :straight t
-  :custom (org-roam-directory "~/org-roam")
+  :commands (org-roam-node-list)
+  :init
+  (setq org-roam-v2-ack t)
+  :custom
+  (org-roam-completion-everywhere t)
+  (org-roam-directory "~/org-roam")
+  (org-roam-graph-executable "neato")
+  (org-roam-capture-templates
+   '(("d" "default" plain
+      "%?"
+      :target (file+head "%<%Y%m%d%H%M%S>-${slug}.org" "#+title: ${title}\n")
+      :unnarrowed t)
+     ("p" "project" plain
+      "* Goals\n\n%?\n\n* Tasks\n\n** TODO Add initial tasks\n\n* Dates\n\n"
+      :if-new (file+head "%<%Y%m%d%H%M%S>-${slug}.org" "#+title: ${title}\n#+category: ${title}\n#+filetags: Project")
+      :unnarrowed t)))
   :bind (("C-c n l" . org-roam-buffer-toggle)
 	 ("C-c n f" . org-roam-node-find)
 	 ("C-c n i" . org-roam-node-insert)
-	 ("C-c n t" . org-roam-dailies-goto-today))
+	 ("C-c n t" . org-roam-dailies-goto-today)
+	 ("C-c n I" . org-roam-node-insert-immediate)
+	 :map org-mode-map
+	 ("C-M-i" . completion-at-point))
   :config
-  (org-roam-db-autosync-mode)
-  :custom
-  (org-roam-graph-executable "neato"))
+  (org-roam-db-autosync-mode))
+
+(defun org-roam-node-insert-immediate (arg &rest args)
+  (interactive "P")
+  (let ((args (cons arg args))
+        (org-roam-capture-templates (list (append (car org-roam-capture-templates)
+                                                  '(:immediate-finish t)))))
+    (apply #'org-roam-node-insert args)))
+
+(defun my/org-roam-filter-by-tag (tag-name)
+  (lambda (node)
+    (member tag-name (org-roam-node-tags node))))
+
+(defun my/org-roam-list-notes-by-tag (tag-name)
+  (mapcar #'org-roam-node-file
+	  (seq-filter
+	   (my/org-roam-filter-by-tag tag-name)
+	   (org-roam-node-list))))
+
+(defun my/org-roam-refresh-agenda-list ()
+  (interactive)
+  (setq org-agenda-files (my/org-roam-list-notes-by-tag "Project")))
+
+(my/org-roam-refresh-agenda-list)
 
 (use-package org-bullets
   :straight t
@@ -681,11 +720,11 @@ With ARG, do this that many times."
  '(fill-column 100)
  '(initial-buffer-choice "~/projects")
  '(lsp-openscad-server "~/.cargo/bin/openscad-lsp")
- '(org-agenda-files '("~/org/hrwg.org" "~/org/todo.org" "~/org/ppml.org"))
+ '(org-agenda-files '("/home/galileo/org/todo.org"))
  '(org-babel-load-languages '((emacs-lisp . t) (python . t) (shell . t)))
  '(org-babel-python-command "ipython --no-banner --classic --no-confirm-exit")
  '(org-edit-src-content-indentation 0)
- '(projectile-project-search-path '("~/projects"))
+ '(projectile-project-search-path '("~/projects") t)
  '(send-mail-function 'smtpmail-send-it)
  '(split-height-threshold 100)
  '(w3m-home-page "https://lite.duckduckgo.com/lite")
