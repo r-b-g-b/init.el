@@ -115,6 +115,9 @@
 (use-package github-review
   :straight t)
 
+(use-package gh-notify
+  :straight t)
+
 (use-package doom-modeline
   :straight t
   :init (doom-modeline-mode 1))
@@ -122,6 +125,10 @@
 (use-package rainbow-delimiters
   :straight t
   :hook (prog-mode . rainbow-delimiters-mode))
+
+(use-package linum-mode
+  :ensure nil
+  :hook prog-mode)
 
 (use-package vterm
   :straight t
@@ -189,6 +196,9 @@
          ;; (python-mode . lsp)
          (css-mode . lsp)
          (dockerfile-mode . lsp)
+         ;; (forge-post-mode . lsp)
+         (js-mode . lsp)
+         ;; (markdown-mode . lsp)
          (sh-mode . lsp)
          (typescript-mode . lsp)
          (web-mode . lsp))
@@ -232,9 +242,7 @@
 (use-package python-mode
   :ensure nil
   :hook
-  (python-mode . linum-mode)
-  (python-mode . lsp-deferred)
-  )
+  (python-mode . lsp-deferred))
 
 (use-package pyvenv
   :straight t
@@ -264,12 +272,17 @@
     ("n" ein:worksheet-goto-next-input-km)
     ("p" ein:worksheet-goto-prev-input-km)
     ("m" ein:worksheet-merge-cell-km)
+    ("e" ein:worksheet-execute-cell-and-goto-next-km)
     ("q" nil :color blue)))
 
 
 (use-package flycheck
   :straight t
   :config (global-flycheck-mode))
+
+(use-package python-black
+  :straight t
+  :after python)
 
 ;; org
 (use-package org
@@ -459,14 +472,14 @@
 (use-package csv-mode
   :straight t)
 
-;; (use-package web-mode
-;;   :straight t
-;;   :custom
-;;   (web-mode-engines-alist '(("django"    . "\\.html?\\'")))
-;;   :mode
-;;   ("\\.html?\\'" "\\.phtml\\'" "\\.tpl\\.php\\'" "\\.[agj]sp\\'" "\\.as[cp]x\\'" "\\.erb\\'" "\\.mustache\\'" "\\.djhtml\\'" "\\.vue\\'")
-;;   :hook
-;;   (lsp))
+(use-package web-mode
+  :straight t
+  :custom
+  (web-mode-engines-alist '(("django"    . "\\.html?\\'")))
+  :mode
+  ("\\.html?\\'" "\\.phtml\\'" "\\.tpl\\.php\\'" "\\.[agj]sp\\'" "\\.as[cp]x\\'" "\\.erb\\'" "\\.mustache\\'" "\\.djhtml\\'" "\\.vue\\'")
+  :hook
+  (lsp))
 
 (use-package editorconfig
   :straight t
@@ -516,12 +529,14 @@
 	      :branch "release/1.8"
 	      :files ("build/mu4e/*")
 	      :pre-build (("./autogen.sh") ("make")))
-  :custom (mu4e-mu-binary (expand-file-name "build/mu/mu" (straight--repos-dir "mu")))
+  :custom
+  (mu4e-change-filenames-when-moving t)
+  (mu4e-get-mail-command "mbsync -a")
+  (mu4e-maildir "~/.mail")
+  (mu4e-mu-binary (expand-file-name "build/mu/mu" (straight--repos-dir "mu")))
+  (mu4e-update-interval (* 10 60))
+  (mu4e-use-fancy-chars t)
   :config
-  (setq mu4e-change-filenames-when-moving t)
-  (setq mu4e-update-interval (* 10 60))
-  (setq mu4e-get-mail-command "mbsync -a")
-  (setq mu4e-maildir "~/.mail")
   (setq mu4e-contexts
         (list
          ;; galileo@gmail.com
@@ -670,8 +685,8 @@ With ARG, do this that many times."
  '(org-babel-load-languages '((emacs-lisp . t) (python . t) (shell . t)))
  '(org-babel-python-command "ipython --no-banner --classic --no-confirm-exit")
  '(org-edit-src-content-indentation 0)
- '(projectile-project-search-path '("~/projects") t)
  '(projectile-project-search-path '("~/projects"))
  '(send-mail-function 'smtpmail-send-it)
  '(split-height-threshold 100)
- '(w3m-home-page "https://lite.duckduckgo.com/lite"))
+ '(w3m-home-page "https://lite.duckduckgo.com/lite")
+ '(web-mode-enable-control-block-indentation t))
