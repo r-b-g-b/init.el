@@ -182,8 +182,7 @@
   (:map company-active-map ("<tab>" . company-complete-selection))
   (:map lsp-mode-map ("<tab>" . company-indent-or-complete-common))
   :custom
-  (company-minimum-prefix-length 1)
-  (company-idle-delay 0.0))
+  (company-minimum-prefix-length 2))
 
 (use-package company-box
   :straight t
@@ -211,7 +210,15 @@
   :config
   (lsp-enable-which-key-integration t)
   (lsp-register-custom-settings
-   '(("pylsp.plugins.pyls_black.enabled" t t))))
+   '(
+     ("pylsp.plugins.black.enabled" t t)
+     ("pylsp.plugins.black.line_length" 120 t)
+     ("pylsp.plugins.ruff.enabled" t t)
+     ("pylsp.plugins.mccabe.enabled" nil)
+     ("pylsp.plugins.pycodestyle.enabled" nil)
+     ("pylsp.plugins.pydocstyle.enabled" nil)
+     ("pylsp.plugins.pyflakes.enabled" nil)
+     )))
 
 (use-package lsp-ui
   :straight t
@@ -256,8 +263,8 @@
 (use-package ein-notebook
   :after ein
   :bind (:map ein:notebook-mode-map
-	 ("C-<return>" . ein:worksheet-execute-cell-and-goto-next-km)
-	 ("C-S-<return>" . ein:worksheet-execute-cell-and-insert-below-km))
+	 ("C-<return>" . ein:worksheet-execute-cell-and-insert-below-km)
+         ("S-<return>" . ein:worksheet-execute-cell-and-goto-next-km))
   :custom
   (ein:output-area-inlined-images t)
   :config
@@ -267,13 +274,14 @@
     ("<down>" ein:worksheet-move-cell-down-km)
     ("a" ein:worksheet-insert-cell-above-km)
     ("b" ein:worksheet-insert-cell-below-km)
+    ("e" ein:worksheet-execute-cell-and-goto-next-km)
     ("k" ein:worksheet-kill-cell-km)
-    ("y" ein:worksheet-yank-cell-km)
+    ("m" ein:worksheet-merge-cell-km)
     ("n" ein:worksheet-goto-next-input-km)
     ("p" ein:worksheet-goto-prev-input-km)
-    ("m" ein:worksheet-merge-cell-km)
-    ("e" ein:worksheet-execute-cell-and-goto-next-km)
-    ("q" nil :color blue)))
+    ("q" nil :color blue)
+    ("s" ein:notebook-save-notebook-command)
+    ("y" ein:worksheet-yank-cell-km)))
 
 
 (use-package flycheck
@@ -295,6 +303,7 @@
   :custom
   (org-support-shift-select t)
   (org-confirm-babel-evaluate nil)
+  (org-goto-auto-isearch nil)
   :config
   (progn
     (unbind-key "C-c C-j")
@@ -316,7 +325,7 @@
       :unnarrowed t)
      ("p" "project" plain
       "* Goals\n\n%?\n\n* Tasks\n\n** TODO Add initial tasks\n\n* Dates\n\n"
-      :if-new (file+head "%<%Y%m%d%H%M%S>-${slug}.org" "#+title: ${title}\n#+category: ${title}\n#+filetags: Project")
+      :if-new (file+head "%<%Y%m%d%H%M%S>-${slug}.org" "#+title: ${title}\n#+category: ${title}\n#+filetags: project\n")
       :unnarrowed t)))
   :bind (("C-c n l" . org-roam-buffer-toggle)
 	 ("C-c n f" . org-roam-node-find)
@@ -347,7 +356,7 @@
 
 (defun my/org-roam-refresh-agenda-list ()
   (interactive)
-  (setq org-agenda-files (my/org-roam-list-notes-by-tag "Project")))
+  (setq org-agenda-files (my/org-roam-list-notes-by-tag "project")))
 
 (my/org-roam-refresh-agenda-list)
 
@@ -702,6 +711,7 @@ With ARG, do this that many times."
 (which-function-mode t)
 (which-key-mode t)
 (winner-mode t)
+(keychain-refresh-environment)
 
 (custom-set-variables
  ;; custom-set-variables was added by Custom.
@@ -715,16 +725,15 @@ With ARG, do this that many times."
  '(csv-separators '("," "	" ";"))
  '(dired-listing-switches "-alh")
  '(ediff-window-setup-function 'ediff-setup-windows-plain)
- ;; '(exec-path
- ;;   '("/home/robert/.deno/bin" "/home/robert/.cargo/bin" "/home/robert/.local/bin" "/home/robert/bin" "/usr/local/sbin" "/usr/local/bin" "/usr/sbin" "/usr/bin" "/sbin" "/bin" "/usr/games" "/usr/local/games" "/snap/bin" "/usr/local/libexec/emacs/28.2/x86_64-pc-linux-gnu"))
  '(fill-column 100)
+ '(indent-tabs-mode nil)
  '(initial-buffer-choice "~/projects")
  '(lsp-openscad-server "~/.cargo/bin/openscad-lsp")
- '(org-agenda-files '("/home/galileo/org/todo.org"))
+ '(org-agenda-files nil)
  '(org-babel-load-languages '((emacs-lisp . t) (python . t) (shell . t)))
  '(org-babel-python-command "ipython --no-banner --classic --no-confirm-exit")
  '(org-edit-src-content-indentation 0)
- '(projectile-project-search-path '("~/projects") t)
+ '(projectile-project-search-path '("~/projects"))
  '(send-mail-function 'smtpmail-send-it)
  '(split-height-threshold 100)
  '(w3m-home-page "https://lite.duckduckgo.com/lite")
