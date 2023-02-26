@@ -106,7 +106,9 @@
 
 (use-package magit
   :straight t
-  :bind ("C-x g" . magit-status))
+  :bind ("C-x g" . magit-status)
+  :custom
+  (magit-display-buffer-function 'magit-display-buffer-same-window-except-diff-v1))
 
 (use-package forge
   :straight t
@@ -218,6 +220,7 @@
      ("pylsp.plugins.pycodestyle.enabled" nil)
      ("pylsp.plugins.pydocstyle.enabled" nil)
      ("pylsp.plugins.pyflakes.enabled" nil)
+     ("pylsp.plugins.isort.enabled" t t)
      )))
 
 (use-package lsp-ui
@@ -281,6 +284,7 @@
     ("p" ein:worksheet-goto-prev-input-km)
     ("q" nil :color blue)
     ("s" ein:notebook-save-notebook-command)
+    ("w" ein:worksheet-copy-cell-km)
     ("y" ein:worksheet-yank-cell-km)))
 
 
