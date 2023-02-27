@@ -120,6 +120,9 @@
 (use-package gh-notify
   :straight t)
 
+(use-package git-link
+  :straight t)
+
 (use-package doom-modeline
   :straight t
   :init (doom-modeline-mode 1))
