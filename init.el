@@ -276,6 +276,8 @@
   :config
   (defhydra ein:notebook-navigation (ein:notebook-mode-map "C-c h")
     "navigate"
+    ("i" ein:notebook-kernel-interrupt-command)
+    ("0" ein:notebook-restart-session-command)
     ("<up>" ein:worksheet-move-cell-up-km)
     ("<down>" ein:worksheet-move-cell-down-km)
     ("a" ein:worksheet-insert-cell-above-km)
@@ -586,6 +588,7 @@
 	      :pre-build (("./autogen.sh") ("make")))
   :custom
   (mu4e-change-filenames-when-moving t)
+  (mu4e-compose-format-flowed t)
   (mu4e-get-mail-command "mbsync -a")
   (mu4e-maildir "~/.mail")
   (mu4e-mu-binary (expand-file-name "build/mu/mu" (straight--repos-dir "mu")))
