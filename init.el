@@ -115,7 +115,9 @@
   :after magit)
 
 (use-package github-review
-  :straight t)
+  :straight t
+  :custom
+  (define-key github-review-mode-map (kbd "M-o") nil))
 
 (use-package gh-notify
   :straight t)
@@ -217,14 +219,12 @@
   (lsp-register-custom-settings
    '(
      ("pylsp.plugins.black.enabled" t t)
-     ("pylsp.plugins.black.line_length" 120 t)
-     ("pylsp.plugins.ruff.enabled" t t)
+     ("pylsp.plugins.flake8.enabled" nil)
+     ("pylsp.plugins.isort.enabled" t t)
      ("pylsp.plugins.mccabe.enabled" nil)
      ("pylsp.plugins.pycodestyle.enabled" nil)
      ("pylsp.plugins.pydocstyle.enabled" nil)
-     ("pylsp.plugins.pyflakes.enabled" nil)
-     ("pylsp.plugins.isort.enabled" t t)
-     )))
+     ("pylsp.plugins.pyflakes.enabled" nil))))
 
 (use-package lsp-ui
   :straight t
@@ -595,6 +595,7 @@
   (mu4e-update-interval (* 10 60))
   (mu4e-use-fancy-chars t)
   :config
+  (require 'org-mu4e)
   (setq mu4e-contexts
         (list
          ;; galileo@gmail.com
@@ -649,7 +650,6 @@
                   (mu4e-trash-folder  . "/sdf/INBOX.Trash"))))))
 
 (add-to-list 'load-path "~/.emacs.d/src")
-(require 'mu4e-thread-folding)
 
 (add-to-list 'mu4e-header-info-custom
              '(:empty . (:name "Empty"
