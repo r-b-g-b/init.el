@@ -341,6 +341,7 @@
 	 ("C-c n i" . org-roam-node-insert)
 	 ("C-c n t" . org-roam-dailies-goto-today)
 	 ("C-c n I" . org-roam-node-insert-immediate)
+         ("C-c n s" . org-store-link)
 	 :map org-mode-map
 	 ("C-M-i" . completion-at-point))
   :config
@@ -683,6 +684,8 @@
 (global-set-key [mouse-8] 'previous-buffer)
 (global-set-key [mouse-9] 'next-buffer)
 (global-set-key [f9] 'toggle-menu-bar-mode-from-frame)
+
+(require 'dired-x)
 
 ;; M-backspace does not copy to clipboard
 ;; https://www.emacswiki.org/emacs/BackwardDeleteWord
