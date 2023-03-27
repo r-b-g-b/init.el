@@ -31,8 +31,9 @@
 
 (use-package counsel
   :straight t
-  :after ivy
-  :config (counsel-mode))
+  :after (ivy org)
+  :config (counsel-mode)
+  :bind (:map org-mode-map ("C-c C-j" . counsel-outline)))
 
 (use-package ivy
   :straight t
@@ -313,10 +314,7 @@
   (org-support-shift-select t)
   (org-confirm-babel-evaluate nil)
   (org-goto-auto-isearch nil)
-  :config
-  (progn
-    (unbind-key "C-c C-j")
-    (bind-key "C-c C-j" 'counsel-outline)))
+  (require 'ox-bibtex))
 
 (use-package org-roam
   :straight t
@@ -593,6 +591,7 @@
   (mu4e-get-mail-command "mbsync -a")
   (mu4e-maildir "~/.mail")
   (mu4e-mu-binary (expand-file-name "build/mu/mu" (straight--repos-dir "mu")))
+  (mu4e-split-view 'vertical)
   (mu4e-update-interval (* 10 60))
   (mu4e-use-fancy-chars t)
   :config
