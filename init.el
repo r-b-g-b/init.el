@@ -126,6 +126,12 @@
 (use-package git-link
   :straight t)
 
+(use-package gptel
+  :straight t
+  :custom
+  (gptel-api-key (plist-get (nth 0 (auth-source-search :max 1 :host "openai.com")) :secret))
+  (gptel-default-mode 'org-mode))
+
 (use-package doom-modeline
   :straight t
   :init (doom-modeline-mode 1))
@@ -239,7 +245,6 @@
 
 ;; lsp-doctor suggests
 (setq read-process-output-max (* 1024 1024)) ;; 1mb
-(setq gc-cons-threshold 100000000)
 (setq lsp-idle-delay 0.500)
 (setq lsp-log-io nil) ; if set to true can cause a performance hit
 
@@ -399,6 +404,9 @@
 (use-package ox-reveal
   :straight t)
 
+(use-package ox-slack
+  :straight t)
+
 (use-package deft
   :straight t
   :after org
@@ -471,7 +479,10 @@
   (livedown-port 1337))
 
 (use-package pdf-tools
-  :straight t)
+  :straight t
+  :config
+  (pdf-loader-install)
+  :bind (:map pdf-view-mode-map ("C-s" . isearch-forward)))
 
 ;; modes
 ;; (use-package json-mode
@@ -505,6 +516,9 @@
   (typescript-indent-level 2))
 
 (use-package dockerfile-mode
+  :straight t)
+
+(use-package lua-mode
   :straight t)
 
 (use-package kotlin-mode
@@ -715,11 +729,8 @@ With ARG, do this that many times."
 (global-hl-line-mode t)
 (global-tree-sitter-mode t)
 (add-hook 'tree-sitter-after-on-hook #'tree-sitter-hl-mode)
-(menu-bar-mode -1)
-(scroll-bar-mode -1)
 (show-paren-mode t)
 (tab-bar-mode t)
-(tool-bar-mode -1)
 (which-function-mode t)
 (which-key-mode t)
 (winner-mode t)
