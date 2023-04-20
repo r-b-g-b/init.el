@@ -17,6 +17,9 @@
 
 (straight-use-package 'use-package)
 
+(require 'dired-x)
+(require 'notifications)
+
 (use-package spacemacs-theme
   :straight t
   :defer t
@@ -130,7 +133,7 @@
   :straight t
   :custom
   (gptel-api-key (plist-get (nth 0 (auth-source-search :max 1 :host "openai.com")) :secret))
-  (gptel-default-mode 'org-mode))
+  (gptel-default-mode 'markdown-mode))
 
 (use-package doom-modeline
   :straight t
@@ -596,20 +599,24 @@
 (use-package mu4e
   :straight ( :host github
               :repo "djcb/mu"
-	      :branch "release/1.8"
+	      :branch "release/1.10"
 	      :files ("build/mu4e/*")
 	      :pre-build (("./autogen.sh") ("make")))
   :custom
+  (mu4e-attachment-dir "~/Downloads")
   (mu4e-change-filenames-when-moving t)
   (mu4e-compose-format-flowed t)
   (mu4e-get-mail-command "mbsync -a")
+  (mu4e-headers-fields '((:empty . 2) (:human-date . 12) (:from . 22) (:subject)))
+  (mu4e-headers-visible-columns 140)
   (mu4e-maildir "~/.mail")
   (mu4e-mu-binary (expand-file-name "build/mu/mu" (straight--repos-dir "mu")))
+  (mu4e-notification-support t)
   (mu4e-split-view 'vertical)
   (mu4e-update-interval (* 10 60))
   (mu4e-use-fancy-chars t)
+  (mu4e-view-show-images t)
   :config
-  (require 'org-mu4e)
   (setq mu4e-contexts
         (list
          ;; galileo@gmail.com
@@ -697,8 +704,6 @@
 (global-set-key [mouse-8] 'previous-buffer)
 (global-set-key [mouse-9] 'next-buffer)
 (global-set-key [f9] 'toggle-menu-bar-mode-from-frame)
-
-(require 'dired-x)
 
 ;; M-backspace does not copy to clipboard
 ;; https://www.emacswiki.org/emacs/BackwardDeleteWord
