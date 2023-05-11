@@ -58,14 +58,14 @@
   :init
   (global-undo-tree-mode)
   (defhydra hydra-undo-tree (:hint nil)
-      "
+    "
   _p_: undo  _n_: redo _s_: save _l_: load   "
-      ("p"   undo-tree-undo)
-      ("n"   undo-tree-redo)
-      ("s"   undo-tree-save-history)
-      ("l"   undo-tree-load-history)
-      ("u"   undo-tree-visualize "visualize" :color blue)
-      ("q"   nil "quit" :color blue))
+    ("p"   undo-tree-undo)
+    ("n"   undo-tree-redo)
+    ("s"   undo-tree-save-history)
+    ("l"   undo-tree-load-history)
+    ("u"   undo-tree-visualize "visualize" :color blue)
+    ("q"   nil "quit" :color blue))
   :config
   (setq undo-tree-auto-save-history t)
   (setq undo-tree-history-directory-alist '(("." . "~/.emacs.d/undo"))))
@@ -146,6 +146,14 @@
 (use-package linum-mode
   :ensure nil
   :hook prog-mode)
+
+(use-package eshell
+  :after eshell-git-prompt
+  :config
+  (eshell-git-prompt-use-theme 'powerline))
+
+(use-package eshell-git-prompt
+  :straight t)
 
 (use-package vterm
   :straight t
@@ -232,9 +240,10 @@
      ("pylsp.plugins.flake8.enabled" nil)
      ("pylsp.plugins.isort.enabled" t t)
      ("pylsp.plugins.mccabe.enabled" nil)
-     ("pylsp.plugins.pycodestyle.enabled" nil)
+     ("pylsp.plugins.pycodestyle.enabled" t)
      ("pylsp.plugins.pydocstyle.enabled" nil)
-     ("pylsp.plugins.pyflakes.enabled" nil))))
+     ("pylsp.plugins.pyflakes.enabled" t t)
+     ("pylsp.plugins.ruff.enabled" t t))))
 
 (use-package lsp-ui
   :straight t
@@ -248,7 +257,7 @@
 
 ;; lsp-doctor suggests
 (setq read-process-output-max (* 1024 1024)) ;; 1mb
-(setq lsp-idle-delay 0.500)
+(setq lsp-idle-delay 0.25)
 (setq lsp-log-io nil) ; if set to true can cause a performance hit
 
 (use-package yasnippet
@@ -264,7 +273,15 @@
 (use-package python-mode
   :ensure nil
   :hook
-  (python-mode . lsp-deferred))
+  (python-mode . lsp-deferred)
+  :custom
+  (python-shell-interpreter "ipython")
+  (python-shell-interpreter-args "--simple-prompt -i")
+  (python-shell-prompt-regexp "In \\[[0-9]+\\]: ")
+  (python-shell-prompt-output-regexp "Out\\[[0-9]+\\]: ")
+  (python-shell-completion-setup-code "from IPython.core.completerlib import module_completion")
+  (python-shell-completion-module-string-code "';'.join(module_completion('''%s'''))\n")
+  (python-shell-completion-string-code "';'.join(get_ipython().Completer.all_completions('''%s'''))\n"))
 
 (use-package pyvenv
   :straight t
@@ -278,28 +295,29 @@
 (use-package ein-notebook
   :after ein
   :bind (:map ein:notebook-mode-map
-	 ("C-<return>" . ein:worksheet-execute-cell-and-insert-below-km)
-         ("S-<return>" . ein:worksheet-execute-cell-and-goto-next-km))
+	      ("C-<return>" . ein:worksheet-execute-cell-and-insert-below-km)
+              ("S-<return>" . ein:worksheet-execute-cell-and-goto-next-km))
   :custom
   (ein:output-area-inlined-images t)
   :config
   (defhydra ein:notebook-navigation (ein:notebook-mode-map "C-c h")
     "navigate"
-    ("i" ein:notebook-kernel-interrupt-command)
-    ("0" ein:notebook-restart-session-command)
-    ("<up>" ein:worksheet-move-cell-up-km)
-    ("<down>" ein:worksheet-move-cell-down-km)
-    ("a" ein:worksheet-insert-cell-above-km)
-    ("b" ein:worksheet-insert-cell-below-km)
-    ("e" ein:worksheet-execute-cell-and-goto-next-km)
-    ("k" ein:worksheet-kill-cell-km)
-    ("m" ein:worksheet-merge-cell-km)
-    ("n" ein:worksheet-goto-next-input-km)
-    ("p" ein:worksheet-goto-prev-input-km)
-    ("q" nil :color blue)
-    ("s" ein:notebook-save-notebook-command)
-    ("w" ein:worksheet-copy-cell-km)
-    ("y" ein:worksheet-yank-cell-km)))
+    ("i" ein:notebook-kernel-interrupt-command "Interrupt")
+    ("0" ein:notebook-restart-session-command "Restart")
+    ("<up>" ein:worksheet-move-cell-up-km "Move cell up")
+    ("<down>" ein:worksheet-move-cell-down-km "Move cell down")
+    ("a" ein:worksheet-insert-cell-above-km "Insert above")
+    ("b" ein:worksheet-insert-cell-below-km "Insert below")
+    ("e" ein:worksheet-execute-cell-and-goto-next-km "Execute cell")
+    ("E" ein:worksheet-execute-all-cells "Execute all cells")
+    ("k" ein:worksheet-kill-cell-km "Cut")
+    ("m" ein:worksheet-merge-cell-km "Merge with above")
+    ("n" ein:worksheet-goto-next-input-km "Next")
+    ("p" ein:worksheet-goto-prev-input-km "Previous")
+    ("q" nil "Quit" :color blue)
+    ("s" ein:notebook-save-notebook-command "Save")
+    ("w" ein:worksheet-copy-cell-km "Copy")
+    ("y" ein:worksheet-yank-cell-km "Paste")))
 
 
 (use-package flycheck
@@ -318,6 +336,24 @@
   ("C-c C-j" . nil)
   ("C-c a" . org-agenda)
   ("<f6>" . org-capture)
+  :config
+  (defhydra org:hydra (org-mode-map "C-c h" :color pink)
+    ("n" outline-next-visible-heading "Next" :column "Navigate")
+    ("j" outline-next-visible-heading "Next")
+    ("p" outline-previous-visible-heading "Previous")
+    ("k" outline-previous-visible-heading "Previous")
+    ("u" outline-up-heading "Up level")
+    ("f" org-forward-heading-same-level "Forward same level")
+    ("b" org-backward-heading-same-level "Backward same level")
+    ("h" org-forward-heading-same-level "Forward same level")
+    ("l" org-backward-heading-same-level "Backward same level")
+    ("d" org-cut-subtree "Delete" :column "Modify")
+    ("$" org-archive-subtree "Archive")
+    ("/" undo-tree-undo "Undo")
+    ("t" org-todo "Toggle TODO")
+    ("i" org-insert-heading "Insert" :exit t)
+    ("s" counsel-outline "Search" :color red :column "Search")
+    ("q" nil "Quit" :color red))
   :custom
   (org-support-shift-select t)
   (org-confirm-babel-evaluate nil)
@@ -443,8 +479,8 @@
   :config
   (defun markdown-html (buffer)
     (princ (with-current-buffer buffer
-      (format "<!DOCTYPE html><html><title>Impatient Markdown</title><xmp theme=\"united\" style=\"display:none;\"> %s  </xmp><script src=\"http://strapdownjs.com/v/0.2/strapdown.js\"></script></html>" (buffer-substring-no-properties (point-min) (point-max))))
-    (current-buffer))))
+             (format "<!DOCTYPE html><html><title>Impatient Markdown</title><xmp theme=\"united\" style=\"display:none;\"> %s  </xmp><script src=\"http://strapdownjs.com/v/0.2/strapdown.js\"></script></html>" (buffer-substring-no-properties (point-min) (point-max))))
+           (current-buffer))))
 
 (use-package diminish
   :straight t)
@@ -455,18 +491,18 @@
   ;; ;; Enable the "www" ligature in every possible major mode
   ;; (ligature-set-ligatures 't '("www"))
 
-  ;; ;; Enable ligatures in programming modes
-  ;; (ligature-set-ligatures 'prog-mode '("www" "**" "***" "**/" "*>" "*/" "\\\\" "\\\\\\"
-  ;;   "{-" "[]" "::" ":::" ":=" "!!" "!=" "!==" "-}"
-  ;;   "--" "---" "-->" "->" "->>" "-<" "-<<" "-~"
-  ;;   "#{" "#[" "##" "###" "####" "#(" "#?" "#_" "#_("
-  ;;   "/**" "/=" "/==" "/>" "//" "///" "&&" "||" "||="
-  ;;   "|=" "|>" "^=" "$>" "++" "+++" "+>" "=:=" "=="
-  ;;   "===" "==>" "=>" "=>>" "<=" "=<<" "=/=" ">-" ">="
-  ;;   ">=>" ">>" ">>-" ">>=" ">>>" "<*" "<*>" "<|" "<|>"
-  ;;   "<$" "<$>" "<!--" "<-" "<--" "<->" "<+" "<+>" "<="
-  ;;   "<==" "<=>" "<=<" "<>" "<<" "<<-" "<<=" "<<<" "<~"
-  ;;   "<~~" "</" "</>" "~@" "~-" "~=" "~>" "~~" "~~>" "%%"))
+  ;; Enable ligatures in programming modes
+  (ligature-set-ligatures 'prog-mode '("www" "**" "***" "**/" "*>" "*/" "\\\\" "\\\\\\"
+                                       "{-" "[]" "::" ":::" ":=" "!!" "!=" "!==" "-}"
+                                       "--" "---" "-->" "->" "->>" "-<" "-<<" "-~"
+                                       "#{" "#[" "##" "###" "####" "#(" "#?" "#_" "#_("
+                                       "/**" "/=" "/==" "/>" "//" "///" "&&" "||" "||="
+                                       "|=" "|>" "^=" "$>" "++" "+++" "+>" "=:=" "=="
+                                       "===" "==>" "=>" "=>>" "<=" "=<<" "=/=" ">-" ">="
+                                       ">=>" ">>" ">>-" ">>=" ">>>" "<*" "<*>" "<|" "<|>"
+                                       "<$" "<$>" "<!--" "<-" "<--" "<->" "<+" "<+>" "<="
+                                       "<==" "<=>" "<=<" "<>" "<<" "<<-" "<<=" "<<<" "<~"
+                                       "<~~" "</" "</>" "~@" "~-" "~=" "~>" "~~" "~~>" "%%"))
   (global-ligature-mode t))
 
 (use-package indent-tools
@@ -535,6 +571,13 @@
 
 (use-package arduino-mode
   :straight t)
+
+(defun sqlparse-region (beg end)
+  (interactive "r")
+  (shell-command-on-region
+   beg end
+   "python -c 'import sys, sqlparse; print(sqlparse.format(sys.stdin.read(), reindent=True))'"
+   t t))
 
 ;; (use-package vue-mode
 ;;   :straight t
@@ -674,8 +717,8 @@
 
 (add-to-list 'mu4e-header-info-custom
              '(:empty . (:name "Empty"
-                         :shortname ""
-                         :function (lambda (msg) "  "))))
+                               :shortname ""
+                               :function (lambda (msg) "  "))))
 (setq mu4e-headers-fields '((:empty         .    2)
                             (:human-date    .   12)
                             (:flags         .    6)
@@ -740,6 +783,7 @@ With ARG, do this that many times."
 (which-key-mode t)
 (winner-mode t)
 (keychain-refresh-environment)
+(desktop-read)
 
 (custom-set-variables
  ;; custom-set-variables was added by Custom.
