@@ -139,12 +139,14 @@
   :straight t
   :init (doom-modeline-mode 1))
 
+(use-package nerd-icons
+  :straight t)
+
 (use-package rainbow-delimiters
   :straight t
   :hook (prog-mode . rainbow-delimiters-mode))
 
 (use-package linum-mode
-  :ensure nil
   :hook prog-mode)
 
 (use-package eshell
@@ -167,8 +169,8 @@
 (use-package projectile
   :straight t
   :diminish projectile-mode
-  :config (projectile-mode)
   :custom ((projectile-completion-system 'ivy))
+  :config (projectile-mode)
   :bind-keymap
   ("C-c p" . projectile-command-map)
   :init
@@ -226,14 +228,16 @@
          (sh-mode . lsp)
          (typescript-mode . lsp)
          (web-mode . lsp))
-         ;; (lsp-mode . lsp-enable-which-key-integration))
+  :custom
+  (lsp-enable-which-key-integration t)
+  (lsp-idle-delay 0.25)
+  (lsp-log-io nil)
   :init (setq lsp-eldoc-render-all nil
               lsp-highlight-symbol-at-point nil
               lsp-keymap-prefix "C-c l"
               lsp-lens-enable t
               lsp-signature-auto-activate nil)
   :config
-  (lsp-enable-which-key-integration t)
   (lsp-register-custom-settings
    '(
      ("pylsp.plugins.black.enabled" t t)
@@ -257,8 +261,6 @@
 
 ;; lsp-doctor suggests
 (setq read-process-output-max (* 1024 1024)) ;; 1mb
-(setq lsp-idle-delay 0.25)
-(setq lsp-log-io nil) ; if set to true can cause a performance hit
 
 (use-package yasnippet
   :straight t
@@ -271,7 +273,6 @@
 
 ;; python
 (use-package python-mode
-  :ensure nil
   :hook
   (python-mode . lsp-deferred)
   :custom
@@ -301,23 +302,22 @@
   (ein:output-area-inlined-images t)
   :config
   (defhydra ein:notebook-navigation (ein:notebook-mode-map "C-c h")
-    "navigate"
-    ("i" ein:notebook-kernel-interrupt-command "Interrupt")
-    ("0" ein:notebook-restart-session-command "Restart")
-    ("<up>" ein:worksheet-move-cell-up-km "Move cell up")
+    ("n" ein:worksheet-goto-next-input-km "Next" :column "Navigate")
+    ("p" ein:worksheet-goto-prev-input-km "Previous")
+    ("<up>" ein:worksheet-move-cell-up-km "Move cell up" :column "Modify")
     ("<down>" ein:worksheet-move-cell-down-km "Move cell down")
     ("a" ein:worksheet-insert-cell-above-km "Insert above")
     ("b" ein:worksheet-insert-cell-below-km "Insert below")
-    ("e" ein:worksheet-execute-cell-and-goto-next-km "Execute cell")
-    ("E" ein:worksheet-execute-all-cells "Execute all cells")
     ("k" ein:worksheet-kill-cell-km "Cut")
     ("m" ein:worksheet-merge-cell-km "Merge with above")
-    ("n" ein:worksheet-goto-next-input-km "Next")
-    ("p" ein:worksheet-goto-prev-input-km "Previous")
-    ("q" nil "Quit" :color blue)
-    ("s" ein:notebook-save-notebook-command "Save")
     ("w" ein:worksheet-copy-cell-km "Copy")
-    ("y" ein:worksheet-yank-cell-km "Paste")))
+    ("y" ein:worksheet-yank-cell-km "Paste")
+    ("i" ein:notebook-kernel-interrupt-command "Interrupt" :column "Execute")
+    ("0" ein:notebook-restart-session-command "Restart")
+    ("e" ein:worksheet-execute-cell-and-goto-next-km "Execute cell")
+    ("E" ein:worksheet-execute-all-cells "Execute all cells")
+    ("s" ein:notebook-save-notebook-command "Save")
+    ("q" nil "Quit" :color blue :column "Quit")))
 
 
 (use-package flycheck
@@ -336,6 +336,10 @@
   ("C-c C-j" . nil)
   ("C-c a" . org-agenda)
   ("<f6>" . org-capture)
+  :custom
+  (org-support-shift-select t)
+  (org-confirm-babel-evaluate nil)
+  (org-goto-auto-isearch nil)
   :config
   (defhydra org:hydra (org-mode-map "C-c h" :color pink)
     ("n" outline-next-visible-heading "Next" :column "Navigate")
@@ -354,10 +358,6 @@
     ("i" org-insert-heading "Insert" :exit t)
     ("s" counsel-outline "Search" :color red :column "Search")
     ("q" nil "Quit" :color red))
-  :custom
-  (org-support-shift-select t)
-  (org-confirm-babel-evaluate nil)
-  (org-goto-auto-isearch nil)
   (require 'ox-bibtex))
 
 (use-package org-roam
@@ -529,7 +529,19 @@
 ;;   (add-hook 'json-mode-hook (lambda () (define-key json-mode-map (kbd "C-c >") 'indent-tools-hydra/body))))
 
 (use-package markdown-mode
-  :straight t)
+  :straight t
+  :custom
+  (defhydra markdown:hydra (markdown-mode-map "C-c h" :color pink)
+    ("n" markdown-next-visible-heading "Next" :column "Navigate")
+    ("j" markdown-next-visible-heading "Next")
+    ("p" markdown-previous-visible-heading "Previous")
+    ("k" markdown-previous-visible-heading "Previous")
+    ("u" markdown-up-heading "Up level")
+    ("f" markdown-forward-same-level "Forward same level")
+    ("h" markdown-forward-same-level "Forward same level")
+    ("l" markdown-backward-same-level "Backward same level")
+    ("b" markdown-backward-same-level "Backward same level")
+    ("q" nil "Quit" :color red)))
 
 (use-package poly-markdown
   :straight t)
@@ -570,6 +582,9 @@
   :straight t)
 
 (use-package arduino-mode
+  :straight t)
+
+(use-package sqlite3
   :straight t)
 
 (defun sqlparse-region (beg end)
@@ -775,6 +790,7 @@ With ARG, do this that many times."
  )
 
 (global-hl-line-mode t)
+(global-so-long-mode t)
 (global-tree-sitter-mode t)
 (add-hook 'tree-sitter-after-on-hook #'tree-sitter-hl-mode)
 (show-paren-mode t)
