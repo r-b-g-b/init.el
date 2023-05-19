@@ -190,6 +190,17 @@
   (mastodon-instance-url "https://mastodon.sdf.org")
   (mastodon-active-user "rbgb"))
 
+(use-package erc
+  :straight t
+  :custom
+  (erc-server "irc.libera.chat")
+  (erc-nick "rbgb")    ; Change this!
+  (erc-user-full-name "Robert Gibboni")  ; And this!
+  (erc-track-shorten-start 8)
+  (erc-autojoin-channels-alist '(("irc.libera.chat" "#systemcrafters" "#emacs")))
+  (erc-kill-buffer-on-part t)
+  (erc-auto-query 'bury))
+
 (use-package elpher
   :straight t)
 
@@ -290,6 +301,14 @@
   :config
   (pyvenv-mode 1))
 
+(use-package dap-mode
+  :straight t
+  :custom
+  (dap-python-debugger 'debugpy)
+  :config
+  (dap-mode 1)
+  (require 'dap-python))
+
 (use-package ein
   :straight t)
 
@@ -358,7 +377,8 @@
     ("i" org-insert-heading "Insert" :exit t)
     ("s" counsel-outline "Search" :color red :column "Search")
     ("q" nil "Quit" :color red))
-  (require 'ox-bibtex))
+  ;; (require 'ox-bibtex)
+  )
 
 (use-package org-roam
   :straight t
@@ -530,7 +550,7 @@
 
 (use-package markdown-mode
   :straight t
-  :custom
+  :config
   (defhydra markdown:hydra (markdown-mode-map "C-c h" :color pink)
     ("n" markdown-next-visible-heading "Next" :column "Navigate")
     ("j" markdown-next-visible-heading "Next")
@@ -670,6 +690,8 @@
   (mu4e-maildir "~/.mail")
   (mu4e-mu-binary (expand-file-name "build/mu/mu" (straight--repos-dir "mu")))
   (mu4e-notification-support t)
+  (mu4e-search-include-related nil)
+  (mu4e-search-skip-duplicates nil)
   (mu4e-split-view 'vertical)
   (mu4e-update-interval (* 10 60))
   (mu4e-use-fancy-chars t)
@@ -825,4 +847,6 @@ With ARG, do this that many times."
  '(send-mail-function 'smtpmail-send-it)
  '(split-height-threshold 100)
  '(w3m-home-page "https://lite.duckduckgo.com/lite")
+ '(warning-suppress-log-types '((comp) (comp)))
+ '(warning-suppress-types '((comp)))
  '(web-mode-enable-control-block-indentation t))
