@@ -20,6 +20,31 @@
 (require 'dired-x)
 (require 'notifications)
 
+
+(set-face-attribute 'default nil :height 86)
+(setq-default flycheck-disabled-checkers '(python-pylint))
+(setq-default electric-indent-inhibit t)
+(setq-default default-tab-width 4)
+(setq-default linum-format "%4d\u2502 ")
+
+(setq auth-source-debug t)
+(setq backup-directory-alist '(("" . "~/.emacs.d/backups")))
+(setq company-show-quick-access t)
+(setq create-lockfiles nil)
+(setq epg-pinentry-mode 'loopback)
+(setq mail-user-agent 'mu4e-user-agent)
+(setq markdown-fontify-code-blocks-natively t)
+(setq python-shell-interpreter "python"
+      python-shell-interpreter-args "-i")
+(setq ring-bell-function 'ignore)
+(setq scroll-conservatively 5)
+(setq scroll-margin 10)
+(setq use-short-answers t)
+(setq user-full-name "Robert Gibboni")
+(setq user-mail-address "rbgb@sdf.org")
+(setq which-func-unknown "n/a")
+; (set-variable 'read-mail-command 'mu4e)
+
 (use-package spacemacs-theme
   :straight t
   :defer t
@@ -66,9 +91,9 @@
     ("l"   undo-tree-load-history)
     ("u"   undo-tree-visualize "visualize" :color blue)
     ("q"   nil "quit" :color blue))
-  :config
-  (setq undo-tree-auto-save-history t)
-  (setq undo-tree-history-directory-alist '(("." . "~/.emacs.d/undo"))))
+  :custom
+  (undo-tree-auto-save-history t)
+  (undo-tree-history-directory-alist '(("." . "~/.emacs.d/undo"))))
 
 (use-package ivy-hydra
   :straight t
@@ -103,14 +128,17 @@
   :straight t
   :after all-the-icons
   :hook (dired-mode . all-the-icons-dired-mode)
-  :config (setq all-the-icons-dired-monochrome nil))
+  :custom (all-the-icons-dired-monochrome nil))
 
 (use-package multiple-cursors
   :straight t)
 
 (use-package magit
   :straight t
-  :bind ("C-x g" . magit-status)
+  :bind
+  ("C-x g" . magit-status)
+  (:map magit-mode-map
+        ("C-<tab>" . nil))
   :custom
   (magit-display-buffer-function 'magit-display-buffer-same-window-except-diff-v1))
 
@@ -286,14 +314,14 @@
 (use-package python-mode
   :hook
   (python-mode . lsp-deferred)
-  :custom
-  (python-shell-interpreter "ipython")
-  (python-shell-interpreter-args "--simple-prompt -i")
-  (python-shell-prompt-regexp "In \\[[0-9]+\\]: ")
-  (python-shell-prompt-output-regexp "Out\\[[0-9]+\\]: ")
-  (python-shell-completion-setup-code "from IPython.core.completerlib import module_completion")
-  (python-shell-completion-module-string-code "';'.join(module_completion('''%s'''))\n")
-  (python-shell-completion-string-code "';'.join(get_ipython().Completer.all_completions('''%s'''))\n"))
+  :config
+  (setq python-shell-interpreter "ipython")
+  (setq python-shell-interpreter-args "--simple-prompt -i")
+  (setq python-shell-prompt-regexp "In \\[[0-9]+\\]: ")
+  (setq python-shell-prompt-output-regexp "Out\\[[0-9]+\\]: ")
+  (setq python-shell-completion-setup-code "from IPython.core.completerlib import module_completion")
+  (setq python-shell-completion-module-string-code "';'.join(module_completion('''%s'''))\n")
+  (setq python-shell-completion-string-code "';'.join(get_ipython().Completer.all_completions('''%s'''))\n"))
 
 (use-package pyvenv
   :straight t
@@ -367,22 +395,24 @@
     ("k" outline-previous-visible-heading "Previous")
     ("u" outline-up-heading "Up level")
     ("f" org-forward-heading-same-level "Forward same level")
+    ("l" org-forward-heading-same-level "Forward same level")
     ("b" org-backward-heading-same-level "Backward same level")
-    ("h" org-forward-heading-same-level "Forward same level")
-    ("l" org-backward-heading-same-level "Backward same level")
-    ("d" org-cut-subtree "Delete" :column "Modify")
-    ("$" org-archive-subtree "Archive")
-    ("/" undo-tree-undo "Undo")
+    ("h" org-backward-heading-same-level "Backward same level")
+    ("<prior>" org-metaup "Move section up" :column "Modify")
+    ("<next>" org-metadown "Move section down")
+    ("<" org-promote-subtree "Promote")
+    (">" org-demote-subtree "Demote")
     ("t" org-todo "Toggle TODO")
     ("i" org-insert-heading "Insert" :exit t)
-    ("s" counsel-outline "Search" :color red :column "Search")
+    ("s" counsel-outline "Search" :color red :column "Actions")
+    ("I" org-clock-in "Clock in")
+    ("O" org-clock-out "Clock in")
     ("q" nil "Quit" :color red))
   ;; (require 'ox-bibtex)
   )
 
 (use-package org-roam
   :straight t
-  :commands (org-roam-node-list)
   :init
   (setq org-roam-v2-ack t)
   :custom
@@ -407,7 +437,29 @@
 	 :map org-mode-map
 	 ("C-M-i" . completion-at-point))
   :config
-  (org-roam-db-autosync-mode))
+  (org-roam-db-autosync-mode)
+  :commands (org-roam-node-list))
+
+(use-package org-msg
+  :straight t
+  :config
+  (setq org-msg-options "html-postamble:nil H:5 num:nil ^:{} toc:nil author:nil email:nil \\n:t"
+	org-msg-startup "hidestars indent inlineimages"
+	org-msg-greeting-fmt "\nHi%s,\n\n"
+	org-msg-greeting-name-limit 3
+	org-msg-default-alternatives '((new		. (text html))
+				       (reply-to-html	. (text html))
+				       (reply-to-text	. (text)))
+	org-msg-convert-citation t
+	org-msg-signature "
+
+Best,
+
+#+begin_signature
+--
+Robert
+#+end_signature")
+  (org-msg-mode))
 
 (defun org-roam-node-insert-immediate (arg &rest args)
   (interactive "P")
@@ -434,11 +486,10 @@
 
 (use-package org-bullets
   :straight t
-  :hook org-mode
-  :config
-  (setq org-hide-emphasis-markers t)
-  (font-lock-add-keywords
-   'org-mode '(("^ *\\([-]\\) " (0 (prog1 () (compose-region (match-beginning 1) (match-end 1) "•")))))))
+  :after org
+  :hook (org-mode . org-bullets-mode)
+  :custom
+  (org-bullets-bullet-list '("◉" "○" "●" "○" "●" "○" "●")))
 
 (use-package org-variable-pitch
   :straight t)
@@ -479,7 +530,11 @@
 
 (use-package docker
   :straight t
+  :after docker-tramp
   :bind ("C-c d" . docker))
+
+(use-package docker-tramp
+  :straight t)
 
 (use-package keychain-environment
   :straight t)
@@ -558,9 +613,9 @@
     ("k" markdown-previous-visible-heading "Previous")
     ("u" markdown-up-heading "Up level")
     ("f" markdown-forward-same-level "Forward same level")
-    ("h" markdown-forward-same-level "Forward same level")
-    ("l" markdown-backward-same-level "Backward same level")
+    ("l" markdown-forward-same-level "Forward same level")
     ("b" markdown-backward-same-level "Backward same level")
+    ("h" markdown-backward-same-level "Backward same level")
     ("q" nil "Quit" :color red)))
 
 (use-package poly-markdown
@@ -576,10 +631,10 @@
 
 (use-package scad-mode
   :straight t
-  :defines scad-preview-image-size scad-preview-window-size
-  :init
-  (setq scad-preview-image-size '(800 . 800))
-  (setq scad-preview-window-size 90))
+  :custom
+  (scad-preview-image-size '(800 . 800))
+  (scad-preview-window-size 90)
+  :defines scad-preview-image-size scad-preview-window-size)
 
 (use-package typescript-mode
   :straight t
@@ -655,25 +710,6 @@
 (use-package visual-line-mode
   :hook org-mode)
 
-(set-face-attribute 'default nil :height 86)
-(setq-default flycheck-disabled-checkers '(python-pylint))
-(setq-default electric-indent-inhibit t)
-(setq-default default-tab-width 4)
-(setq-default linum-format "%4d\u2502 ")
-
-(setq auth-source-debug t)
-(setq epg-pinentry-mode 'loopback)
-(setq markdown-fontify-code-blocks-natively t)
-(setq python-shell-interpreter "python"
-      python-shell-interpreter-args "-i")
-(setq ring-bell-function 'ignore)
-(setq scroll-conservatively 5)
-(setq scroll-margin 10)
-(setq use-short-answers t)
-(setq user-mail-address "rbgb@sdf.org")
-(setq user-full-name "Robert Gibboni")
-(setq which-func-unknown "n/a")
-
 (use-package mu4e
   :straight ( :host github
               :repo "djcb/mu"
@@ -692,7 +728,8 @@
   (mu4e-notification-support t)
   (mu4e-search-include-related nil)
   (mu4e-search-skip-duplicates nil)
-  (mu4e-split-view 'vertical)
+  (mu4e-split-view 'horizontal)
+  (mu4e-headers-visible-lines 50)
   (mu4e-update-interval (* 10 60))
   (mu4e-use-fancy-chars t)
   (mu4e-view-show-images t)
@@ -733,42 +770,34 @@
                   (mu4e-refile-folder  . "/drivendata/[Gmail]/All Mail")
                   (mu4e-trash-folder  . "/drivendata/[Gmail]/Trash")))
 
-         ;; rbgb@sdf.org
-         (make-mu4e-context
-          :name "sdf"
-          :match-func
-          (lambda (msg)
-            (when msg
-              (string-prefix-p "/sdf" (mu4e-message-field msg :maildir))))
-          :vars '((user-mail-address . "rbgb@sdf.org")
-                  (user-full-name    . "Robert Gibboni")
-                  (smtpmail-smtp-server  . "mx.sdf.org")
-                  (smtpmail-smtp-service . 587)
-                  (smtpmail-stream-type  . starttls)
-                  (mu4e-drafts-folder  . "/sdf/INBOX.Drafts")
-                  (mu4e-sent-folder  . "/sdf/INBOX.Sent")
-                  (mu4e-refile-folder  . "/sdf/INBOX.Archive")
-                  (mu4e-trash-folder  . "/sdf/INBOX.Trash"))))))
+         ;; ;; rbgb@sdf.org
+         ;; (make-mu4e-context
+         ;;  :name "sdf"
+         ;;  :match-func
+         ;;  (lambda (msg)
+         ;;    (when msg
+         ;;      (string-prefix-p "/sdf" (mu4e-message-field msg :maildir))))
+         ;;  :vars '((user-mail-address . "rbgb@sdf.org")
+         ;;          (user-full-name    . "Robert Gibboni")
+         ;;          (smtpmail-smtp-server  . "mx.sdf.org")
+         ;;          (smtpmail-smtp-service . 587)
+         ;;          (smtpmail-stream-type  . starttls)
+         ;;          (mu4e-drafts-folder  . "/sdf/INBOX.Drafts")
+         ;;          (mu4e-sent-folder  . "/sdf/INBOX.Sent")
+         ;;          (mu4e-refile-folder  . "/sdf/INBOX.Archive")
+         ;;          (mu4e-trash-folder  . "/sdf/INBOX.Trash")))))
+         ))
+  (add-to-list 'mu4e-header-info-custom
+               '(:empty . (:name "Empty"
+                                 :shortname ""
+                                 :function (lambda (msg) "  ")))))
 
 (add-to-list 'load-path "~/.emacs.d/src")
 
-(add-to-list 'mu4e-header-info-custom
-             '(:empty . (:name "Empty"
-                               :shortname ""
-                               :function (lambda (msg) "  "))))
-(setq mu4e-headers-fields '((:empty         .    2)
-                            (:human-date    .   12)
-                            (:flags         .    6)
-                            (:mailing-list  .   10)
-                            (:from          .   22)
-                            (:subject       .   nil)))
+;; '(mu4e-thread-folding-child-face ((t (:extend t :background "gray15" :underline nil))))
+;; '(mu4e-thread-folding-root-folded-face ((t (:extend t :background "grey10" :overline nil :underline nil))))
+;; '(mu4e-thread-folding-root-unfolded-face ((t (:extend t :background "gray10" :overline nil :underline nil))))
 
-'(mu4e-thread-folding-child-face ((t (:extend t :background "gray15" :underline nil))))
-'(mu4e-thread-folding-root-folded-face ((t (:extend t :background "grey10" :overline nil :underline nil))))
-'(mu4e-thread-folding-root-unfolded-face ((t (:extend t :background "gray10" :overline nil :underline nil))))
-
-;; Number the candidates (use M-1, M-2 etc to select completions).
-(setq company-show-quick-access t)
 
 (global-set-key (kbd "C-x C-b") 'ibuffer)
 (global-set-key (kbd "S-C-<down>") 'shrink-window)
@@ -802,14 +831,6 @@ With ARG, do this that many times."
   (delete-word (- arg)))
 
 (global-set-key (read-kbd-macro "<M-DEL>") 'backward-delete-word)
-(setq backup-directory-alist '(("" . "~/.emacs.d/backups")))
-(setq create-lockfiles nil)
-(custom-set-faces
- ;; custom-set-faces was added by Custom.
- ;; If you edit it by hand, you could mess it up, so be careful.
- ;; Your init file should contain only one such instance.
- ;; If there is more than one, they won't work right.
- )
 
 (global-hl-line-mode t)
 (global-so-long-mode t)
