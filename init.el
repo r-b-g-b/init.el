@@ -21,6 +21,9 @@
 (require 'notifications)
 
 
+(add-to-list 'load-path "~/.emacs.d/src")
+(add-to-list 'load-path "~/.emacs.d/src/mastodon-alt")
+
 (set-face-attribute 'default nil :height 86)
 (setq-default flycheck-disabled-checkers '(python-pylint))
 (setq-default electric-indent-inhibit t)
@@ -216,14 +219,20 @@
   :straight t
   :custom
   (mastodon-instance-url "https://mastodon.sdf.org")
-  (mastodon-active-user "rbgb"))
+  (mastodon-active-user "rbgb")
+  :config
+  (require 'mastodon-alt)
+  (mastodon-alt-tl-activate))
+
+(use-package ement
+  :straight t)
 
 (use-package erc
   :straight t
   :custom
   (erc-server "irc.libera.chat")
-  (erc-nick "rbgb")    ; Change this!
-  (erc-user-full-name "Robert Gibboni")  ; And this!
+  (erc-nick "rbgb")
+  (erc-user-full-name "Robert Gibboni")
   (erc-track-shorten-start 8)
   (erc-autojoin-channels-alist '(("irc.libera.chat" "#systemcrafters" "#emacs")))
   (erc-kill-buffer-on-part t)
@@ -231,6 +240,10 @@
 
 (use-package elpher
   :straight t)
+
+(use-package emojify
+  :hook (after-init . global-emojify-mode))
+
 
 (use-package which-key
   :straight t)
@@ -314,14 +327,14 @@
 (use-package python-mode
   :hook
   (python-mode . lsp-deferred)
-  :config
-  (setq python-shell-interpreter "ipython")
-  (setq python-shell-interpreter-args "--simple-prompt -i")
-  (setq python-shell-prompt-regexp "In \\[[0-9]+\\]: ")
-  (setq python-shell-prompt-output-regexp "Out\\[[0-9]+\\]: ")
-  (setq python-shell-completion-setup-code "from IPython.core.completerlib import module_completion")
-  (setq python-shell-completion-module-string-code "';'.join(module_completion('''%s'''))\n")
-  (setq python-shell-completion-string-code "';'.join(get_ipython().Completer.all_completions('''%s'''))\n"))
+  :custom
+  (python-shell-interpreter "ipython")
+  (python-shell-interpreter-args "--simple-prompt -i")
+  (python-shell-prompt-regexp "In \\[[0-9]+\\]: ")
+  (python-shell-prompt-output-regexp "Out\\[[0-9]+\\]: ")
+  (python-shell-completion-setup-code "from IPython.core.completerlib import module_completion")
+  (python-shell-completion-module-string-code "';'.join(module_completion('''%s'''))\n")
+  (python-shell-completion-string-code "';'.join(get_ipython().Completer.all_completions('''%s'''))\n"))
 
 (use-package pyvenv
   :straight t
@@ -403,6 +416,7 @@
     ("<" org-promote-subtree "Promote")
     (">" org-demote-subtree "Demote")
     ("t" org-todo "Toggle TODO")
+    ("d" org-cut-subtree "Kill subtree")
     ("i" org-insert-heading "Insert" :exit t)
     ("s" counsel-outline "Search" :color red :column "Actions")
     ("I" org-clock-in "Clock in")
@@ -505,6 +519,11 @@ Robert
   (org-roam-ui-follow t)
   (org-roam-ui-update-on-save t)
   (org-roam-ui-open-on-start t))
+
+(use-package ox-gfm
+  :straight t
+  :config
+  (require 'ox-gfm nil t))
 
 (use-package ob-mermaid
   :straight t
@@ -791,8 +810,6 @@ Robert
                '(:empty . (:name "Empty"
                                  :shortname ""
                                  :function (lambda (msg) "  ")))))
-
-(add-to-list 'load-path "~/.emacs.d/src")
 
 ;; '(mu4e-thread-folding-child-face ((t (:extend t :background "gray15" :underline nil))))
 ;; '(mu4e-thread-folding-root-folded-face ((t (:extend t :background "grey10" :overline nil :underline nil))))

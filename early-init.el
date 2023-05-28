@@ -7,7 +7,7 @@
 ;; No startup screen
 (setq inhibit-startup-message t)
 
-;; Full screen!
+;; Full screen
 (when (fboundp 'toggle-frame-maximized)
   (toggle-frame-maximized))
 
