@@ -368,7 +368,7 @@
     ("<down>" ein:worksheet-move-cell-down-km "Move cell down")
     ("a" ein:worksheet-insert-cell-above-km "Insert above")
     ("b" ein:worksheet-insert-cell-below-km "Insert below")
-    ("k" ein:worksheet-kill-cell-km "Cut")
+    ("d" ein:worksheet-kill-cell-km "Cut")
     ("m" ein:worksheet-merge-cell-km "Merge with above")
     ("w" ein:worksheet-copy-cell-km "Copy")
     ("y" ein:worksheet-yank-cell-km "Paste")
@@ -416,7 +416,8 @@
     ("<" org-promote-subtree "Promote")
     (">" org-demote-subtree "Demote")
     ("t" org-todo "Toggle TODO")
-    ("d" org-cut-subtree "Kill subtree")
+    ("$" org-archive-subtree "Archive")
+    ("d" org-cut-subtree "Kill")
     ("i" org-insert-heading "Insert" :exit t)
     ("s" counsel-outline "Search" :color red :column "Actions")
     ("I" org-clock-in "Clock in")
@@ -624,6 +625,8 @@ Robert
 
 (use-package markdown-mode
   :straight t
+  :custom
+  (markdown-nested-imenu-heading-index nil)
   :config
   (defhydra markdown:hydra (markdown-mode-map "C-c h" :color pink)
     ("n" markdown-next-visible-heading "Next" :column "Navigate")
@@ -636,6 +639,9 @@ Robert
     ("b" markdown-backward-same-level "Backward same level")
     ("h" markdown-backward-same-level "Backward same level")
     ("q" nil "Quit" :color red)))
+
+(use-package markdown-toc
+  :straight t)
 
 (use-package poly-markdown
   :straight t)
@@ -746,8 +752,7 @@ Robert
   (mu4e-mu-binary (expand-file-name "build/mu/mu" (straight--repos-dir "mu")))
   (mu4e-notification-support t)
   (mu4e-search-include-related nil)
-  (mu4e-search-skip-duplicates nil)
-  (mu4e-split-view 'horizontal)
+  (mu4e-split-view 'vertical)
   (mu4e-headers-visible-lines 50)
   (mu4e-update-interval (* 10 60))
   (mu4e-use-fancy-chars t)
