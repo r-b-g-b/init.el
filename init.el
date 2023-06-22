@@ -197,6 +197,20 @@
   :straight t
   :after vterm)
 
+(use-package proced
+  :ensure nil
+  :commands proced
+  :custom
+  (proced-auto-update-flag t)
+  (proced-goal-attribute nil)
+  (proced-show-remote-processes t)
+  (proced-enable-color-flag t)
+  (proced-format 'custom)
+  :config
+  (add-to-list
+   'proced-format-alist
+   '(custom user pid ppid sess tree pcpu pmem rss start time state (args comm))))
+
 (use-package projectile
   :straight t
   :diminish projectile-mode
@@ -293,13 +307,13 @@
   (lsp-register-custom-settings
    '(
      ("pylsp.plugins.black.enabled" t t)
-     ("pylsp.plugins.flake8.enabled" nil)
      ("pylsp.plugins.isort.enabled" t t)
-     ("pylsp.plugins.mccabe.enabled" nil)
-     ("pylsp.plugins.pycodestyle.enabled" t)
-     ("pylsp.plugins.pydocstyle.enabled" nil)
+     ("pylsp.plugins.pycodestyle.enabled" t t)
      ("pylsp.plugins.pyflakes.enabled" t t)
-     ("pylsp.plugins.ruff.enabled" t t))))
+     ("pylsp.plugins.ruff.enabled" t t)
+     ("pylsp.plugins.flake8.enabled" nil)
+     ("pylsp.plugins.mccabe.enabled" nil)
+     ("pylsp.plugins.pydocstyle.enabled" nil))))
 
 (use-package lsp-ui
   :straight t
@@ -390,6 +404,7 @@
 
 ;; org
 (use-package org
+  :straight t
   :init
   (setq org-startup-indented t)
   :bind
@@ -397,9 +412,10 @@
   ("C-c a" . org-agenda)
   ("<f6>" . org-capture)
   :custom
-  (org-support-shift-select t)
+  (org-babel-python-command "ipython")
   (org-confirm-babel-evaluate nil)
   (org-goto-auto-isearch nil)
+  (org-support-shift-select t)
   :config
   (defhydra org:hydra (org-mode-map "C-c h" :color pink)
     ("n" outline-next-visible-heading "Next" :column "Navigate")
@@ -425,6 +441,9 @@
     ("q" nil "Quit" :color red))
   ;; (require 'ox-bibtex)
   )
+
+(use-package verb
+  :straight t)
 
 (use-package org-roam
   :straight t
@@ -457,6 +476,7 @@
 
 (use-package org-msg
   :straight t
+  :after org
   :config
   (setq org-msg-options "html-postamble:nil H:5 num:nil ^:{} toc:nil author:nil email:nil \\n:t"
 	org-msg-startup "hidestars indent inlineimages"
@@ -835,6 +855,7 @@ Robert
 (global-set-key [mouse-8] 'previous-buffer)
 (global-set-key [mouse-9] 'next-buffer)
 (global-set-key [f9] 'toggle-menu-bar-mode-from-frame)
+(global-unset-key (kbd "C-z"))
 
 ;; M-backspace does not copy to clipboard
 ;; https://www.emacswiki.org/emacs/BackwardDeleteWord
