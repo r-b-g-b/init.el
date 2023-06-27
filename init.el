@@ -48,6 +48,8 @@
 (setq which-func-unknown "n/a")
 ; (set-variable 'read-mail-command 'mu4e)
 
+(setenv "PATH" (concat "/home/robert/anaconda3/bin:" (getenv "PATH")))
+
 (use-package spacemacs-theme
   :straight t
   :defer t
@@ -55,7 +57,8 @@
 
 (use-package ace-window
   :straight t
-  :bind ("M-o" . ace-window)
+  :bind (
+         ("M-o" . ace-window))
   :custom
   (aw-keys '(?a ?s ?d ?f ?g ?h ?j ?k ?l))
   (aw-scope 'frame))
@@ -164,7 +167,7 @@
   :straight t
   :custom
   (gptel-api-key (plist-get (nth 0 (auth-source-search :max 1 :host "openai.com")) :secret))
-  (gptel-default-mode 'markdown-mode))
+  (gptel-default-mode 'org-mode))
 
 (use-package doom-modeline
   :straight t
@@ -191,9 +194,15 @@
 (use-package vterm
   :straight t
   :custom
-  (vterm-always-compile-module t))
+  (vterm-always-compile-module t)
+  :bind
+  (:map vterm-mode-map ("C-<backspace>" . (lambda () (interactive) (vterm-send-key (kbd "C-w"))))))
 
 (use-package multi-vterm
+  :straight t
+  :after vterm)
+
+(use-package vterm-toggle
   :straight t
   :after vterm)
 
@@ -338,7 +347,7 @@
   (setq yas-snippet-dir "~/.emacs.d/snippets"))
 
 ;; python
-(use-package python-mode
+(use-package python
   :hook
   (python-mode . lsp-deferred)
   :custom
@@ -348,7 +357,12 @@
   (python-shell-prompt-output-regexp "Out\\[[0-9]+\\]: ")
   (python-shell-completion-setup-code "from IPython.core.completerlib import module_completion")
   (python-shell-completion-module-string-code "';'.join(module_completion('''%s'''))\n")
-  (python-shell-completion-string-code "';'.join(get_ipython().Completer.all_completions('''%s'''))\n"))
+  (python-shell-completion-string-code "';'.join(get_ipython().Completer.all_completions('''%s'''))\n")
+  :config
+  (defhydra python:hydra (python-mode-map "C-c h" :color pink)
+    ("n" end-of-defun "Next" :column "Navigate")
+    ("p" beginning-of-defun "Previous")
+    ("q" nil "Quit" :color blue :column "Quit")))
 
 (use-package pyvenv
   :straight t
@@ -412,7 +426,8 @@
   ("C-c a" . org-agenda)
   ("<f6>" . org-capture)
   :custom
-  (org-babel-python-command "ipython")
+  (org-babel-load-languages '((emacs-lisp . t) (python . t) (shell . t)))
+  (org-babel-python-command "python")
   (org-confirm-babel-evaluate nil)
   (org-goto-auto-isearch nil)
   (org-support-shift-select t)
@@ -443,7 +458,12 @@
   )
 
 (use-package verb
-  :straight t)
+  :straight t
+  :after
+  (org)
+  :config
+  (add-to-list 'org-babel-load-languages '(verb . t))
+  (org-babel-do-load-languages 'org-babel-load-languages org-babel-load-languages))
 
 (use-package org-roam
   :straight t
