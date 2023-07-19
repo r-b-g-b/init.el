@@ -50,6 +50,11 @@
 
 (setenv "PATH" (concat "/home/robert/anaconda3/bin:" (getenv "PATH")))
 
+(use-package emacs-async
+  :straight t
+  :hook
+  (dired-mode . dired-async-mode))
+
 (use-package spacemacs-theme
   :straight t
   :defer t
@@ -362,6 +367,7 @@
   (defhydra python:hydra (python-mode-map "C-c h" :color pink)
     ("n" end-of-defun "Next" :column "Navigate")
     ("p" beginning-of-defun "Previous")
+    ("s" counsel-imenu "Search")
     ("q" nil "Quit" :color blue :column "Quit")))
 
 (use-package pyvenv
@@ -774,6 +780,11 @@ Robert
 
 (use-package visual-line-mode
   :hook org-mode)
+
+(use-package kubel
+  :straight t
+  :after (vterm)
+  :config (kubel-vterm-setup))
 
 (use-package mu4e
   :straight ( :host github
