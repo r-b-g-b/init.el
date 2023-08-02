@@ -28,7 +28,6 @@
 (setq-default flycheck-disabled-checkers '(python-pylint))
 (setq-default electric-indent-inhibit t)
 (setq-default default-tab-width 4)
-(setq-default linum-format "%4d\u2502 ")
 
 (setq auth-source-debug t)
 (setq backup-directory-alist '(("" . "~/.emacs.d/backups")))
@@ -120,11 +119,22 @@
   :config
   (ivy-rich-mode))
 
-(use-package tree-sitter
-  :straight t)
-
-(use-package tree-sitter-langs
-  :straight t)
+(setq treesit-language-source-alist
+   '((bash "https://github.com/tree-sitter/tree-sitter-bash")
+     (cmake "https://github.com/uyha/tree-sitter-cmake")
+     (css "https://github.com/tree-sitter/tree-sitter-css")
+     (elisp "https://github.com/Wilfred/tree-sitter-elisp")
+     (go "https://github.com/tree-sitter/tree-sitter-go")
+     (html "https://github.com/tree-sitter/tree-sitter-html")
+     (javascript "https://github.com/tree-sitter/tree-sitter-javascript" "master" "src")
+     (json "https://github.com/tree-sitter/tree-sitter-json")
+     (make "https://github.com/alemuller/tree-sitter-make")
+     (markdown "https://github.com/ikatyang/tree-sitter-markdown")
+     (python "https://github.com/tree-sitter/tree-sitter-python")
+     (toml "https://github.com/tree-sitter/tree-sitter-toml")
+     (tsx "https://github.com/tree-sitter/tree-sitter-typescript" "master" "tsx/src")
+     (typescript "https://github.com/tree-sitter/tree-sitter-typescript" "master" "typescript/src")
+     (yaml "https://github.com/ikatyang/tree-sitter-yaml")))
 
 (use-package swiper
   :straight t
@@ -168,12 +178,6 @@
 (use-package git-link
   :straight t)
 
-(use-package gptel
-  :straight t
-  :custom
-  (gptel-api-key (plist-get (nth 0 (auth-source-search :max 1 :host "openai.com")) :secret))
-  (gptel-default-mode 'org-mode))
-
 (use-package doom-modeline
   :straight t
   :init (doom-modeline-mode 1))
@@ -185,8 +189,199 @@
   :straight t
   :hook (prog-mode . rainbow-delimiters-mode))
 
-(use-package linum-mode
-  :hook prog-mode)
+(use-package nlinum
+  :straight t
+  :hook (prog-mode . nlinum-mode))
+
+;; org
+(use-package org
+  :straight t
+  :init
+  (setq org-startup-indented t)
+  :bind
+  ("C-c C-j" . nil)
+  ("C-c a" . org-agenda)
+  ("<f6>" . org-capture)
+  :custom
+  (org-babel-load-languages '((emacs-lisp . t) (python . t) (shell . t)))
+  (org-babel-python-command "python")
+  (org-confirm-babel-evaluate nil)
+  (org-goto-auto-isearch nil)
+  (org-support-shift-select t)
+  :config
+  (defhydra org:hydra (org-mode-map "C-c h" :color pink)
+    ("n" outline-next-visible-heading "Next" :column "Navigate")
+    ("j" outline-next-visible-heading "Next")
+    ("p" outline-previous-visible-heading "Previous")
+    ("k" outline-previous-visible-heading "Previous")
+    ("u" outline-up-heading "Up level")
+    ("f" org-forward-heading-same-level "Forward same level")
+    ("l" org-forward-heading-same-level "Forward same level")
+    ("b" org-backward-heading-same-level "Backward same level")
+    ("h" org-backward-heading-same-level "Backward same level")
+    ("<prior>" org-metaup "Move section up" :column "Modify")
+    ("<next>" org-metadown "Move section down")
+    ("<" org-promote-subtree "Promote")
+    (">" org-demote-subtree "Demote")
+    ("t" org-todo "Toggle TODO")
+    ("$" org-archive-subtree "Archive")
+    ("d" org-cut-subtree "Kill")
+    ("i" org-insert-heading "Insert" :exit t)
+    ("s" counsel-outline "Search" :color red :column "Actions")
+    ("I" org-clock-in "Clock in")
+    ("O" org-clock-out "Clock in")
+    ;; ("r" (progn
+    ;;        (verb:hydra/body)
+    ;;        (hydra-push '(org:hydra/body)))
+    ;;  "Verb")
+    ("q" nil "Quit" :exit t))
+  ;; (require 'ox-bibtex)
+  )
+
+(use-package org-pandoc-import
+  :straight (:host github
+                   :repo "tecosaur/org-pandoc-import"
+                   :files ("*.el" "filters" "preprocessors")))
+
+(use-package verb
+  :straight t
+  :after
+  (org)
+  :config
+  (add-to-list 'org-babel-load-languages '(verb . t))
+  (org-babel-do-load-languages 'org-babel-load-languages org-babel-load-languages))
+
+(use-package org-roam
+  :straight t
+  :init
+  (setq org-roam-v2-ack t)
+  :custom
+  (org-roam-completion-everywhere t)
+  (org-roam-directory "~/org-roam")
+  (org-roam-graph-executable "neato")
+  (org-roam-capture-templates
+   '(("d" "default" plain
+      "%?"
+      :target (file+head "%<%Y%m%d%H%M%S>-${slug}.org" "#+title: ${title}\n")
+      :unnarrowed t)
+     ("p" "project" plain
+      "* Goals\n\n%?\n\n* Tasks\n\n** TODO Add initial tasks\n\n* Dates\n\n"
+      :if-new (file+head "%<%Y%m%d%H%M%S>-${slug}.org" "#+title: ${title}\n#+category: ${title}\n#+filetags: project\n")
+      :unnarrowed t)))
+  :bind (("C-c n l" . org-roam-buffer-toggle)
+	 ("C-c n f" . org-roam-node-find)
+	 ("C-c n i" . org-roam-node-insert)
+	 ("C-c n t" . org-roam-dailies-goto-today)
+	 ("C-c n I" . org-roam-node-insert-immediate)
+         ("C-c n s" . org-store-link)
+	 :map org-mode-map
+	 ("C-M-i" . completion-at-point))
+  :config
+  (org-roam-db-autosync-mode)
+  :commands (org-roam-node-list))
+
+(use-package org-msg
+  :straight t
+  :after org
+  :config
+  (setq org-msg-options "html-postamble:nil H:5 num:nil ^:{} toc:nil author:nil email:nil \\n:t"
+	org-msg-startup "hidestars indent inlineimages"
+	org-msg-greeting-fmt "\nHi%s,\n\n"
+	org-msg-greeting-name-limit 3
+	org-msg-default-alternatives '((new		. (text html))
+				       (reply-to-html	. (text html))
+				       (reply-to-text	. (text)))
+	org-msg-convert-citation t
+	org-msg-signature "
+
+Best,
+
+#+begin_signature
+--
+Robert
+#+end_signature")
+  (org-msg-mode))
+
+(defun org-roam-node-insert-immediate (arg &rest args)
+  (interactive "P")
+  (let ((args (cons arg args))
+        (org-roam-capture-templates (list (append (car org-roam-capture-templates)
+                                                  '(:immediate-finish t)))))
+    (apply #'org-roam-node-insert args)))
+
+(defun my/org-roam-filter-by-tag (tag-name)
+  (lambda (node)
+    (member tag-name (org-roam-node-tags node))))
+
+(defun my/org-roam-list-notes-by-tag (tag-name)
+  (mapcar #'org-roam-node-file
+	  (seq-filter
+	   (my/org-roam-filter-by-tag tag-name)
+	   (org-roam-node-list))))
+
+(defun my/org-roam-refresh-agenda-list ()
+  (interactive)
+  (setq org-agenda-files (my/org-roam-list-notes-by-tag "project")))
+
+(my/org-roam-refresh-agenda-list)
+
+(use-package org-bullets
+  :straight t
+  :after org
+  :hook (org-mode . org-bullets-mode)
+  :custom
+  (org-bullets-bullet-list '("◉" "○" "●" "○" "●" "○" "●")))
+
+(use-package org-variable-pitch
+  :straight t)
+
+(use-package org-variable-pitch-minor-mode
+  :hook org-mode)
+
+(use-package org-roam-ui
+  :straight t
+  :after org-roam
+  :custom
+  (org-roam-ui-sync-theme t)
+  (org-roam-ui-follow t)
+  (org-roam-ui-update-on-save t)
+  (org-roam-ui-open-on-start t))
+
+(use-package ox-gfm
+  :straight t
+  :config
+  (require 'ox-gfm nil t))
+
+(use-package ob-mermaid
+  :straight t
+  :custom
+  (ob-mermaid-cli-path "~/.local/bin/mmdc"))
+
+(use-package ox-reveal
+  :straight t)
+
+(use-package ox-slack
+  :straight t)
+
+(use-package ox-pandoc
+  :straight t)
+
+(use-package deft
+  :straight t
+  :after org
+  :bind
+  ("C-c n d" . deft)
+  :custom
+  (deft-recursive t)
+  (deft-use-filter-string-for-filename t)
+  (deft-default-extension "org")
+  (deft-directory org-roam-directory))
+
+(use-package gptel
+  :straight t
+  :custom
+  (gptel-api-key (plist-get (nth 0 (auth-source-search :max 1 :host "openai.com")) :secret))
+  (gptel-default-mode 'org-mode))
 
 (use-package eshell
   :after eshell-git-prompt
@@ -407,6 +602,7 @@
     ("m" ein:worksheet-merge-cell-km "Merge with above")
     ("w" ein:worksheet-copy-cell-km "Copy")
     ("y" ein:worksheet-yank-cell-km "Paste")
+    ("o" ein:worksheet-toggle-output-km "Toggle output")
     ("i" ein:notebook-kernel-interrupt-command "Interrupt" :column "Execute")
     ("0" ein:notebook-restart-session-command "Restart")
     ("e" ein:worksheet-execute-cell-and-goto-next-km "Execute cell")
@@ -425,11 +621,7 @@
 
 (use-package docker
   :straight t
-  :after docker-tramp
   :bind ("C-c d" . docker))
-
-(use-package docker-tramp
-  :straight t)
 
 (use-package keychain-environment
   :straight t)
@@ -548,9 +740,6 @@
   :straight t)
 
 (use-package kotlin-mode
-  :straight t)
-
-(use-package csharp-mode
   :straight t)
 
 (use-package stan-mode
@@ -739,7 +928,6 @@ With ARG, do this that many times."
 
 (global-hl-line-mode t)
 (global-so-long-mode t)
-(global-tree-sitter-mode t)
 (add-hook 'tree-sitter-after-on-hook #'tree-sitter-hl-mode)
 (show-paren-mode t)
 (tab-bar-mode t)
