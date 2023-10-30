@@ -16,5 +16,8 @@
 (add-to-list 'default-frame-alist
              '(background-color . "#292b2e"))
 
+;; Disable package.el in favor of straight.el
+(setq package-enable-at-startup nil)
+
 (provide 'early-init)
 ;;; early-init.el ends here

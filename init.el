@@ -20,7 +20,6 @@
 (require 'dired-x)
 (require 'notifications)
 
-
 (add-to-list 'load-path "~/.emacs.d/src")
 (add-to-list 'load-path "~/.emacs.d/src/mastodon-alt")
 
@@ -43,38 +42,122 @@
 (setq scroll-margin 10)
 (setq use-short-answers t)
 (setq user-full-name "Robert Gibboni")
-(setq user-mail-address "rbgb@sdf.org")
+(setq user-mail-address "galileo@gmail.com")
 (setq which-func-unknown "n/a")
 ; (set-variable 'read-mail-command 'mu4e)
 
 (setenv "PATH" (concat "/home/robert/anaconda3/bin:" (getenv "PATH")))
 
+(use-package straight
+  :custom
+  (straight-use-package-by-default t))
+
+(use-package dired
+  :straight nil
+  :bind (:map dired-mode-map ("<SPC>" . dired-view-file-other-window)))
+
 (use-package emacs-async
-  :straight t
   :hook
   (dired-mode . dired-async-mode))
 
 (use-package spacemacs-theme
-  :straight t
   :defer t
   :init (load-theme 'spacemacs-dark t))
 
 (use-package ace-window
-  :straight t
   :bind (
          ("M-o" . ace-window))
   :custom
   (aw-keys '(?a ?s ?d ?f ?g ?h ?j ?k ?l))
   (aw-scope 'frame))
 
+(use-package pretty-hydra)
+
+;; Flexible text folding
+(use-package hideshow
+  :ensure nil
+  :diminish hs-minor-mode
+  :pretty-hydra
+  ((:title "HideShow" :color amaranth :quit-key ("q" "C-g"))
+   ("Fold"
+    (("A" hs-toggle-all "toggle all")
+     ;; ("a" hs-show-all "show all")
+     ;; ("i" hs-hide-all "hide all")
+     ("y" hs-toggle-hiding "toggle hiding")
+     ("u" hs-cycle "cycle block")
+     ("i" hs-show-block "show block")
+     ("o" hs-hide-block "hide block")
+     ("p" hs-hide-level "hide level"))
+    "Move"
+    (("h" beginning-of-line "←←")
+     ("l" end-of-line "→→")
+     ("j" next-line "↓")
+     ("k" previous-line "↑")
+     ("." pager-page-down "↘")
+     ("n" pager-page-up "↖")
+     ("M-<" beginning-of-buffer "beg")
+     ("M->" end-of-buffer "end"))))
+  :bind (:map hs-minor-mode-map
+         ("C-~" . hideshow-hydra/body)
+         ("C-S-<escape>" . hideshow-hydra/body))
+  :hook (prog-mode . hs-minor-mode)
+  :config
+  ;; More functions
+  ;; @see https://karthinks.com/software/simple-folding-with-hideshow/
+  (defun hs-cycle (&optional level)
+    (interactive "p")
+    (let (message-log-max
+          (inhibit-message t))
+      (if (= level 1)
+          (pcase last-command
+            ('hs-cycle
+             (hs-hide-level 1)
+             (setq this-command 'hs-cycle-children))
+            ('hs-cycle-children
+             (save-excursion (hs-show-block))
+             (setq this-command 'hs-cycle-subtree))
+            ('hs-cycle-subtree
+             (hs-hide-block))
+            (_
+             (if (not (hs-already-hidden-p))
+                 (hs-hide-block)
+               (hs-hide-level 1)
+               (setq this-command 'hs-cycle-children))))
+        (hs-hide-level level)
+        (setq this-command 'hs-hide-level))))
+
+  (defun hs-toggle-all ()
+    "Toggle hide/show all."
+    (interactive)
+    (pcase last-command
+      ('hs-toggle-all
+       (save-excursion (hs-show-all))
+       (setq this-command 'hs-global-show))
+      (_ (hs-hide-all))))
+
+  ;; Display line counts
+  (defun hs-display-code-line-counts (ov)
+    "Display line counts when hiding codes."
+    (when (eq 'code (overlay-get ov 'hs))
+      (overlay-put ov 'display
+                   (concat
+                    " "
+                    (propertize
+                     (format " (%d lines)"
+                             (count-lines (overlay-start ov)
+                                          (overlay-end ov)))
+                     'face '(:inherit shadow :height 0.8))
+                    " "))))
+  (setq hs-set-up-overlay #'hs-display-code-line-counts))
+
+(use-package pager)
+
 (use-package counsel
-  :straight t
   :after (ivy org)
   :config (counsel-mode)
   :bind (:map org-mode-map ("C-c C-j" . counsel-outline)))
 
 (use-package ivy
-  :straight t
   :defer 0.1
   :diminish
   :bind (("C-c C-r" . ivy-resume)
@@ -84,12 +167,59 @@
   (ivy-use-virtual-buffers t)
   :config (ivy-mode))
 
-(use-package hydra
-  :straight t)
+(use-package ivy-avy)
+
+(use-package avy
+  :bind ("M-j" . avy-goto-char-timer)
+  :config
+  (defun avy-action-kill-whole-line (pt)
+    (save-excursion
+      (goto-char pt)
+      (kill-whole-line))
+    (select-window
+     (cdr
+      (ring-ref avy-ring 0)))
+    t)
+  (setf (alist-get ?k avy-dispatch-alist) 'avy-action-kill-stay
+        (alist-get ?K avy-dispatch-alist) 'avy-action-kill-whole-line)
+
+  (defun avy-action-copy-whole-line (pt)
+    (save-excursion
+      (goto-char pt)
+      (cl-destructuring-bind (start . end)
+          (bounds-of-thing-at-point 'line)
+        (copy-region-as-kill start end)))
+    (select-window
+     (cdr
+      (ring-ref avy-ring 0)))
+    t)
+
+  (defun avy-action-yank-whole-line (pt)
+    (avy-action-copy-whole-line pt)
+    (save-excursion (yank))
+    t)
+
+  (setf (alist-get ?y avy-dispatch-alist) 'avy-action-yank
+        (alist-get ?w avy-dispatch-alist) 'avy-action-copy
+        (alist-get ?W avy-dispatch-alist) 'avy-action-copy-whole-line
+        (alist-get ?Y avy-dispatch-alist) 'avy-action-yank-whole-line)
+
+  (defun avy-action-teleport-whole-line (pt)
+    (avy-action-kill-whole-line pt)
+    (save-excursion (yank)) t)
+  (setf (alist-get ?t avy-dispatch-alist) 'avy-action-teleport
+        (alist-get ?T avy-dispatch-alist) 'avy-action-teleport-whole-line)
+
+  (defun avy-action-mark-to-char (pt)
+    (activate-mark)
+    (goto-char pt))
+
+  (setf (alist-get ?  avy-dispatch-alist) 'avy-action-mark-to-char))
+
+(use-package hydra)
 
 (use-package undo-tree
   :after hydra
-  :straight t
   :init
   (global-undo-tree-mode)
   (defhydra hydra-undo-tree (:hint nil)
@@ -106,11 +236,9 @@
   (undo-tree-history-directory-alist '(("." . "~/.emacs.d/undo"))))
 
 (use-package ivy-hydra
-  :straight t
   :after hydra)
 
 (use-package ivy-rich
-  :straight t
   :after ivy
   :custom
   (ivy-virtual-abbreviate 'full
@@ -137,25 +265,20 @@
      (yaml "https://github.com/ikatyang/tree-sitter-yaml")))
 
 (use-package swiper
-  :straight t
   :after ivy
   :bind (("C-s" . swiper)
          ("C-r" . swiper)))
 
-(use-package all-the-icons
-  :straight t)
+(use-package all-the-icons)
 
 (use-package all-the-icons-dired
-  :straight t
   :after all-the-icons
   :hook (dired-mode . all-the-icons-dired-mode)
   :custom (all-the-icons-dired-monochrome nil))
 
-(use-package multiple-cursors
-  :straight t)
+(use-package multiple-cursors)
 
 (use-package magit
-  :straight t
   :bind
   ("C-x g" . magit-status)
   (:map magit-mode-map
@@ -164,38 +287,30 @@
   (magit-display-buffer-function 'magit-display-buffer-same-window-except-diff-v1))
 
 (use-package forge
-  :straight t
   :after magit)
 
 (use-package github-review
-  :straight t
   :custom
   (define-key github-review-mode-map (kbd "M-o") nil))
 
-(use-package gh-notify
-  :straight t)
+(use-package gh-notify)
 
-(use-package git-link
-  :straight t)
+(use-package git-link)
 
 (use-package doom-modeline
-  :straight t
   :init (doom-modeline-mode 1))
 
-(use-package nerd-icons
-  :straight t)
+(use-package nerd-icons)
 
 (use-package rainbow-delimiters
-  :straight t
   :hook (prog-mode . rainbow-delimiters-mode))
 
 (use-package nlinum
-  :straight t
   :hook (prog-mode . nlinum-mode))
 
 ;; org
 (use-package org
-  :straight t
+  :after ein
   :init
   (setq org-startup-indented t)
   :bind
@@ -203,9 +318,10 @@
   ("C-c a" . org-agenda)
   ("<f6>" . org-capture)
   :custom
-  (org-babel-load-languages '((emacs-lisp . t) (python . t) (shell . t)))
+  (org-babel-load-languages '((emacs-lisp . t) (python . t) (shell . t) (verb .t)))
   (org-babel-python-command "python")
   (org-confirm-babel-evaluate nil)
+  (org-export-with-sub-superscripts nil)
   (org-goto-auto-isearch nil)
   (org-support-shift-select t)
   :config
@@ -238,21 +354,23 @@
   ;; (require 'ox-bibtex)
   )
 
+(use-package orgit
+  :straight (:host github
+                   :repo "magit/orgit"
+                   :files ("orgit.el")))
+
 (use-package org-pandoc-import
   :straight (:host github
                    :repo "tecosaur/org-pandoc-import"
                    :files ("*.el" "filters" "preprocessors")))
 
 (use-package verb
-  :straight t
-  :after
-  (org)
   :config
   (add-to-list 'org-babel-load-languages '(verb . t))
-  (org-babel-do-load-languages 'org-babel-load-languages org-babel-load-languages))
+  (org-babel-do-load-languages 'org-babel-load-languages org-babel-load-languages)
+  (define-key org-mode-map (kbd "C-c C-r") verb-command-map))
 
 (use-package org-roam
-  :straight t
   :init
   (setq org-roam-v2-ack t)
   :custom
@@ -280,8 +398,9 @@
   (org-roam-db-autosync-mode)
   :commands (org-roam-node-list))
 
+(use-package ivy-bibtex)
+
 (use-package org-msg
-  :straight t
   :after org
   :config
   (setq org-msg-options "html-postamble:nil H:5 num:nil ^:{} toc:nil author:nil email:nil \\n:t"
@@ -326,20 +445,56 @@ Robert
 (my/org-roam-refresh-agenda-list)
 
 (use-package org-bullets
-  :straight t
   :after org
   :hook (org-mode . org-bullets-mode)
   :custom
   (org-bullets-bullet-list '("◉" "○" "●" "○" "●" "○" "●")))
 
-(use-package org-variable-pitch
-  :straight t)
+(use-package org-ref
+  :custom
+  (bibtex-completion-bibliography '("~/org-roam/bibliography/references.bib"
+				    ;; "~/Dropbox/emacs/bibliography/dei.bib"
+				    ;; "~/Dropbox/emacs/bibliography/master.bib"
+				    ;; "~/Dropbox/emacs/bibliography/archive.bib"
+                                    ))
+  (bibtex-completion-library-path '("~/org-roam/bibliography/bibtex-pdfs/"))
+  (bibtex-completion-notes-path "~/org-roam/bibliography/notes/")
+  (bibtex-completion-notes-template-multiple-files "* ${author-or-editor}, ${title}, ${journal}, (${year}) :${=type=}: \n\nSee [[cite:&${=key=}]]\n")
 
-(use-package org-variable-pitch-minor-mode
-  :hook org-mode)
+  (bibtex-completion-additional-search-fields '(keywords))
+  (bibtex-completion-display-formats
+   '((article       . "${=has-pdf=:1}${=has-note=:1} ${year:4} ${author:36} ${title:*} ${journal:40}")
+     (inbook        . "${=has-pdf=:1}${=has-note=:1} ${year:4} ${author:36} ${title:*} Chapter ${chapter:32}")
+     (incollection  . "${=has-pdf=:1}${=has-note=:1} ${year:4} ${author:36} ${title:*} ${booktitle:40}")
+     (inproceedings . "${=has-pdf=:1}${=has-note=:1} ${year:4} ${author:36} ${title:*} ${booktitle:40}")
+     (t             . "${=has-pdf=:1}${=has-note=:1} ${year:4} ${author:36} ${title:*}")))
+  (bibtex-completion-pdf-open-function
+   (lambda (fpath)
+     (call-process "open" nil 0 nil fpath)))
+  :config
+  (require 'bibtex)
+
+  (setq bibtex-autokey-year-length 4
+        bibtex-autokey-name-year-separator "-"
+        bibtex-autokey-year-title-separator "-"
+        bibtex-autokey-titleword-separator "-"
+        bibtex-autokey-titlewords 2
+        bibtex-autokey-titlewords-stretch 1
+        bibtex-autokey-titleword-length 5)
+
+  (define-key bibtex-mode-map (kbd "H-b") 'org-ref-bibtex-hydra/body)
+  )
+
+(use-package org-roam-bibtex
+  :after (org-roam org-ref)
+  :config
+  (require 'org-ref))
+
+(use-package org-variable-pitch)
+
+(use-package ob-async)
 
 (use-package org-roam-ui
-  :straight t
   :after org-roam
   :custom
   (org-roam-ui-sync-theme t)
@@ -347,27 +502,29 @@ Robert
   (org-roam-ui-update-on-save t)
   (org-roam-ui-open-on-start t))
 
+(use-package org-pomodoro
+  :custom
+  (org-pomodoro-audio-player "/usr/bin/play")
+  (org-pomodoro-finished-sound-args "-v 0.2")
+  (org-pomodoro-short-break-sound-args "-v 0.2"))
+
 (use-package ox-gfm
-  :straight t
   :config
   (require 'ox-gfm nil t))
 
 (use-package ob-mermaid
-  :straight t
   :custom
   (ob-mermaid-cli-path "~/.local/bin/mmdc"))
 
-(use-package ox-reveal
-  :straight t)
+(use-package ox-reveal)
 
-(use-package ox-slack
-  :straight t)
+(use-package ox-slack)
 
 (use-package ox-pandoc
-  :straight t)
+  :custom
+  (org-pandoc-options-for-gfm '((wrap . "none"))))
 
 (use-package deft
-  :straight t
   :after org
   :bind
   ("C-c n d" . deft)
@@ -378,7 +535,6 @@ Robert
   (deft-directory org-roam-directory))
 
 (use-package gptel
-  :straight t
   :custom
   (gptel-api-key (plist-get (nth 0 (auth-source-search :max 1 :host "openai.com")) :secret))
   (gptel-default-mode 'org-mode))
@@ -388,22 +544,18 @@ Robert
   :config
   (eshell-git-prompt-use-theme 'powerline))
 
-(use-package eshell-git-prompt
-  :straight t)
+(use-package eshell-git-prompt)
 
 (use-package vterm
-  :straight t
   :custom
   (vterm-always-compile-module t)
   :bind
   (:map vterm-mode-map ("C-<backspace>" . (lambda () (interactive) (vterm-send-key (kbd "C-w"))))))
 
 (use-package multi-vterm
-  :straight t
   :after vterm)
 
 (use-package vterm-toggle
-  :straight t
   :after vterm)
 
 (use-package proced
@@ -421,7 +573,6 @@ Robert
    '(custom user pid ppid sess tree pcpu pmem rss start time state (args comm))))
 
 (use-package projectile
-  :straight t
   :diminish projectile-mode
   :custom ((projectile-completion-system 'ivy))
   :config (projectile-mode)
@@ -434,12 +585,10 @@ Robert
   (setq projectile-switch-project-action #'projectile-dired))
 
 (use-package counsel-projectile
-  :straight t
   :after (counsel ivy projectile)
   :config (counsel-projectile-mode))
 
 (use-package mastodon
-  :straight t
   :custom
   (mastodon-instance-url "https://mastodon.sdf.org")
   (mastodon-active-user "rbgb")
@@ -447,11 +596,9 @@ Robert
   (require 'mastodon-alt)
   (mastodon-alt-tl-activate))
 
-(use-package ement
-  :straight t)
+(use-package ement)
 
 (use-package erc
-  :straight t
   :custom
   (erc-server "irc.libera.chat")
   (erc-nick "rbgb")
@@ -461,15 +608,9 @@ Robert
   (erc-kill-buffer-on-part t)
   (erc-auto-query 'bury))
 
-(use-package elpher
-  :straight t)
+(use-package elpher)
 
-(use-package emojify
-  :hook (after-init . global-emojify-mode))
-
-
-(use-package which-key
-  :straight t)
+(use-package which-key)
 
 (use-package eww
   :bind (:map eww-mode-map ("C-<return>" . eww-open-in-new-buffer))
@@ -477,7 +618,6 @@ Robert
   (browse-url-browser-function 'eww-browse-url))
 
 (use-package company
-  :straight t
   :after lsp-mode
   :hook (lsp-mode . company-mode)
   :bind
@@ -487,7 +627,6 @@ Robert
   (company-minimum-prefix-length 2))
 
 (use-package company-box
-  :straight t
   :hook (company-mode . company-box-mode))
 
 (use-package lsp-mode
@@ -531,14 +670,12 @@ Robert
   (lsp-ui-doc-position 'bottom))
 
 (use-package lsp-treemacs
-  :straight t
   :after lsp)
 
 ;; lsp-doctor suggests
 (setq read-process-output-max (* 1024 1024)) ;; 1mb
 
 (use-package yasnippet
-  :straight t
   :hook ((text-mode
           prog-mode
           conf-mode
@@ -566,89 +703,81 @@ Robert
     ("q" nil "Quit" :color blue :column "Quit")))
 
 (use-package pyvenv
-  :straight t
   :init (setenv "WORKON_HOME" "~/anaconda3/envs/")
   :config
   (pyvenv-mode 1))
 
 (use-package dap-mode
-  :straight t
   :custom
   (dap-python-debugger 'debugpy)
   :config
   (dap-mode 1)
   (require 'dap-python))
 
-(use-package ein
-  :straight t)
+(use-package ein)
 
 (use-package ein-notebook
+  :straight nil
   :after ein
-  :bind (:map ein:notebook-mode-map
-	      ("C-<return>" . ein:worksheet-execute-cell-and-insert-below-km)
-              ("S-<return>" . ein:worksheet-execute-cell-and-goto-next-km))
   :custom
   (ein:output-area-inlined-images t)
   (ein:jupyter-server-use-subcommand "server")
-  :config
-  (defhydra ein:notebook-navigation (ein:notebook-mode-map "C-c h")
-    ("n" ein:worksheet-goto-next-input-km "Next" :column "Navigate")
-    ("p" ein:worksheet-goto-prev-input-km "Previous")
-    ("<up>" ein:worksheet-move-cell-up-km "Move cell up" :column "Modify")
-    ("<down>" ein:worksheet-move-cell-down-km "Move cell down")
-    ("a" ein:worksheet-insert-cell-above-km "Insert above")
-    ("b" ein:worksheet-insert-cell-below-km "Insert below")
-    ("d" ein:worksheet-kill-cell-km "Cut")
-    ("m" ein:worksheet-merge-cell-km "Merge with above")
-    ("w" ein:worksheet-copy-cell-km "Copy")
-    ("y" ein:worksheet-yank-cell-km "Paste")
-    ("o" ein:worksheet-toggle-output-km "Toggle output")
-    ("i" ein:notebook-kernel-interrupt-command "Interrupt" :column "Execute")
-    ("0" ein:notebook-restart-session-command "Restart")
-    ("e" ein:worksheet-execute-cell-and-goto-next-km "Execute cell")
-    ("E" ein:worksheet-execute-all-cells "Execute all cells")
-    ("s" ein:notebook-save-notebook-command "Save")
-    ("q" nil "Quit" :color blue :column "Quit")))
+  :pretty-hydra
+  ((:title "EIN" :color amaranth :quit-key ("q" "C-g"))
+   ("Navigate"
+    (
+     ("n" ein:worksheet-goto-next-input-km "Next" :column "Navigate")
+     ("p" ein:worksheet-goto-prev-input-km "Previous"))
 
+    "Modify"
+    (("<up>" ein:worksheet-move-cell-up-km "Move cell up")
+     ("<down>" ein:worksheet-move-cell-down-km "Move cell down")
+     ("a" ein:worksheet-insert-cell-above-km "Insert above")
+     ("b" ein:worksheet-insert-cell-below-km "Insert below")
+     ("d" ein:worksheet-kill-cell-km "Cut")
+     ("m" ein:worksheet-merge-cell-km "Merge with above")
+     ("w" ein:worksheet-copy-cell-km "Copy")
+     ("y" ein:worksheet-yank-cell-km "Paste")
+     ("o" ein:worksheet-toggle-output-km "Toggle output"))
+    "Execute"
+    (("i" ein:notebook-kernel-interrupt-command "Interrupt")
+     ("0" ein:notebook-restart-session-command "Restart")
+     ("e" ein:worksheet-execute-cell-and-goto-next-km "Execute cell")
+     ("E" ein:worksheet-execute-all-cells "Execute all cells")
+     ("s" ein:notebook-save-notebook-command "Save"))))
+  :bind (:map ein:notebook-mode-map
+	      ("C-<return>" . ein:worksheet-execute-cell-and-insert-below-km)
+              ("S-<return>" . ein:worksheet-execute-cell-and-goto-next-km)
+              ("C-c h" . ein-notebook-hydra/body)))
 
 (use-package flycheck
-  :straight t
   :config (global-flycheck-mode))
 
 (use-package python-black
-  :straight t
   :after python)
 
 (use-package docker
-  :straight t
   :bind ("C-c d" . docker))
 
-(use-package keychain-environment
-  :straight t)
+(use-package keychain-environment)
 
 (use-package browse-at-remote
-  :straight t
   :bind ("C-c g g" . 'browse-at-remote))
 
-(use-package ag
-  :straight t)
+(use-package ag)
 
-(use-package transpose-frame
-  :straight t)
+(use-package transpose-frame)
 
 (use-package impatient-mode
-  :straight t
   :config
   (defun markdown-html (buffer)
     (princ (with-current-buffer buffer
              (format "<!DOCTYPE html><html><title>Impatient Markdown</title><xmp theme=\"united\" style=\"display:none;\"> %s  </xmp><script src=\"http://strapdownjs.com/v/0.2/strapdown.js\"></script></html>" (buffer-substring-no-properties (point-min) (point-max))))
            (current-buffer))))
 
-(use-package diminish
-  :straight t)
+(use-package diminish)
 
 (use-package ligature
-  :straight t
   :config
   ;; ;; Enable the "www" ligature in every possible major mode
   ;; (ligature-set-ligatures 't '("www"))
@@ -667,12 +796,10 @@ Robert
                                        "<~~" "</" "</>" "~@" "~-" "~=" "~>" "~~" "~~>" "%%"))
   (global-ligature-mode t))
 
-(use-package indent-tools
-  :straight t)
+(use-package indent-tools)
 
 ;; (add-to-list 'load-path (expand-file-name "~/.emacs.d/emacs-livedown"))
 (use-package livedown
-  :straight t
   :custom
   (livedown-autostart nil)
   (livedown-browser nil)
@@ -680,10 +807,10 @@ Robert
   (livedown-port 1337))
 
 (use-package pdf-tools
-  :straight t
+  :magic ("%PDF" . pdf-view-mode)
   :config
-  (pdf-loader-install)
-  :bind (:map pdf-view-mode-map ("C-s" . isearch-forward)))
+  (pdf-loader-install :no-query)
+  :bind (:map pdf-view-mode-map ("C-s" . isearch-forward) ("C" . pdf-view-center-in-window)))
 
 ;; modes
 ;; (use-package json-mode
@@ -691,7 +818,6 @@ Robert
 ;;   (add-hook 'json-mode-hook (lambda () (define-key json-mode-map (kbd "C-c >") 'indent-tools-hydra/body))))
 
 (use-package markdown-mode
-  :straight t
   :custom
   (markdown-nested-imenu-heading-index nil)
   :config
@@ -707,49 +833,49 @@ Robert
     ("h" markdown-backward-same-level "Backward same level")
     ("q" nil "Quit" :color red)))
 
-(use-package markdown-toc
-  :straight t)
+(use-package markdown-toc)
 
-(use-package poly-markdown
-  :straight t)
+(use-package poly-markdown)
 
-(use-package mermaid-mode
-  :straight t)
+(use-package mermaid-mode)
 
 (use-package yaml-mode
-  :straight t
   :config
   :bind (:map yaml-mode-map ("C-c C-j" . counsel-imenu)))
 
 (use-package scad-mode
-  :straight t
   :custom
   (scad-preview-image-size '(800 . 800))
   (scad-preview-window-size 90)
   :defines scad-preview-image-size scad-preview-window-size)
 
 (use-package typescript-mode
-  :straight t
   :custom
   (typescript-indent-level 2))
 
-(use-package dockerfile-mode
-  :straight t)
+(use-package dockerfile-mode)
 
-(use-package lua-mode
-  :straight t)
+(use-package lua-mode)
 
-(use-package kotlin-mode
-  :straight t)
+(use-package kotlin-mode)
 
-(use-package stan-mode
-  :straight t)
+(use-package stan-mode)
 
-(use-package arduino-mode
-  :straight t)
+(use-package powershell)
 
-(use-package sqlite3
-  :straight t)
+(use-package arduino-mode)
+
+(use-package sqlite3)
+
+(use-package emms
+  :custom
+  (emms-player-list '(emms-player-mpv))
+  (emms-player-mpv-parameters '("--quiet" "--really-quiet" "--no-config" "--save-position-on-quit" "--no-audio-display" ))
+  (emms-info-asynchronously t)
+  (emms-show-format "♪ %s")
+  (emms-source-file-default-directory "/mnt/uplandvault/music"))
+
+(emms-all)
 
 (defun sqlparse-region (beg end)
   (interactive "r")
@@ -764,8 +890,7 @@ Robert
 ;;   :config
 ;;   (add-hook 'vue-mode-hook #'lsp))
 
-(use-package csv-mode
-  :straight t)
+(use-package csv-mode)
 
 (use-package web-mode
   :straight t
@@ -777,30 +902,30 @@ Robert
   (lsp))
 
 (use-package editorconfig
-  :straight t
   :config
   (editorconfig-mode 1))
 
 (use-package hs-minor-mode
+  :straight nil
   :hook (json-mode prog-mode yaml-mode))
 
 (use-package column-number-mode
+  :straight nil
   :hook prog-mode)
 
 (use-package subword-mode
+  :straight nil
   :hook python-mode)
 
 (use-package display-fill-column-indicator-mode
+  :straight nil
   :hook python-mode)
 
-(use-package column-number-mode
-  :hook prog-mode)
-
 (use-package visual-line-mode
+  :straight nil
   :hook org-mode)
 
 (use-package kubel
-  :straight t
   :after (vterm)
   :config (kubel-vterm-setup))
 
@@ -814,14 +939,17 @@ Robert
   (mu4e-attachment-dir "~/Downloads")
   (mu4e-change-filenames-when-moving t)
   (mu4e-compose-format-flowed t)
+  (mu4e-doc-dir "/home/robert/.emacs.d/straight/repos/mu")
   (mu4e-get-mail-command "mbsync -a")
   (mu4e-headers-fields '((:empty . 2) (:human-date . 12) (:from . 22) (:subject)))
   (mu4e-headers-visible-columns 140)
+  (mu4e-index-cleanup nil)
+  (mu4e-index-lazy-check nil)
   (mu4e-maildir "~/.mail")
   (mu4e-mu-binary (expand-file-name "build/mu/mu" (straight--repos-dir "mu")))
   (mu4e-notification-support t)
   (mu4e-search-include-related nil)
-  (mu4e-split-view 'vertical)
+  (mu4e-split-view 'horizontal)
   (mu4e-headers-visible-lines 50)
   (mu4e-update-interval (* 10 60))
   (mu4e-use-fancy-chars t)
@@ -885,7 +1013,12 @@ Robert
   (add-to-list 'mu4e-header-info-custom
                '(:empty . (:name "Empty"
                                  :shortname ""
-                                 :function (lambda (msg) "  ")))))
+                                 :function (lambda (msg) "  "))))
+  (defun my/mu4e-view-message-with-message-id ()
+    (interactive)
+    (let ((input (read-string "Message ID: ")))
+      (mu4e-view-message-with-message-id (replace-regexp-in-string "^mu4e:msgid:" "" input))))
+  :bind (:map mu4e-headers-mode-map ("i" . my/mu4e-view-message-with-message-id)))
 
 ;; '(mu4e-thread-folding-child-face ((t (:extend t :background "gray15" :underline nil))))
 ;; '(mu4e-thread-folding-root-folded-face ((t (:extend t :background "grey10" :overline nil :underline nil))))
