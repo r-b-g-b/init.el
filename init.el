@@ -313,45 +313,52 @@
   :after ein
   :init
   (setq org-startup-indented t)
-  :bind
-  ("C-c C-j" . nil)
-  ("C-c a" . org-agenda)
-  ("<f6>" . org-capture)
   :custom
-  (org-babel-load-languages '((emacs-lisp . t) (python . t) (shell . t) (verb .t)))
+  (org-babel-load-languages '((emacs-lisp . t) (python . t) (shell . t)))
   (org-babel-python-command "python")
   (org-confirm-babel-evaluate nil)
   (org-export-with-sub-superscripts nil)
   (org-goto-auto-isearch nil)
   (org-support-shift-select t)
-  :config
-  (defhydra org:hydra (org-mode-map "C-c h" :color pink)
-    ("n" outline-next-visible-heading "Next" :column "Navigate")
-    ("j" outline-next-visible-heading "Next")
-    ("p" outline-previous-visible-heading "Previous")
-    ("k" outline-previous-visible-heading "Previous")
-    ("u" outline-up-heading "Up level")
-    ("f" org-forward-heading-same-level "Forward same level")
-    ("l" org-forward-heading-same-level "Forward same level")
-    ("b" org-backward-heading-same-level "Backward same level")
-    ("h" org-backward-heading-same-level "Backward same level")
-    ("<prior>" org-metaup "Move section up" :column "Modify")
-    ("<next>" org-metadown "Move section down")
-    ("<" org-promote-subtree "Promote")
-    (">" org-demote-subtree "Demote")
-    ("t" org-todo "Toggle TODO")
-    ("$" org-archive-subtree "Archive")
-    ("d" org-cut-subtree "Kill")
-    ("i" org-insert-heading "Insert" :exit t)
-    ("s" counsel-outline "Search" :color red :column "Actions")
-    ("I" org-clock-in "Clock in")
-    ("O" org-clock-out "Clock in")
+  :pretty-hydra
+  ((:title "Org" :color pink :quit-key ("q" "C-g"))
+   ("Navigate"
+    (
+     ("n" outline-next-visible-heading "Next")
+     ("j" outline-next-visible-heading "Next")
+     ("p" outline-previous-visible-heading "Previous")
+     ("k" outline-previous-visible-heading "Previous")
+     ("u" outline-up-heading "Up level")
+     ("f" org-forward-heading-same-level "Forward same level")
+     ("l" org-forward-heading-same-level "Forward same level")
+     ("b" org-backward-heading-same-level "Backward same level")
+     ("h" org-backward-heading-same-level "Backward same level"))
+
+    "Modify"
+    (("<prior>" org-metaup "Move section up" :column "Modify")
+     ("<next>" org-metadown "Move section down")
+     ("<" org-promote-subtree "Promote")
+     (">" org-demote-subtree "Demote")
+     ("t" org-todo "Toggle TODO")
+     ("$" org-archive-subtree "Archive")
+     ("d" org-cut-subtree "Kill")
+     ("i" org-insert-heading "Insert" :exit t))
+
+    "Act"
+    (("s" counsel-outline "Search" :color red :column "Actions")
+     ("I" org-clock-in "Clock in")
+     ("O" org-clock-out "Clock in"))
     ;; ("r" (progn
     ;;        (verb:hydra/body)
     ;;        (hydra-push '(org:hydra/body)))
     ;;  "Verb")
-    ("q" nil "Quit" :exit t))
+    ))
   ;; (require 'ox-bibtex)
+  :bind
+  ("C-c C-j" . nil)
+  ("C-c a" . org-agenda)
+  ("<f6>" . org-capture)
+  (:map org-mode-map ("C-c h" . org-hydra/body))
   )
 
 (use-package orgit
