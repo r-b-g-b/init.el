@@ -1064,6 +1064,15 @@ With ARG, do this that many times."
   (interactive "p")
   (delete-word (- arg)))
 
+(defun insert-random-string (length)
+  "Inserts a random string of characters at the current mark in the buffer."
+  (interactive "p")
+  (let* ((allowed-chars "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ!@#$%^&*()")
+         (length (if length length 20))
+         (random-string (cl-loop repeat length concat (string (elt allowed-chars (random (length allowed-chars)))))))
+    (push-mark)
+    (insert random-string)))
+
 (global-set-key (read-kbd-macro "<M-DEL>") 'backward-delete-word)
 
 (global-hl-line-mode t)
