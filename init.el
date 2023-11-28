@@ -219,21 +219,29 @@
 (use-package hydra)
 
 (use-package undo-tree
-  :after hydra
   :init
   (global-undo-tree-mode)
-  (defhydra hydra-undo-tree (:hint nil)
-    "
-  _p_: undo  _n_: redo _s_: save _l_: load   "
-    ("p"   undo-tree-undo)
-    ("n"   undo-tree-redo)
-    ("s"   undo-tree-save-history)
-    ("l"   undo-tree-load-history)
-    ("u"   undo-tree-visualize "visualize" :color blue)
-    ("q"   nil "quit" :color blue))
+  (define-key undo-tree-mode-map (kbd "C-x u") nil)
+  :config
+  (defun my/undo-tree-visualize ()
+    (interactive)
+    (undo-tree-visualize)
+    (undo-tree-hydra/body))
+  :pretty-hydra
+  ((:title "Undo" :color pink)
+   ("Navigate"
+    (
+     ("k" undo-tree-visualize-undo "Undo")
+     ("j" undo-tree-visualize-redo "Next")
+     ("p" undo-tree-visualize-undo "Undo")
+     ("n" undo-tree-visualize-redo "Next")
+     ("h" undo-tree-visualize-switch-branch-left "Left")
+     ("l" undo-tree-visualize-switch-branch-right "Right")
+     ("q" undo-tree-visualizer-quit "Quit" :color blue))))
   :custom
   (undo-tree-auto-save-history t)
-  (undo-tree-history-directory-alist '(("." . "~/.emacs.d/undo"))))
+  (undo-tree-history-directory-alist '(("." . "~/.emacs.d/undo")))
+  :bind (("C-x u" . my/undo-tree-visualize)))
 
 (use-package ivy-hydra
   :after hydra)
@@ -346,6 +354,8 @@
 
     "Act"
     (("s" counsel-outline "Search" :color red :column "Actions")
+     ("w" org-copy-subtree "Copy")
+     ("y" org-paste-subtree "Paste")
      ("I" org-clock-in "Clock in")
      ("O" org-clock-out "Clock in"))
     ;; ("r" (progn
@@ -622,7 +632,8 @@ Robert
 (use-package eww
   :bind (:map eww-mode-map ("C-<return>" . eww-open-in-new-buffer))
   :custom
-  (browse-url-browser-function 'eww-browse-url))
+  (browse-url-browser-function 'eww-browse-url)
+  (browse-url-secondary-browser-function 'browse-url-firefox))
 
 (use-package company
   :after lsp-mode
@@ -932,9 +943,7 @@ Robert
   :straight nil
   :hook org-mode)
 
-(use-package kubel
-  :after (vterm)
-  :config (kubel-vterm-setup))
+(use-package kubernetes)
 
 (use-package mu4e
   :straight ( :host github
@@ -946,10 +955,12 @@ Robert
   (mu4e-attachment-dir "~/Downloads")
   (mu4e-change-filenames-when-moving t)
   (mu4e-compose-format-flowed t)
+  (mu4e-debug nil)
   (mu4e-doc-dir "/home/robert/.emacs.d/straight/repos/mu")
   (mu4e-get-mail-command "mbsync -a")
   (mu4e-headers-fields '((:empty . 2) (:human-date . 12) (:from . 22) (:subject)))
   (mu4e-headers-visible-columns 140)
+  (mu4e-headers-visible-lines 50)
   (mu4e-index-cleanup nil)
   (mu4e-index-lazy-check nil)
   (mu4e-maildir "~/.mail")
@@ -957,7 +968,6 @@ Robert
   (mu4e-notification-support t)
   (mu4e-search-include-related nil)
   (mu4e-split-view 'horizontal)
-  (mu4e-headers-visible-lines 50)
   (mu4e-update-interval (* 10 60))
   (mu4e-use-fancy-chars t)
   (mu4e-view-show-images t)
@@ -977,11 +987,10 @@ Robert
                   (smtpmail-smtp-service . 465)
                   (smtpmail-smtp-user . "galileo@gmail.com")
                   (smtpmail-stream-type  . ssl)
-                  (mu4e-drafts-folder  . "/galileo/[Gmail]/Drafts")
-                  (mu4e-sent-folder  . "/galileo/[Gmail]/Sent Mail")
-                  (mu4e-refile-folder  . "/galileo/[Gmail]/All Mail")
-                  (mu4e-trash-folder  . "/galileo/[Gmail]/Trash")))
-
+                  (mu4e-drafts-folder  . "/galileo/Drafts")
+                  (mu4e-sent-folder  . "/galileo/Sent Mail")
+                  (mu4e-refile-folder  . "/galileo/Archive")
+                  (mu4e-trash-folder  . "/galileo/Trash")))
          ;; robert@drivendata.org
          (make-mu4e-context
           :name "drivendata"
@@ -995,28 +1004,18 @@ Robert
                   (smtpmail-smtp-service . 465)
                   (smtpmail-smtp-user . "robert@drivendata.org")
                   (smtpmail-stream-type  . ssl)
-                  (mu4e-drafts-folder  . "/drivendata/[Gmail]/Drafts")
-                  (mu4e-sent-folder  . "/drivendata/[Gmail]/Sent Mail")
-                  (mu4e-refile-folder  . "/drivendata/[Gmail]/All Mail")
-                  (mu4e-trash-folder  . "/drivendata/[Gmail]/Trash")))
-
-         ;; ;; rbgb@sdf.org
-         ;; (make-mu4e-context
-         ;;  :name "sdf"
-         ;;  :match-func
-         ;;  (lambda (msg)
-         ;;    (when msg
-         ;;      (string-prefix-p "/sdf" (mu4e-message-field msg :maildir))))
-         ;;  :vars '((user-mail-address . "rbgb@sdf.org")
-         ;;          (user-full-name    . "Robert Gibboni")
-         ;;          (smtpmail-smtp-server  . "mx.sdf.org")
-         ;;          (smtpmail-smtp-service . 587)
-         ;;          (smtpmail-stream-type  . starttls)
-         ;;          (mu4e-drafts-folder  . "/sdf/INBOX.Drafts")
-         ;;          (mu4e-sent-folder  . "/sdf/INBOX.Sent")
-         ;;          (mu4e-refile-folder  . "/sdf/INBOX.Archive")
-         ;;          (mu4e-trash-folder  . "/sdf/INBOX.Trash")))))
-         ))
+                  (mu4e-drafts-folder  . "/drivendata/Drafts")
+                  (mu4e-sent-folder  . "/drivendata/Sent Mail")
+                  (mu4e-refile-folder  . "/drivendata/Archive")
+                  (mu4e-trash-folder  . "/drivendata/Trash")))))
+  (setf (alist-get 'trash mu4e-marks)
+        '(:char ("d" . "▼")
+                :prompt "dtrash"
+                :dyn-target (lambda (target msg) (mu4e-get-trash-folder msg))
+                ;; Here's the main difference to the regular trash mark, no +T
+                ;; before -N so the message is not marked as IMAP-deleted:
+                :action (lambda (docid msg target)
+                          (mu4e--server-move docid (mu4e--mark-check-target target) "+S-u-N"))))
   (add-to-list 'mu4e-header-info-custom
                '(:empty . (:name "Empty"
                                  :shortname ""
@@ -1026,11 +1025,6 @@ Robert
     (let ((input (read-string "Message ID: ")))
       (mu4e-view-message-with-message-id (replace-regexp-in-string "^mu4e:msgid:" "" input))))
   :bind (:map mu4e-headers-mode-map ("i" . my/mu4e-view-message-with-message-id)))
-
-;; '(mu4e-thread-folding-child-face ((t (:extend t :background "gray15" :underline nil))))
-;; '(mu4e-thread-folding-root-folded-face ((t (:extend t :background "grey10" :overline nil :underline nil))))
-;; '(mu4e-thread-folding-root-unfolded-face ((t (:extend t :background "gray10" :overline nil :underline nil))))
-
 
 (global-set-key (kbd "C-x C-b") 'ibuffer)
 (global-set-key (kbd "S-C-<down>") 'shrink-window)
