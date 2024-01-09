@@ -56,6 +56,10 @@
   :straight nil
   :bind (:map dired-mode-map ("<SPC>" . dired-view-file-other-window)))
 
+(use-package ibuffer
+  :straight nil
+  :bind (("C-x C-b" . ibuffer)))
+
 (use-package emacs-async
   :hook
   (dired-mode . dired-async-mode))
@@ -65,8 +69,7 @@
   :init (load-theme 'spacemacs-dark t))
 
 (use-package ace-window
-  :bind (
-         ("M-o" . ace-window))
+  :bind (("M-o" . ace-window))
   :custom
   (aw-keys '(?a ?s ?d ?f ?g ?h ?j ?k ?l))
   (aw-scope 'frame))
@@ -98,8 +101,8 @@
      ("M-<" beginning-of-buffer "beg")
      ("M->" end-of-buffer "end"))))
   :bind (:map hs-minor-mode-map
-         ("C-~" . hideshow-hydra/body)
-         ("C-S-<escape>" . hideshow-hydra/body))
+              ("C-~" . hideshow-hydra/body)
+              ("C-S-<escape>" . hideshow-hydra/body))
   :hook (prog-mode . hs-minor-mode)
   :config
   ;; More functions
@@ -318,15 +321,13 @@
 
 ;; org
 (use-package org
-  :after ein
-  :init
-  (setq org-startup-indented t)
   :custom
-  (org-babel-load-languages '((emacs-lisp . t) (python . t) (shell . t)))
+  (org-babel-load-languages '((emacs-lisp . t) (shell . t) (python . t) (jupyter . t)))
   (org-babel-python-command "python")
   (org-confirm-babel-evaluate nil)
   (org-export-with-sub-superscripts nil)
   (org-goto-auto-isearch nil)
+  (org-startup-indented t)
   (org-support-shift-select t)
   :pretty-hydra
   ((:title "Org" :color pink :quit-key ("q" "C-g"))
@@ -339,9 +340,7 @@
      ("u" outline-up-heading "Up level")
      ("f" org-forward-heading-same-level "Forward same level")
      ("l" org-forward-heading-same-level "Forward same level")
-     ("b" org-backward-heading-same-level "Backward same level")
      ("h" org-backward-heading-same-level "Backward same level"))
-
     "Modify"
     (("<prior>" org-metaup "Move section up" :column "Modify")
      ("<next>" org-metadown "Move section down")
@@ -351,25 +350,77 @@
      ("$" org-archive-subtree "Archive")
      ("d" org-cut-subtree "Kill")
      ("i" org-insert-heading "Insert" :exit t))
-
     "Act"
     (("s" counsel-outline "Search" :color red :column "Actions")
      ("w" org-copy-subtree "Copy")
      ("y" org-paste-subtree "Paste")
      ("I" org-clock-in "Clock in")
-     ("O" org-clock-out "Clock in"))
-    ;; ("r" (progn
-    ;;        (verb:hydra/body)
-    ;;        (hydra-push '(org:hydra/body)))
-    ;;  "Verb")
-    ))
-  ;; (require 'ox-bibtex)
+     ("O" org-clock-out "Clock in"))))
   :bind
   ("C-c C-j" . nil)
   ("C-c a" . org-agenda)
   ("<f6>" . org-capture)
-  (:map org-mode-map ("C-c h" . org-hydra/body))
-  )
+  (:map org-mode-map ("C-c h" . org-hydra/body)))
+
+(use-package jupyter
+  :after org
+  :config
+  (defun my/jupyter-execute-and-insert ()
+    (interactive)
+    (org-ctrl-c-ctrl-c)
+    (jupyter-org-insert-src-block t current-prefix-arg))
+  (defun my/jupyter-org-kill-block-and-results ()
+    (interactive)
+    (jupyter-org-kill-block-and-results)
+    (org-babel-next-src-block))
+  (defun my/jupyter-org-restart-kernel ()
+    "Restart the kernel of the source block where point is."
+    (interactive)
+    (jupyter-org-with-src-block-client
+     (jupyter-repl-restart-kernel)))
+  (unbind-key "C-c h" jupyter-org-interaction-mode-map)
+
+  :pretty-hydra
+  ((:title "Jupyter" :color amaranth :quit-key ("q" "C-g"))
+   ("Execute"
+    (("e" jupyter-org-execute-and-next-block "Execute and advance")
+     ("C-e" org-ctrl-c-ctrl-c "Execute and stay")
+     ("M-e" my/jupyter-execute-and-insert "Execute and insert")
+     ("C-M-e" jupyter-org-execute-subtree "Subtree to point")
+     ("I" jupyter-org-interrupt-kernel "Interrupt")
+     ("0" my/jupyter-org-restart-kernel "Restart kernel"))
+    "Navigate"
+    (
+     ("p" org-babel-previous-src-block "Previous")
+     ("k" org-babel-previous-src-block "Previous")
+     ("P" jupyter-org-previous-busy-src-block "Previous busy")
+     ("n" org-babel-next-src-block "Next")
+     ("j" org-babel-next-src-block "Previous")
+     ("N" jupyter-org-next-busy-src-block "Next busy")
+     ("g" jupyter-org-jump-to-visible-block "Visible")
+     ("G" jupyter-org-jump-to-block "Any")
+     ("<tab>" org-cycle "Toggle fold"))
+    "Edit"
+    (("<prior>" jupyter-org-move-src-block "Move up")
+     ("<next>" (jupyter-org-move-src-block t) "Move down")
+     ("d" my/jupyter-org-kill-block-and-results "Kill")
+     ("w" jupyter-org-copy-block-and-results "Copy")
+     ("o" (jupyter-org-clone-block t) "Clone")
+     ("m" jupyter-org-merge-blocks "Merge")
+     ("s" jupyter-org-split-src-block "Split")
+     ("a" (jupyter-org-insert-src-block nil current-prefix-arg) "Insert above")
+     ("b" (jupyter-org-insert-src-block t current-prefix-arg) "Insert below")
+     ("l" org-babel-remove-result "Clear result")
+     ("L" jupyter-org-clear-all-results "Clear all results")
+     ("h" jupyter-org-edit-header "Header"))
+    "Misc"
+    (("/" jupyter-org-inspect-src-block "Inspect")
+     ("r" org-babel-hide-result-toggle "Toggle result")
+     ("C-s" org-babel-jupyter-scratch-buffer "Scratch")
+     ("i" org-toggle-inline-images "Toggle images")
+     ("t" org-babel-tangle "Tangle"))))
+  :bind
+  (:map jupyter-org-interaction-mode-map ("C-c j" . jupyter-hydra/body)))
 
 (use-package orgit
   :straight (:host github
@@ -382,10 +433,15 @@
                    :files ("*.el" "filters" "preprocessors")))
 
 (use-package verb
+  :after org
+  :custom
+  (verb-babel-timeout 600)
   :config
   (add-to-list 'org-babel-load-languages '(verb . t))
   (org-babel-do-load-languages 'org-babel-load-languages org-babel-load-languages)
   (define-key org-mode-map (kbd "C-c C-r") verb-command-map))
+
+(unbind-key "C-c h" global-map)
 
 (use-package org-roam
   :init
@@ -404,13 +460,13 @@
       :if-new (file+head "%<%Y%m%d%H%M%S>-${slug}.org" "#+title: ${title}\n#+category: ${title}\n#+filetags: project\n")
       :unnarrowed t)))
   :bind (("C-c n l" . org-roam-buffer-toggle)
-	 ("C-c n f" . org-roam-node-find)
-	 ("C-c n i" . org-roam-node-insert)
-	 ("C-c n t" . org-roam-dailies-goto-today)
-	 ("C-c n I" . org-roam-node-insert-immediate)
+         ("C-c n f" . org-roam-node-find)
+         ("C-c n i" . org-roam-node-insert)
+         ("C-c n t" . org-roam-dailies-goto-today)
+         ("C-c n I" . org-roam-node-insert-immediate)
          ("C-c n s" . org-store-link)
-	 :map org-mode-map
-	 ("C-M-i" . completion-at-point))
+         :map org-mode-map
+         ("C-M-i" . completion-at-point))
   :config
   (org-roam-db-autosync-mode)
   :commands (org-roam-node-list))
@@ -421,14 +477,14 @@
   :after org
   :config
   (setq org-msg-options "html-postamble:nil H:5 num:nil ^:{} toc:nil author:nil email:nil \\n:t"
-	org-msg-startup "hidestars indent inlineimages"
-	org-msg-greeting-fmt "\nHi%s,\n\n"
-	org-msg-greeting-name-limit 3
-	org-msg-default-alternatives '((new		. (text html))
-				       (reply-to-html	. (text html))
-				       (reply-to-text	. (text)))
-	org-msg-convert-citation t
-	org-msg-signature "
+        org-msg-startup "hidestars indent inlineimages"
+        org-msg-greeting-fmt "\nHi%s,\n\n"
+        org-msg-greeting-name-limit 3
+        org-msg-default-alternatives '((new		. (text html))
+                                       (reply-to-html	. (text html))
+                                       (reply-to-text	. (text)))
+        org-msg-convert-citation t
+        org-msg-signature "
 
 Best,
 
@@ -451,9 +507,9 @@ Robert
 
 (defun my/org-roam-list-notes-by-tag (tag-name)
   (mapcar #'org-roam-node-file
-	  (seq-filter
-	   (my/org-roam-filter-by-tag tag-name)
-	   (org-roam-node-list))))
+          (seq-filter
+           (my/org-roam-filter-by-tag tag-name)
+           (org-roam-node-list))))
 
 (defun my/org-roam-refresh-agenda-list ()
   (interactive)
@@ -469,11 +525,7 @@ Robert
 
 (use-package org-ref
   :custom
-  (bibtex-completion-bibliography '("~/org-roam/bibliography/references.bib"
-				    ;; "~/Dropbox/emacs/bibliography/dei.bib"
-				    ;; "~/Dropbox/emacs/bibliography/master.bib"
-				    ;; "~/Dropbox/emacs/bibliography/archive.bib"
-                                    ))
+  (bibtex-completion-bibliography '("~/org-roam/bibliography/references.bib"))
   (bibtex-completion-library-path '("~/org-roam/bibliography/bibtex-pdfs/"))
   (bibtex-completion-notes-path "~/org-roam/bibliography/notes/")
   (bibtex-completion-notes-template-multiple-files "* ${author-or-editor}, ${title}, ${journal}, (${year}) :${=type=}: \n\nSee [[cite:&${=key=}]]\n")
@@ -485,9 +537,7 @@ Robert
      (incollection  . "${=has-pdf=:1}${=has-note=:1} ${year:4} ${author:36} ${title:*} ${booktitle:40}")
      (inproceedings . "${=has-pdf=:1}${=has-note=:1} ${year:4} ${author:36} ${title:*} ${booktitle:40}")
      (t             . "${=has-pdf=:1}${=has-note=:1} ${year:4} ${author:36} ${title:*}")))
-  (bibtex-completion-pdf-open-function
-   (lambda (fpath)
-     (call-process "open" nil 0 nil fpath)))
+
   :config
   (require 'bibtex)
 
@@ -509,7 +559,10 @@ Robert
 
 (use-package org-variable-pitch)
 
-(use-package ob-async)
+(use-package ob-async
+  :after jupyter
+  :config
+  (setq ob-async-no-async-languages-alist '("jupyter-python" "jupyter-julia" "bash")))
 
 (use-package org-roam-ui
   :after org-roam
@@ -608,10 +661,7 @@ Robert
 (use-package mastodon
   :custom
   (mastodon-instance-url "https://mastodon.sdf.org")
-  (mastodon-active-user "rbgb")
-  :config
-  (require 'mastodon-alt)
-  (mastodon-alt-tl-activate))
+  (mastodon-active-user "rbgb"))
 
 (use-package ement)
 
@@ -657,11 +707,12 @@ Robert
          ;; (forge-post-mode . lsp)
          (js-mode . lsp)
          ;; (markdown-mode . lsp)
+         (bicep-mode . lsp)
          (sh-mode . lsp)
          (typescript-mode . lsp)
          (web-mode . lsp))
   :custom
-  (lsp-enable-which-key-integration t)
+  ;; (lsp-enable-which-key-integration t)
   (lsp-idle-delay 0.25)
   (lsp-log-io nil)
   :init (setq lsp-eldoc-render-all nil
@@ -731,42 +782,6 @@ Robert
   :config
   (dap-mode 1)
   (require 'dap-python))
-
-(use-package ein)
-
-(use-package ein-notebook
-  :straight nil
-  :after ein
-  :custom
-  (ein:output-area-inlined-images t)
-  (ein:jupyter-server-use-subcommand "server")
-  :pretty-hydra
-  ((:title "EIN" :color amaranth :quit-key ("q" "C-g"))
-   ("Navigate"
-    (
-     ("n" ein:worksheet-goto-next-input-km "Next" :column "Navigate")
-     ("p" ein:worksheet-goto-prev-input-km "Previous"))
-
-    "Modify"
-    (("<up>" ein:worksheet-move-cell-up-km "Move cell up")
-     ("<down>" ein:worksheet-move-cell-down-km "Move cell down")
-     ("a" ein:worksheet-insert-cell-above-km "Insert above")
-     ("b" ein:worksheet-insert-cell-below-km "Insert below")
-     ("d" ein:worksheet-kill-cell-km "Cut")
-     ("m" ein:worksheet-merge-cell-km "Merge with above")
-     ("w" ein:worksheet-copy-cell-km "Copy")
-     ("y" ein:worksheet-yank-cell-km "Paste")
-     ("o" ein:worksheet-toggle-output-km "Toggle output"))
-    "Execute"
-    (("i" ein:notebook-kernel-interrupt-command "Interrupt")
-     ("0" ein:notebook-restart-session-command "Restart")
-     ("e" ein:worksheet-execute-cell-and-goto-next-km "Execute cell")
-     ("E" ein:worksheet-execute-all-cells "Execute all cells")
-     ("s" ein:notebook-save-notebook-command "Save"))))
-  :bind (:map ein:notebook-mode-map
-	      ("C-<return>" . ein:worksheet-execute-cell-and-insert-below-km)
-              ("S-<return>" . ein:worksheet-execute-cell-and-goto-next-km)
-              ("C-c h" . ein-notebook-hydra/body)))
 
 (use-package flycheck
   :config (global-flycheck-mode))
@@ -857,6 +872,9 @@ Robert
 
 (use-package mermaid-mode)
 
+(use-package bicep-mode
+  :straight (:type git :host github :repo "christiaan-janssen/bicep-mode"))
+
 (use-package yaml-mode
   :config
   :bind (:map yaml-mode-map ("C-c C-j" . counsel-imenu)))
@@ -911,7 +929,6 @@ Robert
 (use-package csv-mode)
 
 (use-package web-mode
-  :straight t
   :custom
   (web-mode-engines-alist '(("django"    . "\\.html?\\'")))
   :mode
@@ -943,14 +960,16 @@ Robert
   :straight nil
   :hook org-mode)
 
-(use-package kubernetes)
+(use-package kubernetes
+  :config
+  (unbind-key "C-<tab>"  kubernetes-overview-mode-map))
 
 (use-package mu4e
   :straight ( :host github
               :repo "djcb/mu"
-	      :branch "release/1.10"
-	      :files ("build/mu4e/*")
-	      :pre-build (("./autogen.sh") ("make")))
+              :branch "release/1.10"
+              :files ("build/mu4e/*")
+              :pre-build (("./autogen.sh") ("make")))
   :custom
   (mu4e-attachment-dir "~/Downloads")
   (mu4e-change-filenames-when-moving t)
@@ -1026,7 +1045,6 @@ Robert
       (mu4e-view-message-with-message-id (replace-regexp-in-string "^mu4e:msgid:" "" input))))
   :bind (:map mu4e-headers-mode-map ("i" . my/mu4e-view-message-with-message-id)))
 
-(global-set-key (kbd "C-x C-b") 'ibuffer)
 (global-set-key (kbd "S-C-<down>") 'shrink-window)
 (global-set-key (kbd "S-C-<left>") 'shrink-window-horizontally)
 (global-set-key (kbd "S-C-<right>") 'enlarge-window-horizontally)
@@ -1079,6 +1097,47 @@ With ARG, do this that many times."
 (winner-mode t)
 (keychain-refresh-environment)
 (desktop-read)
+(pyvenv-workon "py3")
+
+(use-package move-border
+  :straight ( :host github
+              :repo "ramnes/move-border"
+              :branch "master"
+              :files ("move-border.el")))
+
+(use-package nano-agenda)
+
+(pretty-hydra-define my-window (:foreign-keys warn :title "Utilities" :quit-key "q")
+  ("Actions"
+   (
+    ("TAB" tab-bar-switch-to-tab "Switch")
+    ("o" other-window "Other")
+    ("x" ace-delete-window "Delete")
+    ("s" ace-swap-window "Swap")
+    ("a" ace-select-window "Select"))
+
+   "Resize"
+   (("h" move-border-left "←")
+    ("j" move-border-down "↓")
+    ("k" move-border-up "↑")
+    ("l" move-border-right "→")
+    ("n" balance-windows "Balance")
+    ("m" ace-delete-other-windows "Maximize")
+    ("f" toggle-frame-fullscreen "Toggle fullscreen"))
+
+   "Split"
+   (("b" split-window-right "Horizontally")
+    ("B" split-window-horizontally-instead "Horizontally instead")
+    ("v" split-window-below "Vertically")
+    ("V" split-window-vertically-instead "Vertically instead"))
+
+   "Zoom"
+   (("+" text-scale-increase "In")
+    ("-" text-scale-decrease "Out")
+    ("0" (text-scale-mode -1) "Default"))))
+
+(bind-key (kbd "C-x +") 'my-window/body)
+(setenv "PATH" (concat "/home/robert/anaconda3/bin:" "/home/robert/go/bin:" (getenv "PATH")))
 
 (custom-set-variables
  ;; custom-set-variables was added by Custom.
