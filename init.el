@@ -319,6 +319,15 @@
 (use-package nlinum
   :hook (prog-mode . nlinum-mode))
 
+(use-package editorconfig)
+(use-package jsonrpc)
+
+(use-package copilot
+  :straight (:host github :repo "copilot-emacs/copilot.el" :files ("dist" "*.el"))
+  :config
+  (add-hook 'prog-mode-hook 'copilot-mode))
+;; you can utilize :map :hook and :config to customize copilot
+
 ;; org
 (use-package org
   :custom
@@ -930,11 +939,13 @@ Robert
 
 (use-package web-mode
   :custom
-  (web-mode-engines-alist '(("django"    . "\\.html?\\'")))
+  (web-mode-engines-alist '(("django" . "\\.html?\\'")))
+  (web-mode-markup-indent-offset 2)
+  (web-mode-css-indent-offset 2)
+  (web-mode-code-indent-offset 4)
   :mode
   ("\\.html?\\'" "\\.phtml\\'" "\\.tpl\\.php\\'" "\\.[agj]sp\\'" "\\.as[cp]x\\'" "\\.erb\\'" "\\.mustache\\'" "\\.djhtml\\'" "\\.vue\\'")
-  :hook
-  (lsp))
+  :hook lsp)
 
 (use-package editorconfig
   :config
@@ -990,6 +1001,40 @@ Robert
   (mu4e-update-interval (* 10 60))
   (mu4e-use-fancy-chars t)
   (mu4e-view-show-images t)
+  (mu4e-bookmarks
+   '(
+      (
+        :name "Galileo"
+        :query "m:/galileo/Inbox or m:/galileo/Archive"
+        :key ?g
+      )
+      (
+        :name "DrivenData"
+        :query "m:/drivendata/Inbox or m:/drivendata/Archive"
+        :key ?d
+      )
+      (
+        :name "WWL (MS Learn)"
+        :query "(m:/drivendata/Inbox or m:/drivendata/Archive) and (from:sanitalabaz@microsoft.com or to:sanitalabaz@microsoft.com)"
+        :key ?m
+      )
+      (
+        :name "All"
+        :query "not m:/galileo/Spam and not m:/galileo/Trash and not m:/drivendata/Spam and not m:/drivendata/Trash"
+        :key ?a
+      )
+      (
+        :name "Unread messages"
+        :query "flag:unread and not m:/galileo/Spam and not m:/galileo/Trash and not m:/drivendata/Spam and not m:/drivendata/Trash"
+        :key ?u
+      )
+      (
+        :name "Last 7 days"
+        :query "date:7d..now and not m:/galileo/Spam and not m:/galileo/Trash and not m:/drivendata/Spam and not m:/drivendata/Trash"
+        :key ?w
+      )
+    )
+  )
   :config
   (setq mu4e-contexts
         (list
@@ -1035,15 +1080,20 @@ Robert
                 ;; before -N so the message is not marked as IMAP-deleted:
                 :action (lambda (docid msg target)
                           (mu4e--server-move docid (mu4e--mark-check-target target) "+S-u-N"))))
-  (add-to-list 'mu4e-header-info-custom
-               '(:empty . (:name "Empty"
-                                 :shortname ""
-                                 :function (lambda (msg) "  "))))
   (defun my/mu4e-view-message-with-message-id ()
     (interactive)
     (let ((input (read-string "Message ID: ")))
       (mu4e-view-message-with-message-id (replace-regexp-in-string "^mu4e:msgid:" "" input))))
   :bind (:map mu4e-headers-mode-map ("i" . my/mu4e-view-message-with-message-id)))
+
+
+
+(defun my/yank-buffer-name ()
+  (interactive)
+  (let ((buffer-name* (buffer-name)))
+    (kill-new buffer-name*)
+    (message buffer-name*)
+    buffer-name*))
 
 (global-set-key (kbd "S-C-<down>") 'shrink-window)
 (global-set-key (kbd "S-C-<left>") 'shrink-window-horizontally)
@@ -1105,7 +1155,67 @@ With ARG, do this that many times."
               :branch "master"
               :files ("move-border.el")))
 
-(use-package nano-agenda)
+(use-package nano-agenda
+  :bind (:map nano-agenda-mode-map ("h" . nano-agenda-backward-day) ("l" . nano-agenda-forward-day) ("j" . nano-agenda-backward-week) ("j" . nano-agenda-forward-week) ("k" . nano-agenda-backward-week)))
+
+
+(use-package mu4e-dashboard
+  :straight ( :host github
+              :repo "rougier/mu4e-dashboard"
+              :branch "main"
+              :files ("mu4e-dashboard.el"))
+  :custom
+  (mu4e-dashboard-mu-program "~/.emacs.d/straight/repos/mu/build/mu/mu"))
+
+(use-package mu4e-thread-folding
+  :after mu4e
+  :straight ( :host github
+              :repo "rougier/mu4e-thread-folding"
+              :branch "master"
+              :files ("mu4e-thread-folding.el"))
+  :config
+  (add-to-list 'mu4e-header-info-custom
+               '(:empty . (:name "Empty"
+                                 :shortname ""
+                                 :function (lambda (msg) "  "))))
+  :custom-face
+  (mu4e-thread-folding-child-face ((t (:inherit default :background ,(color-lighten-name (face-background 'default) 30)))))
+  (mu4e-thread-folding-root-unfolded-face ((t (:inherit default :background ,(color-darken-name (face-background 'default) 30)))))
+  (mu4e-thread-folding-root-folded-face ((t (:inherit default :background ,(color-darken-name (face-background 'default) 30)))))
+  :custom
+  (mu4e-thread-folding-default-view 'folded)
+  (mu4e-thread-folding-root-folded-prefix-string " ▶")
+  (mu4e-thread-folding-root-unfolded-prefix-string " ▼")
+  (mu4e-headers-fields '((:empty         .    2)
+                         (:human-date    .   12)
+                         (:from          .   22)
+                         (:subject       .   80)
+                         (:maildir       .   16)
+                         )))
+
+(use-package svg-lib)
+(use-package svg-tag-mode
+  :requires svg-lib
+  :straight ( :host github
+              :repo "rougier/svg-tag-mode"
+              :branch "main"
+              :files ("svg-tag-mode.el"))
+  :hook (org-mode)
+  :custom
+  (svg-tag-tags '(
+                  ("TODO" . ((lambda (tag) (svg-tag-make "TODO" :face 'org-tag :radius 0 :inverse t :margin 0))))
+                  ("DONE" . ((lambda (tag) (svg-tag-make "DONE" :face 'font-lock-comment-face :radius 0 :inverse t :margin 0))))
+                  ("NOTE" . ((lambda (tag) (svg-tag-make "NOTE" :face 'font-lock-comment-face :radius 0 :inverse nil :margin 0))))
+                  ("\([0-9a-zA-Z]\)" . ((lambda (tag) (svg-tag-make tag :beg 1 :end -1 :radius 12))))
+                  ("\([0-9a-zA-Z][0-9a-zA-Z]\)" . ((lambda (tag) (svg-tag-make tag :beg 1 :end -1 :radius 8))))
+                  ("|[0-9a-zA-Z- ]+?|" . ((lambda (tag) (svg-tag-make tag :face 'font-lock-comment-face :margin 0 :beg 1 :end -1)))))))
+
+(use-package nano-mu4e
+  :requires svg-tag-mode
+  :straight ( :host github
+              :repo "rougier/nano-emacs"
+              :branch "master"
+              :files ("nano-mu4e.el")))
 
 (pretty-hydra-define my-window (:foreign-keys warn :title "Utilities" :quit-key "q")
   ("Actions"
