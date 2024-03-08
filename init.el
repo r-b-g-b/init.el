@@ -21,7 +21,6 @@
 (require 'notifications)
 
 (add-to-list 'load-path "~/.emacs.d/src")
-(add-to-list 'load-path "~/.emacs.d/src/mastodon-alt")
 
 (set-face-attribute 'default nil :height 86)
 (setq-default flycheck-disabled-checkers '(python-pylint))
@@ -44,9 +43,7 @@
 (setq user-full-name "Robert Gibboni")
 (setq user-mail-address "galileo@gmail.com")
 (setq which-func-unknown "n/a")
-; (set-variable 'read-mail-command 'mu4e)
 
-(setenv "PATH" (concat "/home/robert/anaconda3/bin:" (getenv "PATH")))
 
 (use-package straight
   :custom
@@ -258,22 +255,25 @@
   :config
   (ivy-rich-mode))
 
+(setq browse-url-browser-function 'browse-url-firefox)
+(setq browse-url-secondary-browser-function 'eww-browse-url)
+
 (setq treesit-language-source-alist
-   '((bash "https://github.com/tree-sitter/tree-sitter-bash")
-     (cmake "https://github.com/uyha/tree-sitter-cmake")
-     (css "https://github.com/tree-sitter/tree-sitter-css")
-     (elisp "https://github.com/Wilfred/tree-sitter-elisp")
-     (go "https://github.com/tree-sitter/tree-sitter-go")
-     (html "https://github.com/tree-sitter/tree-sitter-html")
-     (javascript "https://github.com/tree-sitter/tree-sitter-javascript" "master" "src")
-     (json "https://github.com/tree-sitter/tree-sitter-json")
-     (make "https://github.com/alemuller/tree-sitter-make")
-     (markdown "https://github.com/ikatyang/tree-sitter-markdown")
-     (python "https://github.com/tree-sitter/tree-sitter-python")
-     (toml "https://github.com/tree-sitter/tree-sitter-toml")
-     (tsx "https://github.com/tree-sitter/tree-sitter-typescript" "master" "tsx/src")
-     (typescript "https://github.com/tree-sitter/tree-sitter-typescript" "master" "typescript/src")
-     (yaml "https://github.com/ikatyang/tree-sitter-yaml")))
+      '((bash "https://github.com/tree-sitter/tree-sitter-bash")
+        (cmake "https://github.com/uyha/tree-sitter-cmake")
+        (css "https://github.com/tree-sitter/tree-sitter-css")
+        (elisp "https://github.com/Wilfred/tree-sitter-elisp")
+        (go "https://github.com/tree-sitter/tree-sitter-go")
+        (html "https://github.com/tree-sitter/tree-sitter-html")
+        (javascript "https://github.com/tree-sitter/tree-sitter-javascript" "master" "src")
+        (json "https://github.com/tree-sitter/tree-sitter-json")
+        (make "https://github.com/alemuller/tree-sitter-make")
+        (markdown "https://github.com/ikatyang/tree-sitter-markdown")
+        (python "https://github.com/tree-sitter/tree-sitter-python")
+        (toml "https://github.com/tree-sitter/tree-sitter-toml")
+        (tsx "https://github.com/tree-sitter/tree-sitter-typescript" "master" "tsx/src")
+        (typescript "https://github.com/tree-sitter/tree-sitter-typescript" "master" "typescript/src")
+        (yaml "https://github.com/ikatyang/tree-sitter-yaml")))
 
 (use-package swiper
   :after ivy
@@ -349,7 +349,10 @@
      ("u" outline-up-heading "Up level")
      ("f" org-forward-heading-same-level "Forward same level")
      ("l" org-forward-heading-same-level "Forward same level")
-     ("h" org-backward-heading-same-level "Backward same level"))
+     ("h" org-backward-heading-same-level "Backward same level")
+     ("/" org-tree-slide-mode :toggle t)
+     ("," org-tree-slide-move-previous-tree "Previous tree")
+     ("." org-tree-slide-move-next-tree "Next tree"))
     "Modify"
     (("<prior>" org-metaup "Move section up" :column "Modify")
      ("<next>" org-metadown "Move section down")
@@ -408,6 +411,11 @@
      ("N" jupyter-org-next-busy-src-block "Next busy")
      ("g" jupyter-org-jump-to-visible-block "Visible")
      ("G" jupyter-org-jump-to-block "Any")
+     ("<" org-tree-slide-move-previous-tree "Previous tree")
+     (">" org-tree-slide-move-next-tree "Next tree")
+     ("/" org-tree-slide-mode :toggle t)
+     ("," org-tree-slide-move-previous-tree "Previous tree")
+     ("." org-tree-slide-move-next-tree "Next tree")
      ("<tab>" org-cycle "Toggle fold"))
     "Edit"
     (("<prior>" jupyter-org-move-src-block "Move up")
@@ -417,13 +425,14 @@
      ("o" (jupyter-org-clone-block t) "Clone")
      ("m" jupyter-org-merge-blocks "Merge")
      ("s" jupyter-org-split-src-block "Split")
+     ("u" undo-tree-undo "Undo")
      ("a" (jupyter-org-insert-src-block nil current-prefix-arg) "Insert above")
      ("b" (jupyter-org-insert-src-block t current-prefix-arg) "Insert below")
      ("l" org-babel-remove-result "Clear result")
      ("L" jupyter-org-clear-all-results "Clear all results")
      ("h" jupyter-org-edit-header "Header"))
     "Misc"
-    (("/" jupyter-org-inspect-src-block "Inspect")
+    (("?" jupyter-org-inspect-src-block "Inspect")
      ("r" org-babel-hide-result-toggle "Toggle result")
      ("C-s" org-babel-jupyter-scratch-buffer "Scratch")
      ("i" org-toggle-inline-images "Toggle images")
@@ -453,9 +462,29 @@
 (unbind-key "C-c h" global-map)
 
 (use-package org-roam
-  :init
-  (setq org-roam-v2-ack t)
+  :config
+  (defun org-roam-node-insert-immediate (arg &rest args)
+    (interactive "P")
+    (let ((args (cons arg args))
+          (org-roam-capture-templates (list (append (car org-roam-capture-templates)
+                                                    '(:immediate-finish t)))))
+      (apply #'org-roam-node-insert args)))
+
+  (defun my/org-roam-filter-by-tag (tag-name)
+    (lambda (node)
+      (member tag-name (org-roam-node-tags node))))
+
+  (defun my/org-roam-list-notes-by-tag (tag-name)
+    (mapcar #'org-roam-node-file
+            (seq-filter
+             (my/org-roam-filter-by-tag tag-name)
+             (org-roam-node-list))))
+  (defun my/org-roam-refresh-agenda-list ()
+    (interactive)
+    (setq org-agenda-files (my/org-roam-list-notes-by-tag "project")))
+  (my/org-roam-refresh-agenda-list)
   :custom
+  (org-roam-v2-ack t)
   (org-roam-completion-everywhere t)
   (org-roam-directory "~/org-roam")
   (org-roam-graph-executable "neato")
@@ -472,6 +501,7 @@
          ("C-c n f" . org-roam-node-find)
          ("C-c n i" . org-roam-node-insert)
          ("C-c n t" . org-roam-dailies-goto-today)
+         ("C-c n y" . org-roam-dailies-goto-yesterday)
          ("C-c n I" . org-roam-node-insert-immediate)
          ("C-c n s" . org-store-link)
          :map org-mode-map
@@ -502,29 +532,6 @@ Best,
 Robert
 #+end_signature")
   (org-msg-mode))
-
-(defun org-roam-node-insert-immediate (arg &rest args)
-  (interactive "P")
-  (let ((args (cons arg args))
-        (org-roam-capture-templates (list (append (car org-roam-capture-templates)
-                                                  '(:immediate-finish t)))))
-    (apply #'org-roam-node-insert args)))
-
-(defun my/org-roam-filter-by-tag (tag-name)
-  (lambda (node)
-    (member tag-name (org-roam-node-tags node))))
-
-(defun my/org-roam-list-notes-by-tag (tag-name)
-  (mapcar #'org-roam-node-file
-          (seq-filter
-           (my/org-roam-filter-by-tag tag-name)
-           (org-roam-node-list))))
-
-(defun my/org-roam-refresh-agenda-list ()
-  (interactive)
-  (setq org-agenda-files (my/org-roam-list-notes-by-tag "project")))
-
-(my/org-roam-refresh-agenda-list)
 
 (use-package org-bullets
   :after org
@@ -571,7 +578,12 @@ Robert
 (use-package ob-async
   :after jupyter
   :config
-  (setq ob-async-no-async-languages-alist '("jupyter-python" "jupyter-julia" "bash")))
+  (setq ob-async-no-async-languages-alist '("jupyter-python" "jupyter-julia")))
+
+(use-package ob-http
+  :config
+  (add-to-list 'org-babel-load-languages '(http . t))
+  (org-babel-do-load-languages 'org-babel-load-languages org-babel-load-languages))
 
 (use-package org-roam-ui
   :after org-roam
@@ -586,6 +598,15 @@ Robert
   (org-pomodoro-audio-player "/usr/bin/play")
   (org-pomodoro-finished-sound-args "-v 0.2")
   (org-pomodoro-short-break-sound-args "-v 0.2"))
+
+(use-package org-tree-slide)
+
+(use-package olivetti
+  :custom
+  (olivetti-minimum-body-width 150)
+  :hook
+  (org-mode . olivetti-mode)
+  (eww-mode . olivetti-mode))
 
 (use-package ox-gfm
   :config
@@ -617,6 +638,12 @@ Robert
   :custom
   (gptel-api-key (plist-get (nth 0 (auth-source-search :max 1 :host "openai.com")) :secret))
   (gptel-default-mode 'org-mode))
+
+(use-package ellama
+  :custom
+  (ellama-keymap-prefix "C-c l")
+  (ellama-user-nick (getenv "USER"))
+  (ellama-assistant-nick "ellama"))
 
 (use-package eshell
   :after eshell-git-prompt
@@ -671,6 +698,15 @@ Robert
   :custom
   (mastodon-instance-url "https://mastodon.sdf.org")
   (mastodon-active-user "rbgb"))
+
+(use-package mastodon-alt
+  :straight ( :host github
+              :repo "rougier/mastodon-alt"
+              :branch "master"
+              :files ("mastodon-alt.el"))
+  :after mastodon
+  :config
+  (mastodon-alt-tl-activate))
 
 (use-package ement)
 
@@ -929,12 +965,6 @@ Robert
    "python -c 'import sys, sqlparse; print(sqlparse.format(sys.stdin.read(), reindent=True))'"
    t t))
 
-;; (use-package vue-mode
-;;   :straight t
-;;   :mode "\\.vue\\'"
-;;   :config
-;;   (add-hook 'vue-mode-hook #'lsp))
-
 (use-package csv-mode)
 
 (use-package web-mode
@@ -998,34 +1028,34 @@ Robert
   (mu4e-notification-support t)
   (mu4e-search-include-related nil)
   (mu4e-split-view 'horizontal)
-  (mu4e-update-interval (* 10 60))
+  (mu4e-update-interval 60)
   (mu4e-use-fancy-chars t)
   (mu4e-view-show-images t)
   (mu4e-bookmarks
    '(
       (
         :name "Galileo"
-        :query "m:/galileo/Inbox or m:/galileo/Archive"
+        :query "m:/galileo/Inbox or m:/galileo/Archive and date:14d..now"
         :key ?g
       )
       (
         :name "DrivenData"
-        :query "m:/drivendata/Inbox or m:/drivendata/Archive"
+        :query "m:/drivendata/Inbox or m:/drivendata/Archive and date:14d..now"
         :key ?d
       )
       (
         :name "WWL (MS Learn)"
-        :query "(m:/drivendata/Inbox or m:/drivendata/Archive) and (from:sanitalabaz@microsoft.com or to:sanitalabaz@microsoft.com)"
+        :query "(m:/drivendata/Inbox or m:/drivendata/Archive) and (from:sanitalabaz@microsoft.com or to:sanitalabaz@microsoft.com)  and date:14d..now"
         :key ?m
       )
       (
         :name "All"
-        :query "not m:/galileo/Spam and not m:/galileo/Trash and not m:/drivendata/Spam and not m:/drivendata/Trash"
+        :query "not m:/galileo/Spam and not m:/galileo/Trash and not m:/drivendata/Spam and not m:/drivendata/Trash  and date:14d..now"
         :key ?a
       )
       (
         :name "Unread messages"
-        :query "flag:unread and not m:/galileo/Spam and not m:/galileo/Trash and not m:/drivendata/Spam and not m:/drivendata/Trash"
+        :query "flag:unread and not m:/galileo/Spam and not m:/galileo/Trash and not m:/drivendata/Spam and not m:/drivendata/Trash  and date:14d..now"
         :key ?u
       )
       (
@@ -1137,12 +1167,10 @@ With ARG, do this that many times."
 
 (global-set-key (read-kbd-macro "<M-DEL>") 'backward-delete-word)
 
-(global-hl-line-mode t)
 (global-so-long-mode t)
 (add-hook 'tree-sitter-after-on-hook #'tree-sitter-hl-mode)
 (show-paren-mode t)
 (tab-bar-mode t)
-(which-function-mode t)
 (which-key-mode t)
 (winner-mode t)
 (keychain-refresh-environment)
@@ -1169,6 +1197,7 @@ With ARG, do this that many times."
 
 (use-package mu4e-thread-folding
   :after mu4e
+  :hook (mu4e-headers-mode . mu4e-thread-folding-mode)
   :straight ( :host github
               :repo "rougier/mu4e-thread-folding"
               :branch "master"
@@ -1179,9 +1208,9 @@ With ARG, do this that many times."
                                  :shortname ""
                                  :function (lambda (msg) "  "))))
   :custom-face
-  (mu4e-thread-folding-child-face ((t (:inherit default :background ,(color-lighten-name (face-background 'default) 30)))))
-  (mu4e-thread-folding-root-unfolded-face ((t (:inherit default :background ,(color-darken-name (face-background 'default) 30)))))
-  (mu4e-thread-folding-root-folded-face ((t (:inherit default :background ,(color-darken-name (face-background 'default) 30)))))
+  (mu4e-thread-folding-child-face ((t (:inherit default :background ,(color-darken-name (face-background 'default) 30)))))
+  (mu4e-thread-folding-root-unfolded-face ((t (:inherit default :background ,(color-lighten-name (face-background 'default) 30)))))
+  (mu4e-thread-folding-root-folded-face ((t (:inherit default :background ,(color-lighten-name (face-background 'default) 30)))))
   :custom
   (mu4e-thread-folding-default-view 'folded)
   (mu4e-thread-folding-root-folded-prefix-string " ▶")
@@ -1205,10 +1234,7 @@ With ARG, do this that many times."
   (svg-tag-tags '(
                   ("TODO" . ((lambda (tag) (svg-tag-make "TODO" :face 'org-tag :radius 0 :inverse t :margin 0))))
                   ("DONE" . ((lambda (tag) (svg-tag-make "DONE" :face 'font-lock-comment-face :radius 0 :inverse t :margin 0))))
-                  ("NOTE" . ((lambda (tag) (svg-tag-make "NOTE" :face 'font-lock-comment-face :radius 0 :inverse nil :margin 0))))
-                  ("\([0-9a-zA-Z]\)" . ((lambda (tag) (svg-tag-make tag :beg 1 :end -1 :radius 12))))
-                  ("\([0-9a-zA-Z][0-9a-zA-Z]\)" . ((lambda (tag) (svg-tag-make tag :beg 1 :end -1 :radius 8))))
-                  ("|[0-9a-zA-Z- ]+?|" . ((lambda (tag) (svg-tag-make tag :face 'font-lock-comment-face :margin 0 :beg 1 :end -1)))))))
+                  ("NOTE" . ((lambda (tag) (svg-tag-make "NOTE" :face 'font-lock-comment-face :radius 0 :inverse nil :margin 0)))))))
 
 (use-package nano-mu4e
   :requires svg-tag-mode
