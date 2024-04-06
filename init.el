@@ -21,6 +21,7 @@
 (require 'notifications)
 
 (add-to-list 'load-path "~/.emacs.d/src")
+(add-to-list 'exec-path "~/anaconda3/bin" t)
 
 (set-face-attribute 'default nil :height 86)
 (setq-default flycheck-disabled-checkers '(python-pylint))
@@ -304,8 +305,6 @@
   :custom
   (define-key github-review-mode-map (kbd "M-o") nil))
 
-(use-package gh-notify)
-
 (use-package git-link)
 
 (use-package doom-modeline
@@ -368,11 +367,10 @@
      ("y" org-paste-subtree "Paste")
      ("I" org-clock-in "Clock in")
      ("O" org-clock-out "Clock in"))))
-  :bind
-  ("C-c C-j" . nil)
-  ("C-c a" . org-agenda)
-  ("<f6>" . org-capture)
-  (:map org-mode-map ("C-c h" . org-hydra/body)))
+  :bind (("C-c C-j" . nil)
+         ("C-c a" . org-agenda)
+         ("<f6>" . org-capture)
+         :map org-mode-map ("C-c h" . org-hydra/body)))
 
 (use-package jupyter
   :after org
@@ -438,7 +436,10 @@
      ("i" org-toggle-inline-images "Toggle images")
      ("t" org-babel-tangle "Tangle"))))
   :bind
-  (:map jupyter-org-interaction-mode-map ("C-c j" . jupyter-hydra/body)))
+  (:map jupyter-org-interaction-mode-map ("C-c j" . jupyter-hydra/body))
+  :config
+  (remove-hook 'org-mode-hook #'org-babel-jupyter-make-local-aliases)
+  (add-hook 'org-mode-hook #'org-babel-jupyter-make-local-aliases 10))
 
 (use-package orgit
   :straight (:host github
@@ -449,15 +450,6 @@
   :straight (:host github
                    :repo "tecosaur/org-pandoc-import"
                    :files ("*.el" "filters" "preprocessors")))
-
-(use-package verb
-  :after org
-  :custom
-  (verb-babel-timeout 600)
-  :config
-  (add-to-list 'org-babel-load-languages '(verb . t))
-  (org-babel-do-load-languages 'org-babel-load-languages org-babel-load-languages)
-  (define-key org-mode-map (kbd "C-c C-r") verb-command-map))
 
 (unbind-key "C-c h" global-map)
 
@@ -578,7 +570,7 @@ Robert
 (use-package ob-async
   :after jupyter
   :config
-  (setq ob-async-no-async-languages-alist '("jupyter-python" "jupyter-julia")))
+  (setq ob-async-no-async-languages-alist '("jupyter-python" "jupyter-R" "jupyter-julia")))
 
 (use-package ob-http
   :config
@@ -605,8 +597,9 @@ Robert
   :custom
   (olivetti-minimum-body-width 150)
   :hook
-  (org-mode . olivetti-mode)
-  (eww-mode . olivetti-mode))
+  (eww-mode . olivetti-mode)
+  (markdown-mode . olivetti-mode)
+  (org-mode . olivetti-mode))
 
 (use-package ox-gfm
   :config
@@ -725,10 +718,7 @@ Robert
 (use-package which-key)
 
 (use-package eww
-  :bind (:map eww-mode-map ("C-<return>" . eww-open-in-new-buffer))
-  :custom
-  (browse-url-browser-function 'eww-browse-url)
-  (browse-url-secondary-browser-function 'browse-url-firefox))
+  :bind (:map eww-mode-map ("C-<return>" . eww-open-in-new-buffer)))
 
 (use-package company
   :after lsp-mode
@@ -745,43 +735,44 @@ Robert
 (use-package lsp-mode
   :defines lsp-highlight-symbol-at-point
   :commands (lsp lsp-deferred)
-  :hook (;; (csharp-mode . lsp)
-         ;; (python-mode . lsp)
+  :hook (
+         (csharp-mode . lsp)
+         (python-mode . lsp)
          (css-mode . lsp)
          (dockerfile-mode . lsp)
-         ;; (forge-post-mode . lsp)
          (js-mode . lsp)
-         ;; (markdown-mode . lsp)
          (bicep-mode . lsp)
          (sh-mode . lsp)
+         (sql-mode . lsp)
          (typescript-mode . lsp)
          (web-mode . lsp))
   :custom
-  ;; (lsp-enable-which-key-integration t)
+  (lsp-eldoc-render-all nil)
+  (lsp-highlight-symbol-at-point nil)
   (lsp-idle-delay 0.25)
+  (lsp-keymap-prefix "C-c l")
+  (lsp-lens-enable t)
   (lsp-log-io nil)
-  :init (setq lsp-eldoc-render-all nil
-              lsp-highlight-symbol-at-point nil
-              lsp-keymap-prefix "C-c l"
-              lsp-lens-enable t
-              lsp-signature-auto-activate nil)
+  (lsp-sqls-server "/home/robert/go/bin/sqls")
+  (lsp-pylsp-server-command (executable-find "pylsp"))
+  (lsp-ruff-lsp-server-command (executable-find "ruff-lsp"))
   :config
   (lsp-register-custom-settings
    '(
-     ("pylsp.plugins.black.enabled" t t)
-     ("pylsp.plugins.isort.enabled" t t)
-     ("pylsp.plugins.pycodestyle.enabled" t t)
-     ("pylsp.plugins.pyflakes.enabled" t t)
-     ("pylsp.plugins.ruff.enabled" t t)
-     ("pylsp.plugins.flake8.enabled" nil)
-     ("pylsp.plugins.mccabe.enabled" nil)
-     ("pylsp.plugins.pydocstyle.enabled" nil))))
+     ("pylsp.plugins.black.enabled" nil t)
+     ("pylsp.plugins.isort.enabled" nil t)
+     ("pylsp.plugins.pycodestyle.enabled" nil t)
+     ("pylsp.plugins.pyflakes.enabled" nil t)
+     ("pylsp.plugins.ruff.enabled" nil t)
+     ("pylsp.plugins.flake8.enabled" nil t)
+     ("pylsp.plugins.mccabe.enabled" nil t)
+     ("pylsp.plugins.pydocstyle.enabled" nil t))))
 
 (use-package lsp-ui
-  :straight t
   :hook (lsp-mode . lsp-ui-mode)
   :custom
-  (lsp-ui-doc-position 'bottom))
+  (lsp-ui-doc-enable nil)
+  (lsp-ui-doc-show-with-cursor nil))
 
 (use-package lsp-treemacs
   :after lsp)
@@ -802,6 +793,7 @@ Robert
   :hook
   (python-mode . lsp-deferred)
   :custom
+  (dap-python-debugger 'debugpy)
   (python-shell-interpreter "ipython")
   (python-shell-interpreter-args "--simple-prompt -i")
   (python-shell-prompt-regexp "In \\[[0-9]+\\]: ")
@@ -876,14 +868,6 @@ Robert
 
 (use-package indent-tools)
 
-;; (add-to-list 'load-path (expand-file-name "~/.emacs.d/emacs-livedown"))
-(use-package livedown
-  :custom
-  (livedown-autostart nil)
-  (livedown-browser nil)
-  (livedown-open t)
-  (livedown-port 1337))
-
 (use-package pdf-tools
   :magic ("%PDF" . pdf-view-mode)
   :config
@@ -941,6 +925,8 @@ Robert
 (use-package kotlin-mode)
 
 (use-package stan-mode)
+
+(use-package ess)
 
 (use-package powershell)
 
@@ -1011,6 +997,8 @@ Robert
               :branch "release/1.10"
               :files ("build/mu4e/*")
               :pre-build (("./autogen.sh") ("make")))
+  :hook
+  (mu4e-update-pre . mu4e-update-index-nonlazy)
   :custom
   (mu4e-attachment-dir "~/Downloads")
   (mu4e-change-filenames-when-moving t)
@@ -1028,40 +1016,35 @@ Robert
   (mu4e-notification-support t)
   (mu4e-search-include-related nil)
   (mu4e-split-view 'horizontal)
-  (mu4e-update-interval 60)
+  (mu4e-update-interval (* 60 5))
   (mu4e-use-fancy-chars t)
   (mu4e-view-show-images t)
   (mu4e-bookmarks
    '(
       (
         :name "Galileo"
-        :query "m:/galileo/Inbox or m:/galileo/Archive and date:14d..now"
+        :query "(m:/galileo/Inbox or m:/galileo/Archive) and date:14d..now"
         :key ?g
       )
       (
         :name "DrivenData"
-        :query "m:/drivendata/Inbox or m:/drivendata/Archive and date:14d..now"
+        :query "(m:/drivendata/Inbox or m:/drivendata/Archive) and date:14d..now"
         :key ?d
       )
-      (
-        :name "WWL (MS Learn)"
-        :query "(m:/drivendata/Inbox or m:/drivendata/Archive) and (from:sanitalabaz@microsoft.com or to:sanitalabaz@microsoft.com)  and date:14d..now"
-        :key ?m
-      )
+      ;; (
+      ;;   :name "WWL (MS Learn)"
+      ;;   :query "(m:/drivendata/Inbox or m:/drivendata/Archive) and (from:sanitalabaz@microsoft.com or to:sanitalabaz@microsoft.com) and date:7d..now"
+      ;;   :key ?m
+      ;; )
       (
         :name "All"
-        :query "not m:/galileo/Spam and not m:/galileo/Trash and not m:/drivendata/Spam and not m:/drivendata/Trash  and date:14d..now"
+        :query "not m:/galileo/Spam and not m:/galileo/Trash and not m:/drivendata/Spam and not m:/drivendata/Trash and date:14d..now"
         :key ?a
       )
       (
         :name "Unread messages"
-        :query "flag:unread and not m:/galileo/Spam and not m:/galileo/Trash and not m:/drivendata/Spam and not m:/drivendata/Trash  and date:14d..now"
+        :query "flag:unread and not m:/galileo/Spam and not m:/galileo/Trash and not m:/drivendata/Spam and not m:/drivendata/Trash and date:14d..now"
         :key ?u
-      )
-      (
-        :name "Last 7 days"
-        :query "date:7d..now and not m:/galileo/Spam and not m:/galileo/Trash and not m:/drivendata/Spam and not m:/drivendata/Trash"
-        :key ?w
       )
     )
   )
@@ -1233,8 +1216,7 @@ With ARG, do this that many times."
   :custom
   (svg-tag-tags '(
                   ("TODO" . ((lambda (tag) (svg-tag-make "TODO" :face 'org-tag :radius 0 :inverse t :margin 0))))
-                  ("DONE" . ((lambda (tag) (svg-tag-make "DONE" :face 'font-lock-comment-face :radius 0 :inverse t :margin 0))))
-                  ("NOTE" . ((lambda (tag) (svg-tag-make "NOTE" :face 'font-lock-comment-face :radius 0 :inverse nil :margin 0)))))))
+                  ("DONE" . ((lambda (tag) (svg-tag-make "DONE" :face 'font-lock-comment-face :radius 0 :inverse t :margin 0)))))))
 
 (use-package nano-mu4e
   :requires svg-tag-mode
@@ -1274,6 +1256,35 @@ With ARG, do this that many times."
 
 (bind-key (kbd "C-x +") 'my-window/body)
 (setenv "PATH" (concat "/home/robert/anaconda3/bin:" "/home/robert/go/bin:" (getenv "PATH")))
+
+(defun lsp-booster--advice-json-parse (old-fn &rest args)
+  "Try to parse bytecode instead of json."
+  (or
+   (when (equal (following-char) ?#)
+     (let ((bytecode (read (current-buffer))))
+       (when (byte-code-function-p bytecode)
+         (funcall bytecode))))
+   (apply old-fn args)))
+(advice-add (if (progn (require 'json)
+                       (fboundp 'json-parse-buffer))
+                'json-parse-buffer
+              'json-read)
+            :around
+            #'lsp-booster--advice-json-parse)
+
+(defun lsp-booster--advice-final-command (old-fn cmd &optional test?)
+  "Prepend emacs-lsp-booster command to lsp CMD."
+  (let ((orig-result (funcall old-fn cmd test?)))
+    (if (and (not test?)                             ;; for check lsp-server-present?
+             (not (file-remote-p default-directory)) ;; see lsp-resolve-final-command, it would add extra shell wrapper
+             lsp-use-plists
+             (not (functionp 'json-rpc-connection))  ;; native json-rpc
+             (executable-find "emacs-lsp-booster"))
+        (progn
+          (message "Using emacs-lsp-booster for %s!" orig-result)
+          (cons "emacs-lsp-booster" orig-result))
+      orig-result)))
+(advice-add 'lsp-resolve-final-command :around #'lsp-booster--advice-final-command)
 
 (custom-set-variables
  ;; custom-set-variables was added by Custom.
