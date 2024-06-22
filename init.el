@@ -22,6 +22,7 @@
 
 (add-to-list 'load-path "~/.emacs.d/src")
 (add-to-list 'exec-path "~/anaconda3/bin" t)
+(add-to-list 'exec-path "~/.rbenv/shims" t)
 
 (set-face-attribute 'default nil :height 86)
 (setq-default flycheck-disabled-checkers '(python-pylint))
@@ -45,7 +46,6 @@
 (setq user-mail-address "galileo@gmail.com")
 (setq which-func-unknown "n/a")
 
-
 (use-package straight
   :custom
   (straight-use-package-by-default t))
@@ -60,7 +60,13 @@
 
 (use-package emacs-async
   :hook
-  (dired-mode . dired-async-mode))
+  (dired-mode . dired-async-mode)
+  :config (setq dired-async-message-function
+                (lambda (text face &rest args)
+                  (call-process "notify-send" nil 0 nil
+                                "Emacs: dired-async"
+                                (apply #'format text args))
+                  (apply #'dired-async-mode-line-message text face args))))
 
 (use-package spacemacs-theme
   :defer t
@@ -330,10 +336,13 @@
 ;; org
 (use-package org
   :custom
-  (org-babel-load-languages '((emacs-lisp . t) (shell . t) (python . t) (jupyter . t)))
+  (org-babel-load-languages '((emacs-lisp . t) (shell . t) (python . t) (jupyter . t) (sql . t)))
   (org-babel-python-command "python")
   (org-confirm-babel-evaluate nil)
   (org-export-with-sub-superscripts nil)
+  (org-export-with-broken-links t)
+  (org-export-with-section-numbers nil)
+  (org-export-with-toc nil)
   (org-goto-auto-isearch nil)
   (org-startup-indented t)
   (org-support-shift-select t)
@@ -360,7 +369,8 @@
      ("t" org-todo "Toggle TODO")
      ("$" org-archive-subtree "Archive")
      ("d" org-cut-subtree "Kill")
-     ("i" org-insert-heading "Insert" :exit t))
+     ("a" org-insert-heading "Insert above")
+     ("b" (org-insert-heading t)"Insert below"))
     "Act"
     (("s" counsel-outline "Search" :color red :column "Actions")
      ("w" org-copy-subtree "Copy")
@@ -525,12 +535,6 @@ Robert
 #+end_signature")
   (org-msg-mode))
 
-(use-package org-bullets
-  :after org
-  :hook (org-mode . org-bullets-mode)
-  :custom
-  (org-bullets-bullet-list '("◉" "○" "●" "○" "●" "○" "●")))
-
 (use-package org-ref
   :custom
   (bibtex-completion-bibliography '("~/org-roam/bibliography/references.bib"))
@@ -633,6 +637,13 @@ Robert
   (gptel-default-mode 'org-mode))
 
 (use-package ellama
+  :commands (make-llm-ollama)
+  :init
+  (require 'llm-ollama)
+  (setopt ellama-provider
+		    (make-llm-ollama
+		     :chat-model "llama3:8b-instruct-q4_0"
+		     :embedding-model "llama3:8b-instruct-q4_K_M"))
   :custom
   (ellama-keymap-prefix "C-c l")
   (ellama-user-nick (getenv "USER"))
@@ -687,6 +698,30 @@ Robert
   :after (counsel ivy projectile)
   :config (counsel-projectile-mode))
 
+(use-package popper
+  :bind (("C-`" . popper-toggle)
+         ("M--" . popper-cycle)
+         ("C-M-`" . popper-toggle-type))
+  :init
+  (setq popper-reference-buffers
+        '("^\\*eshell.*\\*$" eshell-mode
+          "^\\*shell.*\\*$" shell-mode
+          "^\\*term.*\\*$" term-mode
+          "^\\*vterm.*\\*$" vterm-mode
+          "^\\*Python.*\\*$" inferior-python-mode
+          "\\*Messages\\*"
+          "Output\\*$"
+          "\\*Async Shell Command\\*"
+          help-mode
+          compilation-mode
+          ("\\*Warnings\\*" . hide)))
+  (setq popper-group-function #'popper-group-by-projectile)
+  :custom
+  (popper-echo-dispatch-keys '("M-a" "M-s" "M-d" "M-f" "M-g"))
+  (popper-mode +1)
+  (popper-echo-mode +1)  ; For echo area hints
+)
+
 (use-package mastodon
   :custom
   (mastodon-instance-url "https://mastodon.sdf.org")
@@ -736,12 +771,13 @@ Robert
   :defines lsp-highlight-symbol-at-point
   :commands (lsp lsp-deferred)
   :hook (
+         (bicep-mode . lsp)
          (csharp-mode . lsp)
-         (python-mode . lsp)
          (css-mode . lsp)
          (dockerfile-mode . lsp)
          (js-mode . lsp)
-         (bicep-mode . lsp)
+         (python-mode . lsp)
+         (ruby-mode . lsp)
          (sh-mode . lsp)
          (sql-mode . lsp)
          (typescript-mode . lsp)
@@ -753,20 +789,20 @@ Robert
   (lsp-keymap-prefix "C-c l")
   (lsp-lens-enable t)
   (lsp-log-io nil)
-  (lsp-sqls-server "/home/robert/go/bin/sqls")
   (lsp-pylsp-server-command (executable-find "pylsp"))
   (lsp-ruff-lsp-server-command (executable-find "ruff-lsp"))
+  (lsp-sqls-server "/home/robert/go/bin/sqls")
   :config
   (lsp-register-custom-settings
    '(
      ("pylsp.plugins.black.enabled" nil t)
-     ("pylsp.plugins.isort.enabled" nil t)
-     ("pylsp.plugins.pycodestyle.enabled" nil t)
-     ("pylsp.plugins.pyflakes.enabled" nil t)
-     ("pylsp.plugins.ruff.enabled" nil t)
      ("pylsp.plugins.flake8.enabled" nil t)
+     ("pylsp.plugins.isort.enabled" nil t)
      ("pylsp.plugins.mccabe.enabled" nil t)
-     ("pylsp.plugins.pydocstyle.enabled" nil t))))
+     ("pylsp.plugins.pycodestyle.enabled" nil t)
+     ("pylsp.plugins.pydocstyle.enabled" nil t)
+     ("pylsp.plugins.pyflakes.enabled" nil t)
+     ("pylsp.plugins.ruff.enabled" nil t))))
 
 (use-package lsp-ui
   :hook (lsp-mode . lsp-ui-mode)
@@ -1097,9 +1133,10 @@ Robert
     (interactive)
     (let ((input (read-string "Message ID: ")))
       (mu4e-view-message-with-message-id (replace-regexp-in-string "^mu4e:msgid:" "" input))))
-  :bind (:map mu4e-headers-mode-map ("i" . my/mu4e-view-message-with-message-id)))
-
-
+  :bind (
+         :map mu4e-headers-mode-map
+              ("i" . my/mu4e-view-message-with-message-id)
+              ("v" . mu4e-headers-view-message)))
 
 (defun my/yank-buffer-name ()
   (interactive)
