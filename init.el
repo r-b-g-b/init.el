@@ -552,11 +552,17 @@
 
 (use-package jsonrpc)
 
-(use-package copilot
-  :straight (:host github :repo "copilot-emacs/copilot.el" :files ("dist" "*.el"))
-  :config
-  (add-hook 'prog-mode-hook 'copilot-mode))
-;; you can utilize :map :hook and :config to customize copilot
+(defvar hydra-stack nil)
+
+(defun hydra-push (expr)
+  (push `(lambda () ,expr) hydra-stack))
+
+(defun hydra-pop ()
+  (interactive)
+  (let ((x (pop hydra-stack)))
+    (when x
+      (funcall x))))
+
 
 ;; org
 (use-package org
@@ -604,14 +610,22 @@
      ("w" org-copy-subtree "Copy")
      ("y" org-paste-subtree "Paste")
      ("I" org-clock-in "Clock in")
-     ("O" org-clock-out "Clock in"))))
-  :bind (("C-c C-j" . nil)
+     ("O" org-clock-out "Clock in"))
+    "Other"
+    (("J" (progn
+            (jupyter-hydra/body)
+            (hydra-push '(org-hydra/body)))
+      "Jupyter" :color blue)
+     ("q" hydra-pop "exit" :color blue))))
+   :bind (("C-c C-j" . nil)
          ("C-c a" . org-agenda)
          ("<f6>" . org-capture)
          :map org-mode-map ("C-c h" . org-hydra/body)))
 
 (use-package jupyter
   :after org
+  :custom
+  (jupyter-repl-echo-eval-p t)
   :config
   (defun my/jupyter-execute-and-insert ()
     (interactive)
@@ -629,7 +643,7 @@
   (unbind-key "C-c h" jupyter-org-interaction-mode-map)
 
   :pretty-hydra
-  ((:title "Jupyter" :color amaranth :quit-key ("q" "C-g"))
+  ((:title "Jupyter" :color pink)
    ("Execute"
     (("e" jupyter-org-execute-and-next-block "Execute and advance")
      ("C-e" org-ctrl-c-ctrl-c "Execute and stay")
@@ -672,7 +686,8 @@
      ("r" org-babel-hide-result-toggle "Toggle result")
      ("C-s" org-babel-jupyter-scratch-buffer "Scratch")
      ("i" org-toggle-inline-images "Toggle images")
-     ("t" org-babel-tangle "Tangle"))))
+     ("t" org-babel-tangle "Tangle")
+     ("q" hydra-pop "exit" :color blue))))
   :bind
   (:map jupyter-org-interaction-mode-map ("C-c j" . jupyter-hydra/body))
   :config
@@ -1193,9 +1208,9 @@ Robert
 
 (use-package ready-player
   :straight ( :type git
-	      :host github
-	      :repo "xenodium/ready-player"
-	      :files ("ready-player.el"))
+              :host github
+              :repo "xenodium/ready-player"
+              :files ("ready-player.el"))
   :config
   (ready-player-mode +1))
 
