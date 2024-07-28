@@ -741,6 +741,10 @@
   :commands (org-roam-node-list))
 
 (use-package org-msg
+  :straight ( :host github
+              :repo "danielfleischer/org-msg"
+              :branch "1.12")
+
   :after org
   :config
   (setq org-msg-options "html-postamble:nil H:5 num:nil ^:{} toc:nil author:nil email:nil \\n:t"
@@ -847,6 +851,11 @@ Robert
   :custom
   (org-pandoc-options-for-gfm '((wrap . "none"))))
 
+(use-package ox-ipynb
+  :straight ( :host github
+              :repo "jkitchin/ox-ipynb"
+              :files ("ox-ipynb.el")))
+
 (use-package gptel
   :custom
   (gptel-api-key (plist-get (nth 0 (auth-source-search :max 1 :host "openai.com")) :secret))
@@ -903,23 +912,23 @@ Robert
          ("M--" . popper-cycle)
          ("C-M-`" . popper-toggle-type))
   :init
-  (setq popper-reference-buffers
-        '("^\\*eshell.*\\*$" eshell-mode
-          "^\\*shell.*\\*$" shell-mode
-          "^\\*term.*\\*$" term-mode
-          "^\\*vterm.*\\*$" vterm-mode
-          "^\\*Python.*\\*$" inferior-python-mode
-          "\\*Messages\\*"
-          "Output\\*$"
-          "\\*Async Shell Command\\*"
-          help-mode
-          compilation-mode
-          ("\\*Warnings\\*" . hide)))
   (setq popper-group-function #'popper-group-by-projectile)
   :custom
   (popper-echo-dispatch-keys '("M-a" "M-s" "M-d" "M-f" "M-g"))
   (popper-mode +1)
   (popper-echo-mode +1)  ; For echo area hints
+  (popper-reference-buffers
+   '("^\\*eshell.*\\*$" eshell-mode
+     "^\\*shell.*\\*$" shell-mode
+     "^\\*term.*\\*$" term-mode
+     "^\\*vterm.*\\*$" vterm-mode
+     "^\\*Python.*\\*$" inferior-python-mode
+     "\\*Messages\\*"
+     "Output\\*$"
+     "\\*Async Shell Command\\*"
+     ("\\*Warnings\\*" . hide)
+     help-mode
+     compilation-mode))
 )
 
 (use-package mastodon
@@ -1182,6 +1191,15 @@ Robert
 
 (emms-all)
 
+(use-package ready-player
+  :straight ( :type git
+	      :host github
+	      :repo "xenodium/ready-player"
+	      :files ("ready-player.el"))
+  :config
+  (ready-player-mode +1))
+
+
 (defun sqlparse-region (beg end)
   (interactive "r")
   (shell-command-on-region
@@ -1232,7 +1250,6 @@ Robert
 (use-package mu4e
   :straight ( :host github
               :repo "djcb/mu"
-              :branch "release/1.10"
               :files ("build/mu4e/*")
               :pre-build (("./autogen.sh") ("make")))
   :hook
@@ -1331,6 +1348,22 @@ Robert
                 ;; before -N so the message is not marked as IMAP-deleted:
                 :action (lambda (docid msg target)
                           (mu4e--server-move docid (mu4e--mark-check-target target) "+S-u-N"))))
+  (defun my/contact-processor (contact)
+    (cond
+      ((string-match-p "CashApp" contact) nil)
+      ((string-match-p "[🚀⭐🎉🎁🎲🌻📦💰💌💘💲🚚🔻]" contact) nil)
+      ((string-match-p "^[A-Z\.]*@gmail.com$" contact) nil)
+      ((string-match-p "^[Gg][Aa].*@gmail.com$" contact) nil)
+      ((string-match-p "^[Gg]alileo.*" contact) nil)
+      ((string-match-p "autozone@em\.autozone\.com\.mx" contact) nil)
+      ((string-match-p "discoursemail\.com$" contact) nil)
+      ((string-match-p "docs\.google\.com$" contact) nil)
+      ((string-match-p "mg1\.substack\.com$" contact) nil)
+      ((string-match-p "onf\.ru$" contact) nil)
+      ((string-match-p "reply" contact) nil)
+      ((string-match-p "unsubscribe" contact) nil)
+      (t contact)))
+  (setq mu4e-contact-process-function 'my/contact-processor)
   (defun my/mu4e-view-message-with-message-id ()
     (interactive)
     (let ((input (read-string "Message ID: ")))
