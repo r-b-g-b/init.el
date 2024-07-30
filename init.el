@@ -1293,12 +1293,12 @@ Robert
    '(
       (
         :name "Galileo"
-        :query "(m:/galileo/Inbox or m:/galileo/Archive) and date:14d..now"
+        :query "(m:/galileo/Inbox or m:/galileo/Archive) and date:21d..now and not flag:trashed"
         :key ?g
       )
       (
         :name "DrivenData"
-        :query "(m:/drivendata/Inbox or m:/drivendata/Archive) and date:14d..now"
+        :query "(m:/drivendata/Inbox or m:/drivendata/Archive) and date:21d..now and not flag:trashed"
         :key ?d
       )
       ;; (
@@ -1308,17 +1308,22 @@ Robert
       ;; )
       (
         :name "All"
-        :query "not m:/galileo/Spam and not m:/galileo/Trash and not m:/drivendata/Spam and not m:/drivendata/Trash and date:14d..now"
+        :query "not m:/galileo/Spam and not m:/galileo/Trash and not m:/drivendata/Spam and not m:/drivendata/Trash and date:21d..now"
         :key ?a
       )
       (
         :name "Unread messages"
-        :query "flag:unread and not m:/galileo/Spam and not m:/galileo/Trash and not m:/drivendata/Spam and not m:/drivendata/Trash and date:14d..now"
+        :query "flag:unread and not m:/galileo/Spam and not m:/galileo/Trash and not m:/drivendata/Spam and not m:/drivendata/Trash and date:21d..now"
         :key ?u
       )
     )
   )
   :config
+  (defun my/mu4e-mark-spam()
+    "Add a tag to the message at point."
+    (interactive)
+    (mu4e-headers-mark-and-next 'spam))
+
   (setq mu4e-contexts
         (list
          ;; galileo@gmail.com
@@ -1363,6 +1368,14 @@ Robert
                 ;; before -N so the message is not marked as IMAP-deleted:
                 :action (lambda (docid msg target)
                           (mu4e--server-move docid (mu4e--mark-check-target target) "+S-u-N"))))
+  (add-to-list 'mu4e-marks
+               '(spam
+                 :char       "s"
+                 :prompt     "spam"
+                 :dyn-target (lambda (target msg) (s-replace "Trash" "Spam" (mu4e-get-trash-folder msg)))
+                 :action      (lambda (docid msg target)
+                                (mu4e--server-move docid (mu4e--mark-check-target target) "+S-u-N")
+)))
   (defun my/contact-processor (contact)
     (cond
       ((string-match-p "CashApp" contact) nil)
@@ -1386,7 +1399,8 @@ Robert
   :bind (
          :map mu4e-headers-mode-map
               ("i" . my/mu4e-view-message-with-message-id)
-              ("v" . mu4e-headers-view-message)))
+              ("v" . mu4e-headers-view-message)
+              ("@" . my/mu4e-mark-spam)))
 
 (defun my/yank-buffer-name ()
   (interactive)
