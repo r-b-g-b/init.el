@@ -1293,19 +1293,24 @@ Robert
    '(
       (
         :name "Galileo"
-        :query "(m:/galileo/Inbox or m:/galileo/Archive) and date:21d..now and not flag:trashed"
+        :query "(m:/galileo/Inbox or m:\"/galileo/Sent Mail\") and date:21d..now and not flag:trashed"
         :key ?g
       )
       (
+        :name "Galileo all"
+        :query "(m:/galileo/Inbox or m:\"/galileo/Sent Mail\" or m:/galileo/Archive) and date:21d..now and not flag:trashed"
+        :key ?G
+      )
+      (
         :name "DrivenData"
-        :query "(m:/drivendata/Inbox or m:/drivendata/Archive) and date:21d..now and not flag:trashed"
+        :query "(m:/drivendata/Inbox or m:\"/drivendata/Sent Mail\") and date:21d..now and not flag:trashed"
         :key ?d
       )
-      ;; (
-      ;;   :name "WWL (MS Learn)"
-      ;;   :query "(m:/drivendata/Inbox or m:/drivendata/Archive) and (from:sanitalabaz@microsoft.com or to:sanitalabaz@microsoft.com) and date:7d..now"
-      ;;   :key ?m
-      ;; )
+      (
+        :name "DrivenData all"
+        :query "(m:/drivendata/Inbox or m:\"/drivendata/Sent Mail\" or m:/drivendata/Archive) and date:21d..now and not flag:trashed"
+        :key ?D
+      )
       (
         :name "All"
         :query "not m:/galileo/Spam and not m:/galileo/Trash and not m:/drivendata/Spam and not m:/drivendata/Trash and date:21d..now"
