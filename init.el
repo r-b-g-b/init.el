@@ -24,6 +24,7 @@
 (add-to-list 'exec-path "~/anaconda3/bin" t)
 (add-to-list 'exec-path "~/.rbenv/shims" t)
 (recentf-mode 1)
+(hl-line-mode 1)
 (setq recentf-max-menu-items 25)
 (setq recentf-max-saved-items 25)
 (set-face-attribute 'default nil :height 86)
@@ -69,6 +70,10 @@
 (use-package ibuffer
   :straight nil
   :bind (("C-x C-b" . ibuffer)))
+
+(use-package plstore
+  :config
+  (add-to-list 'plstore-encrypt-to "A09542E9140692F4"))
 
 (use-package emacs-async
   :hook
@@ -617,10 +622,16 @@
             (hydra-push '(org-hydra/body)))
       "Jupyter" :color blue)
      ("q" hydra-pop "exit" :color blue))))
-   :bind (("C-c C-j" . nil)
-         ("C-c a" . org-agenda)
-         ("<f6>" . org-capture)
-         :map org-mode-map ("C-c h" . org-hydra/body)))
+   :bind
+   (
+    ("C-c C-j" . nil)
+    ("C-c a" . org-agenda)
+    ("<f6>" . org-capture)
+    :map org-mode-map
+    ("C-c h" . org-hydra/body)
+    :map org-agenda-mode-map
+    ("N" . org-agenda-do-date-later)
+    ("P" . org-agenda-do-date-earlier)))
 
 (use-package jupyter
   :after org
@@ -726,7 +737,9 @@
              (org-roam-node-list))))
   (defun my/org-roam-refresh-agenda-list ()
     (interactive)
-    (setq org-agenda-files (my/org-roam-list-notes-by-tag "project")))
+    (setq org-agenda-files (my/org-roam-list-notes-by-tag "project"))
+    (add-to-list 'org-agenda-files "~/org-roam/schedule.org"))
+
   (my/org-roam-refresh-agenda-list)
   :custom
   (org-roam-v2-ack t)
@@ -1272,11 +1285,12 @@ Robert
   :custom
   (mu4e-attachment-dir "~/Downloads")
   (mu4e-change-filenames-when-moving t)
+  (mu4e-compose-complete-only-personal t)
   (mu4e-compose-format-flowed t)
   (mu4e-debug nil)
   (mu4e-doc-dir "/home/robert/.emacs.d/straight/repos/mu")
   (mu4e-get-mail-command "mbsync -a")
-  (mu4e-headers-fields '((:empty . 2) (:human-date . 12) (:from . 22) (:subject)))
+  (mu4e-headers-fields '((:empty . 2) (:human-date . 12) (:from . 22) (:subject . 70) (:flags . 8) (:maildir . 20)))
   (mu4e-headers-visible-columns 140)
   (mu4e-headers-visible-lines 50)
   (mu4e-index-cleanup nil)
@@ -1293,22 +1307,22 @@ Robert
    '(
       (
         :name "Galileo"
-        :query "(m:/galileo/Inbox or m:\"/galileo/Sent Mail\") and date:21d..now and not flag:trashed"
+        :query "(m:/galileo/Inbox or m:\"/galileo/Sent Mail\" or from:galileo@gmail.com) and date:30d..now and not flag:trashed"
         :key ?g
       )
       (
         :name "Galileo all"
-        :query "(m:/galileo/Inbox or m:\"/galileo/Sent Mail\" or m:/galileo/Archive) and date:21d..now and not flag:trashed"
+        :query "(m:/galileo/Inbox or m:\"/galileo/Sent Mail\" or m:/galileo/Archive) and date:90d..now and not flag:trashed"
         :key ?G
       )
       (
         :name "DrivenData"
-        :query "(m:/drivendata/Inbox or m:\"/drivendata/Sent Mail\") and date:21d..now and not flag:trashed"
+        :query "(m:/drivendata/Inbox or m:\"/drivendata/Sent Mail\" or from:robert@drivendata.org) and date:30d..now and not flag:trashed"
         :key ?d
       )
       (
         :name "DrivenData all"
-        :query "(m:/drivendata/Inbox or m:\"/drivendata/Sent Mail\" or m:/drivendata/Archive) and date:21d..now and not flag:trashed"
+        :query "(m:/drivendata/Inbox or m:\"/drivendata/Sent Mail\" or m:/drivendata/Archive) and date:90d..now and not flag:trashed"
         :key ?D
       )
       (
@@ -1471,6 +1485,18 @@ With ARG, do this that many times."
               :repo "ramnes/move-border"
               :branch "master"
               :files ("move-border.el")))
+
+(defun my/lookup-password (&rest keys)
+  (let ((result (apply #'auth-source-search keys)))
+    (if result
+        (funcall (plist-get (car result) :secret))
+      nil)))
+
+(use-package org-gcal
+  :custom
+  (org-gcal-client-id (plist-get (nth 0 (auth-source-search :max 1 :host "clean-sector-432602-p9.apps.googleusercontent.com")) :user))
+  (org-gcal-client-secret (my/lookup-password :host "clean-sector-432602-p9.apps.googleusercontent.com"))
+  (org-gcal-fetch-file-alist '(("robert@drivendata.org" .  "~/org-roam/schedule.org"))))
 
 (use-package nano-agenda
   :bind (:map nano-agenda-mode-map ("h" . nano-agenda-backward-day) ("l" . nano-agenda-forward-day) ("j" . nano-agenda-backward-week) ("j" . nano-agenda-forward-week) ("k" . nano-agenda-backward-week)))
