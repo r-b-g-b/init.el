@@ -959,6 +959,30 @@ Robert
      compilation-mode))
 )
 
+(use-package indent-bars
+  :straight (:host github :repo "jdtsmith/indent-bars")
+  :custom
+  (indent-bars-treesit-support t)
+  (indent-bars-treesit-ignore-blank-lines-types '("module"))
+  ;; Add other languages as needed
+  (indent-bars-treesit-scope '((python function_definition class_definition for_statement
+          if_statement with_statement while_statement)))
+  ;; Note: wrap may not be needed if no-descend-list is enough
+  ;;(indent-bars-treesit-wrap '((python argument_list parameters ; for python, as an example
+  ;;				      list list_comprehension
+  ;;				      dictionary dictionary_comprehension
+  ;;				      parenthesized_expression subscript)))
+  :hook ((python-base-mode yaml-mode) . indent-bars-mode))
+
+(use-package lemon
+  :straight (:host codeberg :repo "emacs-weirdware/lemon")
+  :config
+  (lemon-mode 1)
+  :custom
+  (lemon-delay 1)
+  :custom-face
+  (lemon-time-face ((t (:foreground "Pink")))))
+
 (use-package mastodon
   :custom
   (mastodon-instance-url "https://mastodon.sdf.org")
@@ -1307,7 +1331,7 @@ Robert
    '(
       (
         :name "Galileo"
-        :query "(m:/galileo/Inbox or m:\"/galileo/Sent Mail\" or from:galileo@gmail.com) and date:30d..now and not flag:trashed"
+        :query "(m:/galileo/Inbox or m:\"/galileo/Sent Mail\" or (from:galileo@gmail.com and not m:/galileo/Trash)) and date:30d..now and not flag:trashed"
         :key ?g
       )
       (
@@ -1317,7 +1341,7 @@ Robert
       )
       (
         :name "DrivenData"
-        :query "(m:/drivendata/Inbox or m:\"/drivendata/Sent Mail\" or from:robert@drivendata.org) and date:30d..now and not flag:trashed"
+        :query "(m:/drivendata/Inbox or m:\"/drivendata/Sent Mail\" or (from:robert@drivendata.org and not m:/drivendata/Trash)) and date:30d..now and not flag:trashed"
         :key ?d
       )
       (
