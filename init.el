@@ -25,6 +25,7 @@
 (add-to-list 'exec-path "~/.rbenv/shims" t)
 (recentf-mode 1)
 (hl-line-mode 1)
+(which-function-mode 1)
 (setq recentf-max-menu-items 25)
 (setq recentf-max-saved-items 25)
 (set-face-attribute 'default nil :height 86)
@@ -713,7 +714,9 @@
 (use-package org-pandoc-import
   :straight (:host github
                    :repo "tecosaur/org-pandoc-import"
-                   :files ("*.el" "filters" "preprocessors")))
+                   :files ("*.el" "filters" "preprocessors"))
+  :custom
+  (org-pandoc-import-markdown-args (:wrap "preserve")))
 
 (unbind-key "C-c h" global-map)
 
@@ -935,6 +938,11 @@ Robert
    'proced-format-alist
    '(custom user pid ppid sess tree pcpu pmem rss start time state (args comm))))
 
+(use-package re-builder
+  :ensure nil
+  :custom
+  (reb-re-syntax 'string))
+
 (use-package popper
   :bind (("C-`" . popper-toggle)
          ("M--" . popper-cycle)
@@ -953,7 +961,7 @@ Robert
      "^\\*Python.*\\*$" inferior-python-mode
      "\\*Messages\\*"
      "Output\\*$"
-     "\\*Async Shell Command\\*"
+     ("\\*Async Shell Command\\*" . hide)
      ("\\*Warnings\\*" . hide)
      help-mode
      compilation-mode))
@@ -1083,7 +1091,8 @@ Robert
           conf-mode
           snippet-mode) . yas-minor-mode-on)
   :init
-  (setq yas-snippet-dir "~/.emacs.d/snippets"))
+  (setq yas-snippet-dir "~/.emacs.d/snippets")
+  :config (yas-global-mode 1))
 
 ;; python
 (use-package python
@@ -1213,6 +1222,9 @@ Robert
   (scad-preview-window-size 90)
   :defines scad-preview-image-size scad-preview-window-size)
 
+(use-package fasta-mode
+  :straight (:type git :host github :repo "vaiteaopuu/emacs-fasta-mode" :files ("fasta-mode.el" "sequence-alignement.el")))
+
 (use-package typescript-mode
   :custom
   (typescript-indent-level 2))
@@ -1297,7 +1309,46 @@ Robert
 
 (use-package kubernetes
   :config
-  (unbind-key "C-<tab>"  kubernetes-overview-mode-map))
+  (unbind-key "C-<tab>"  kubernetes-overview-mode-map)
+  ;; wider column width (21 to 40) for pvc name
+  (setq kubernetes-persistentvolumeclaims--column-heading
+        ["%-40s %10s %10s %15s %6s" "Mame Phase Capacity Class Age"])
+  (kubernetes-ast-define-component persistentvolumeclaim-line (state persistentvolumeclaim)
+    (-let* ((current-time (kubernetes-state--get state 'current-time))
+            (pending-deletion (kubernetes-state--get state 'persistentvolumeclaims-pending-deletion))
+            (marked-persistentvolumeclaims (kubernetes-state--get state 'marked-persistentvolumeclaims))
+            ((&alist 'spec (&alist 'storageClassName storage-class)
+                     'status (&alist 'phase phase 'capacity (&alist 'storage capacity))
+                     'metadata (&alist 'name name 'creationTimestamp created-time))
+             persistentvolumeclaim)
+            ([fmt] kubernetes-persistentvolumeclaims--column-heading)
+            (list-fmt (split-string fmt))
+            (line `(line ,(concat
+                           ;; Name
+                           (format (pop list-fmt) (s-truncate 40 name))
+                           " "
+                           ;; Phase
+                           (propertize (format (pop list-fmt) phase) 'face 'kubernetes-dimmed)
+                           " "
+                           ;; Capacity
+                           (propertize (format (pop list-fmt) capacity) 'face 'kubernetes-dimmed)
+                           " "
+                           ;; Storage Class
+                           (propertize (format (pop list-fmt) (s-truncate 12 storage-class)) 'face 'kubernetes-dimmed)
+                           " "
+                           ;; Age
+                           (let ((start (apply #'encode-time (kubernetes-utils-parse-utc-timestamp created-time))))
+                             (propertize (format (pop list-fmt) (kubernetes--time-diff-string start current-time))
+                                         'face 'kubernetes-dimmed))))))
+      `(nav-prop (:persistentvolumeclaim-name ,name)
+                 (copy-prop ,name
+                            ,(cond
+                              ((member name pending-deletion)
+                               `(propertize (face kubernetes-pending-deletion) ,line))
+                              ((member name marked-persistentvolumeclaims)
+                               `(mark-for-delete ,line))
+                              (t
+                               line)))))))
 
 (use-package mu4e
   :straight ( :host github
@@ -1314,7 +1365,7 @@ Robert
   (mu4e-debug nil)
   (mu4e-doc-dir "/home/robert/.emacs.d/straight/repos/mu")
   (mu4e-get-mail-command "mbsync -a")
-  (mu4e-headers-fields '((:empty . 2) (:human-date . 12) (:from . 22) (:subject . 70) (:flags . 8) (:maildir . 20)))
+  (mu4e-headers-fields '((:human-date . 10) (:from . 16) (:to . 16) (:subject . 70) (:maildir . 20)))
   (mu4e-headers-visible-columns 140)
   (mu4e-headers-visible-lines 50)
   (mu4e-index-cleanup nil)
@@ -1331,7 +1382,7 @@ Robert
    '(
       (
         :name "Galileo"
-        :query "(m:/galileo/Inbox or m:\"/galileo/Sent Mail\" or (from:galileo@gmail.com and not m:/galileo/Trash)) and date:30d..now and not flag:trashed"
+        :query "(m:/galileo/Inbox or m:\"/galileo/Sent Mail\" or (from:galileo@gmail.com and not (m:/galileo/Trash or m:/galileo/Drafts))) and date:45d..now and not flag:trashed"
         :key ?g
       )
       (
@@ -1341,7 +1392,7 @@ Robert
       )
       (
         :name "DrivenData"
-        :query "(m:/drivendata/Inbox or m:\"/drivendata/Sent Mail\" or (from:robert@drivendata.org and not m:/drivendata/Trash)) and date:30d..now and not flag:trashed"
+        :query "(m:/drivendata/Inbox or m:\"/drivendata/Sent Mail\" or (from:robert@drivendata.org and not (m:/drivendata/Trash or m:/drivendata/Drafts))) and date:45d..now and not flag:trashed"
         :key ?d
       )
       (
@@ -1492,6 +1543,15 @@ With ARG, do this that many times."
     (push-mark)
     (insert random-string)))
 
+(defun insert-random-number (length)
+  "Inserts a random string of characters at the current mark in the buffer."
+  (interactive "p")
+  (let* ((allowed-chars "0123456789")
+         (length (if length length 20))
+         (random-string (cl-loop repeat length concat (string (elt allowed-chars (random (length allowed-chars)))))))
+    (push-mark)
+    (insert random-string)))
+
 (global-set-key (read-kbd-macro "<M-DEL>") 'backward-delete-word)
 
 (global-so-long-mode t)
@@ -1547,9 +1607,10 @@ With ARG, do this that many times."
                                  :shortname ""
                                  :function (lambda (msg) "  "))))
   :custom-face
+  (mu4e-header-face ((t (:inherit default :background ,(color-lighten-name (face-background 'default) 0)))))
   (mu4e-thread-folding-child-face ((t (:inherit default :background ,(color-darken-name (face-background 'default) 30)))))
-  (mu4e-thread-folding-root-unfolded-face ((t (:inherit default :background ,(color-lighten-name (face-background 'default) 30)))))
-  (mu4e-thread-folding-root-folded-face ((t (:inherit default :background ,(color-lighten-name (face-background 'default) 30)))))
+  (mu4e-thread-folding-root-unfolded-face ((t (:inherit default :background ,(color-lighten-name (face-background 'default) 0)))))
+  (mu4e-thread-folding-root-folded-face ((t (:inherit default :background ,(color-lighten-name (face-background 'default) 0)))))
   :custom
   (mu4e-thread-folding-default-view 'folded)
   (mu4e-thread-folding-root-folded-prefix-string " ▶")
