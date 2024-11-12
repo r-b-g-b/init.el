@@ -524,7 +524,8 @@
   :hook (dired-mode . all-the-icons-dired-mode)
   :custom (all-the-icons-dired-monochrome nil))
 
-(use-package multiple-cursors)
+(use-package multiple-cursors
+  :custom (mc/insert-numbers-default 1))
 
 (use-package magit
   :bind
@@ -652,8 +653,6 @@
     (interactive)
     (jupyter-org-with-src-block-client
      (jupyter-repl-restart-kernel)))
-  (unbind-key "C-c h" jupyter-org-interaction-mode-map)
-
   :pretty-hydra
   ((:title "Jupyter" :color pink)
    ("Execute"
@@ -703,6 +702,7 @@
   :bind
   (:map jupyter-org-interaction-mode-map ("C-c j" . jupyter-hydra/body))
   :config
+  (define-key jupyter-org-interaction-mode-map (kbd "C-c h") #'jupyter-org-hydra/body t)
   (remove-hook 'org-mode-hook #'org-babel-jupyter-make-local-aliases)
   (add-hook 'org-mode-hook #'org-babel-jupyter-make-local-aliases 10))
 
@@ -716,7 +716,7 @@
                    :repo "tecosaur/org-pandoc-import"
                    :files ("*.el" "filters" "preprocessors"))
   :custom
-  (org-pandoc-import-markdown-args (:wrap "preserve")))
+  (org-pandoc-import-markdown-args '(:wrap "preserve")))
 
 (unbind-key "C-c h" global-map)
 
@@ -1009,13 +1009,14 @@ Robert
 
 (use-package erc
   :custom
-  (erc-server "irc.libera.chat")
-  (erc-nick "rbgb")
-  (erc-user-full-name "Robert Gibboni")
-  (erc-track-shorten-start 8)
-  (erc-autojoin-channels-alist '(("irc.libera.chat" "#systemcrafters" "#emacs")))
+  (erc-auto-query 'bury)
+  ;; (erc-autojoin-channels-alist '(("irc.libera.chat" "#systemcrafters" "#emacs")))
+  (erc-dcc-get-default-directory "~/Downloads/erc")
   (erc-kill-buffer-on-part t)
-  (erc-auto-query 'bury))
+  (erc-nick "saladshallot")
+  (erc-server "irc.irchighway.net")
+  (erc-track-shorten-start 8)
+  (erc-user-full-name "Aaa"))
 
 (use-package elpher)
 
@@ -1221,6 +1222,17 @@ Robert
   (scad-preview-image-size '(800 . 800))
   (scad-preview-window-size 90)
   :defines scad-preview-image-size scad-preview-window-size)
+
+(use-package scel
+  :straight ( :type git
+              :host github
+              :repo "supercollider/scel"
+              :files ("el/*"))
+  :config
+  (require 'sclang))
+
+(use-package sclang-extensions
+  :hook sclang-mode)
 
 (use-package fasta-mode
   :straight (:type git :host github :repo "vaiteaopuu/emacs-fasta-mode" :files ("fasta-mode.el" "sequence-alignement.el")))
@@ -1621,6 +1633,8 @@ With ARG, do this that many times."
                          (:subject       .   80)
                          (:maildir       .   16)
                          )))
+
+(use-package w3m)
 
 (use-package svg-lib)
 (use-package svg-tag-mode
