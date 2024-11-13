@@ -397,6 +397,45 @@
           ("C-x C-q" . wgrep-change-to-wgrep-mode)
           ("C-c C-c" . wgrep-finish-edit)))
 
+(use-package consult-mu
+  :straight (consult-mu :type git :host github :repo "armindarvish/consult-mu" :files (:defaults "extras/*.el"))
+  :after (mu4e consult)
+  :custom
+  (consult-mu-args '((expand-file-name "build/mu/mu" (straight--repos-dir "mu"))))
+  ;;maximum number of results shown in minibuffer
+  (consult-mu-maxnum 200)
+  ;;show preview when pressing any keys
+  (consult-mu-preview-key 'any)
+  ;;do not mark email as read when previewed. If you turn this to t, be aware that the auto-loaded preview if the preview-key above is 'any would also get marked as read!
+  (consult-mu-mark-previewed-as-read nil)
+  ;;mark email as read when selected.
+  (consult-mu-mark-viewed-as-read t)
+  ;;use reply to all when composing reply emails
+  (consult-mu-use-wide-reply t)
+  :config
+  ;;create a list of saved searches for quick access using `histroy-next-element' with `M-n' in minibuffer. Note the "#" character at the beginning of each query! Change these according to
+  (setq consult-mu-saved-searches-dynamics '("#flag:unread"))
+  (setq consult-mu-saved-searches-async '("#flag:unread"))
+  ;; require embark actions for marking, replying, forwarding, etc. directly from minibuffer
+  (require 'consult-mu-embark)
+  ;; require extra module for composing (e.g. for interactive attachment) as well as embark actions
+  (require 'consult-mu-compose)
+  (require 'consult-mu-compose-embark)
+  ;; require extra module for searching contacts and runing embark actions on contacts
+  (require 'consult-mu-contacts)
+  (require 'consult-mu-contacts-embark)
+  ;; change the prefiew key for compose so you don't open a preview of every file when selecting files to attach
+  (setq consult-mu-compose-preview-key "M-o")
+  ;; pick a key to bind to consult-mu-compose-attach in embark-file-map
+  (setq consult-mu-embark-attach-file-key "C-a")
+  (setq consult-mu-contacts-ignore-list '("^.*no.*reply.*" "CashApp" "[🚀⭐🎉🎁🎲🌻📦💰💌💘💲🚚🔻]" "^[A-Z\.]*@gmail.com$" "^[Gg][Aa].*@gmail.com$" "^[Gg]alileo.*" "autozone@em\.autozone\.com\.mx" "discoursemail\.com$" "docs\.google\.com$" "mg1\.substack\.com$" "onf\.ru$" "reply" "unsubscribe"))
+  (setq consult-mu-contacts-ignore-case-fold-search t)
+  (consult-mu-compose-embark-bind-attach-file-key)
+  ;; choose if you want to use dired for attaching files (choice of 'always, 'in-dired, or nil)
+  (setq consult-mu-compose-use-dired-attachment 'always))
+
+(use-package goto-last-change)
+
 (use-package avy
   :bind ("M-j" . avy-goto-char-timer)
   :config
@@ -805,6 +844,8 @@ Robert
   :after (org-roam org-ref)
   :config
   (require 'org-ref))
+
+(use-package org-sidebar)
 
 (use-package org-variable-pitch)
 
