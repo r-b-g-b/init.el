@@ -991,19 +991,13 @@ Robert
   :custom-face
   (lemon-time-face ((t (:foreground "Pink")))))
 
+(use-package tp
+  :straight (:host codeberg :repo "martianh/tp.el"))
+
 (use-package mastodon
   :custom
   (mastodon-instance-url "https://mastodon.sdf.org")
   (mastodon-active-user "rbgb"))
-
-(use-package mastodon-alt
-  :straight ( :host github
-              :repo "rougier/mastodon-alt"
-              :branch "master"
-              :files ("mastodon-alt.el"))
-  :after mastodon
-  :config
-  (mastodon-alt-tl-activate))
 
 (use-package ement)
 
