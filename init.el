@@ -333,20 +333,6 @@
   ;; You may want to use `embark-prefix-help-command' or which-key instead.
   ;; (define-key consult-narrow-map (vconcat consult-narrow-key "?") #'consult-narrow-help)
 
-  ;; By default `consult-project-function' uses `project-root' from project.el.
-  ;; Optionally configure a different project root function.
-  ;;;; 1. project.el (the default)
-  ;; (setq consult-project-function #'consult--default-project--function)
-  ;;;; 2. vc.el (vc-root-dir)
-  ;; (setq consult-project-function (lambda (_) (vc-root-dir)))
-  ;;;; 3. locate-dominating-file
-  ;; (setq consult-project-function (lambda (_) (locate-dominating-file "." ".git")))
-  ;;;; 4. projectile.el (projectile-project-root)
-  (autoload 'projectile-project-root "projectile")
-  (setq consult-project-function (lambda (_) (projectile-project-root)))
-  ;;;; 5. No project support
-  ;; (setq consult-project-function nil)
-
   ;; virtual buffers
   ;; b Buffers
   ;; SPC Hidden buffers
@@ -410,18 +396,6 @@
           ("e" . wgrep-change-to-wgrep-mode)
           ("C-x C-q" . wgrep-change-to-wgrep-mode)
           ("C-c C-c" . wgrep-finish-edit)))
-
-(use-package projectile
-  :diminish projectile-mode
-  ;; :custom ((projectile-completion-system 'ivy))
-  :config (projectile-mode)
-  :bind-keymap
-  ("C-c p" . projectile-command-map)
-  :init
-  ;; NOTE: Set this to the folder where you keep your Git repos!
-  (when (file-directory-p "~/code")
-    (setq projectile-project-search-path '("~/code")))
-  (setq projectile-switch-project-action #'projectile-dired))
 
 (use-package avy
   :bind ("M-j" . avy-goto-char-timer)
@@ -532,6 +506,8 @@
   ("C-x g" . magit-status)
   (:map magit-mode-map
         ("C-<tab>" . nil))
+  :config
+  (require 'magit-extras)
   :custom
   (magit-display-buffer-function 'magit-display-buffer-same-window-except-diff-v1))
 
@@ -915,8 +891,8 @@ Robert
 (use-package vterm
   :custom
   (vterm-always-compile-module t)
-  :bind
-  (:map vterm-mode-map ("C-<backspace>" . (lambda () (interactive) (vterm-send-key (kbd "C-w"))))))
+  :bind (:map vterm-mode-map ("C-<backspace>" . (lambda () (interactive) (vterm-send-key (kbd "C-w"))))
+         :map project-prefix-map ("v" . multi-vterm-project)))
 
 (use-package multi-vterm
   :after vterm)
@@ -948,7 +924,7 @@ Robert
          ("M--" . popper-cycle)
          ("C-M-`" . popper-toggle-type))
   :init
-  (setq popper-group-function #'popper-group-by-projectile)
+  (setq popper-group-function #'popper-group-by-directory) ; group by project.el project root, with fall back to default-directory
   :custom
   (popper-echo-dispatch-keys '("M-a" "M-s" "M-d" "M-f" "M-g"))
   (popper-mode +1)
@@ -1022,9 +998,8 @@ Robert
 (use-package company
   :after lsp-mode
   :hook (lsp-mode . company-mode)
-  :bind
-  (:map company-active-map ("<tab>" . company-complete-selection))
-  (:map lsp-mode-map ("<tab>" . company-indent-or-complete-common))
+  :bind (:map company-active-map ("<tab>" . company-complete-selection)
+         :map lsp-mode-map ("<tab>" . company-indent-or-complete-common))
   :custom
   (company-minimum-prefix-length 2))
 
@@ -1731,7 +1706,6 @@ With ARG, do this that many times."
  '(org-babel-load-languages '((emacs-lisp . t) (python . t) (shell . t)))
  '(org-babel-python-command "ipython --no-banner --classic --no-confirm-exit")
  '(org-edit-src-content-indentation 0)
- '(projectile-project-search-path '("~/projects"))
  '(send-mail-function 'smtpmail-send-it)
  '(split-height-threshold 100)
  '(w3m-home-page "https://lite.duckduckgo.com/lite")
