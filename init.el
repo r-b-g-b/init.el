@@ -585,8 +585,6 @@
     (when x
       (funcall x))))
 
-
-;; org
 (use-package org
   :custom
   (org-babel-load-languages '((emacs-lisp . t) (shell . t) (python . t) (jupyter . t) (sql . t)))
@@ -597,6 +595,7 @@
   (org-export-with-section-numbers nil)
   (org-export-with-toc nil)
   (org-goto-auto-isearch nil)
+  (org-hide-emphasis-markers t)
   (org-startup-indented t)
   (org-support-shift-select t)
   :pretty-hydra
