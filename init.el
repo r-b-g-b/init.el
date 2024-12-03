@@ -905,7 +905,7 @@ Robert
 
 (use-package gptel
   :custom
-  (gptel-api-key (plist-get (nth 0 (auth-source-search :max 1 :host "openai.com")) :secret))
+  (gptel-api-key (plist-get (nth 0 (auth-source-search :max 1 :host "api.openai.com")) :secret))
   (gptel-default-mode 'org-mode))
 
 (use-package ellama
@@ -1376,13 +1376,24 @@ Robert
               :repo "djcb/mu"
               :files ("build/mu4e/*")
               :pre-build (("./autogen.sh") ("make")))
+  :preface
+  (defun my/org-msg-no-temp-buffer (orig-fun &rest args)
+    "Advice to set `org-export-show-temporary-export-buffer' to `nil'."
+    (let ((org-export-show-temporary-export-buffer nil))
+      (apply orig-fun args)))
+  (defun my/mu4e-mark-spam()
+    "Add a tag to the message at point."
+    (interactive)
+    (mu4e-headers-mark-and-next 'spam))
   :hook
   (mu4e-update-pre . mu4e-update-index-nonlazy)
   :custom
+  (message-kill-buffer-on-exit t)
   (mu4e-attachment-dir "~/Downloads")
   (mu4e-change-filenames-when-moving t)
   (mu4e-compose-complete-only-personal t)
   (mu4e-compose-format-flowed t)
+  (mu4e-confirm-quit nil)
   (mu4e-debug nil)
   (mu4e-doc-dir "/home/robert/.emacs.d/straight/repos/mu")
   (mu4e-get-mail-command "mbsync -a")
@@ -1395,7 +1406,8 @@ Robert
   (mu4e-mu-binary (expand-file-name "build/mu/mu" (straight--repos-dir "mu")))
   (mu4e-notification-support t)
   (mu4e-search-include-related nil)
-  (mu4e-split-view 'horizontal)
+  (mu4e-sent-messages-behavior 'delete)
+  (mu4e-split-view 'vertical)
   (mu4e-update-interval (* 60 5))
   (mu4e-use-fancy-chars t)
   (mu4e-view-show-images t)
@@ -1434,10 +1446,14 @@ Robert
     )
   )
   :config
-  (defun my/mu4e-mark-spam()
-    "Add a tag to the message at point."
-    (interactive)
-    (mu4e-headers-mark-and-next 'spam))
+  (advice-add 'org-msg-preview :around #'my/org-msg-no-temp-buffer)
+  (advice-add 'org-msg-ctrl-c-ctrl-c :around #'my/org-msg-no-temp-buffer)
+  (add-hook 'message-sent-hook
+            (lambda ()
+              (interactive)
+              (switch-to-buffer "*mu4e-article*")
+              (mu4e-view-quit)
+              (kill-buffer "*Org ASCII Export*")))
 
   (setq mu4e-contexts
         (list
