@@ -1020,13 +1020,13 @@ Robert
 (use-package erc
   :custom
   (erc-auto-query 'bury)
-  ;; (erc-autojoin-channels-alist '(("irc.libera.chat" "#systemcrafters" "#emacs")))
+  (erc-autojoin-channels-alist '(("irc.libera.chat" "#systemcrafters" "#emacs")))
   (erc-dcc-get-default-directory "~/Downloads/erc")
   (erc-kill-buffer-on-part t)
-  (erc-nick "saladshallot")
-  (erc-server "irc.irchighway.net")
+  (erc-nick "rbgb")
+  (erc-server "irc.libera.chat")
   (erc-track-shorten-start 8)
-  (erc-user-full-name "Aaa"))
+  (erc-user-full-name "rKAST"))
 
 (use-package elpher)
 
