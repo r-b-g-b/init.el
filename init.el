@@ -787,8 +787,8 @@
 
 (use-package org-msg
   :straight ( :host github
-              :repo "danielfleischer/org-msg"
-              :branch "1.12")
+              :repo "jsilve24/org-msg"
+              :branch "master")
 
   :after org
   :config
@@ -1284,13 +1284,9 @@ Robert
   :config
   (ready-player-mode +1))
 
-
-(defun sqlparse-region (beg end)
-  (interactive "r")
-  (shell-command-on-region
-   beg end
-   "python -c 'import sys, sqlparse; print(sqlparse.format(sys.stdin.read(), reindent=True))'"
-   t t))
+(use-package sqlformat
+  :custom
+  (sqlformat-command 'sqlfmt))
 
 (use-package csv-mode)
 
