@@ -1773,8 +1773,16 @@ With ARG, do this that many times."
  '(org-babel-python-command "ipython --no-banner --classic --no-confirm-exit")
  '(org-edit-src-content-indentation 0)
  '(send-mail-function 'smtpmail-send-it)
+ '(shr-max-image-proportion 0.7)
  '(split-height-threshold 100)
+ '(vc-follow-symlinks t)
  '(w3m-home-page "https://lite.duckduckgo.com/lite")
  '(warning-suppress-log-types '((comp) (comp)))
  '(warning-suppress-types '((comp)))
  '(web-mode-enable-control-block-indentation t))
+(custom-set-faces
+ ;; custom-set-faces was added by Custom.
+ ;; If you edit it by hand, you could mess it up, so be careful.
+ ;; Your init file should contain only one such instance.
+ ;; If there is more than one, they won't work right.
+ )
