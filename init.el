@@ -896,7 +896,8 @@ Robert
 
 (use-package ox-pandoc
   :custom
-  (org-pandoc-options-for-gfm '((wrap . "none"))))
+  (org-pandoc-options-for-gfm '(:wrap . "none"))
+  (org-pandoc-import-global-args '(:wrap "none")))
 
 (use-package ox-ipynb
   :straight ( :host github
