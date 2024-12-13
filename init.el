@@ -904,6 +904,7 @@ Robert
               :files ("ox-ipynb.el")))
 
 (use-package gptel
+  :defer t
   :custom
   (gptel-api-key (plist-get (nth 0 (auth-source-search :max 1 :host "api.openai.com")) :secret))
   (gptel-default-mode 'org-mode))
@@ -1016,6 +1017,18 @@ Robert
   (mastodon-active-user "rbgb"))
 
 (use-package ement)
+
+(use-package elfeed
+  :custom
+  (elfeed-feeds
+      '(("http://nullprogram.com/feed/" code)
+        ("https://planet.emacslife.com/atom.xml" code emacs)
+        ("https://sburris.xyz/atom.xml" code)
+        ("https://drew.silcock.dev/rss.xml" code)
+        ("https://lilianweng.github.io/index.xml" ml code)
+        ("https://waxy.org/feed/" culture)
+        ("http://feeds.kottke.org/main" culture)
+        ("https://www.polygon.com/rss/index.xml" games))))
 
 (use-package erc
   :custom
@@ -1610,6 +1623,7 @@ With ARG, do this that many times."
       nil)))
 
 (use-package org-gcal
+  :defer
   :custom
   (org-gcal-client-id (plist-get (nth 0 (auth-source-search :max 1 :host "clean-sector-432602-p9.apps.googleusercontent.com")) :user))
   (org-gcal-client-secret (my/lookup-password :host "clean-sector-432602-p9.apps.googleusercontent.com"))
