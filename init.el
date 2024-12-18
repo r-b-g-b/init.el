@@ -1029,7 +1029,8 @@ Robert
         ("https://lilianweng.github.io/index.xml" ml code)
         ("https://waxy.org/feed/" culture)
         ("http://feeds.kottke.org/main" culture)
-        ("https://www.polygon.com/rss/index.xml" games))))
+        ("https://www.polygon.com/rss/index.xml" games)))
+  (elfeed-search-title-max-width 100))
 
 (use-package erc
   :custom
