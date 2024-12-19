@@ -35,6 +35,7 @@
 
 (setq auth-source-debug t)
 (setq backup-directory-alist '(("" . "~/.emacs.d/backups")))
+(setq bidi-inhibit-bpa t)
 (setq company-show-quick-access t)
 (setq create-lockfiles nil)
 (setq epg-pinentry-mode 'loopback)
@@ -667,6 +668,9 @@
     (interactive)
     (jupyter-org-with-src-block-client
      (jupyter-repl-restart-kernel)))
+  (define-key jupyter-org-interaction-mode-map (kbd "C-c h") #'jupyter-org-hydra/body t)
+  (remove-hook 'org-mode-hook #'org-babel-jupyter-make-local-aliases)
+  (add-hook 'org-mode-hook #'org-babel-jupyter-make-local-aliases 10)
   :pretty-hydra
   ((:title "Jupyter" :color pink)
    ("Execute"
@@ -712,13 +716,10 @@
      ("C-s" org-babel-jupyter-scratch-buffer "Scratch")
      ("i" org-toggle-inline-images "Toggle images")
      ("t" org-babel-tangle "Tangle")
+     ("T" article-treat-ansi-sequences "Treat ANSI")
      ("q" hydra-pop "exit" :color blue))))
   :bind
-  (:map jupyter-org-interaction-mode-map ("C-c j" . jupyter-hydra/body))
-  :config
-  (define-key jupyter-org-interaction-mode-map (kbd "C-c h") #'jupyter-org-hydra/body t)
-  (remove-hook 'org-mode-hook #'org-babel-jupyter-make-local-aliases)
-  (add-hook 'org-mode-hook #'org-babel-jupyter-make-local-aliases 10))
+  (:map jupyter-org-interaction-mode-map ("C-c j" . jupyter-hydra/body)))
 
 (use-package orgit
   :straight (:host github
