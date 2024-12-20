@@ -626,7 +626,7 @@
      ("$" org-archive-subtree "Archive")
      ("d" org-cut-subtree "Kill")
      ("a" org-insert-heading "Insert above")
-     ("b" (org-insert-heading t) "Insert below"))
+     ("b" (org-insert-heading '(4)) "Insert below"))
     "Act"
     (("s" consult-outline "Search" :color red :column "Actions")
      ("w" org-copy-subtree "Copy")
