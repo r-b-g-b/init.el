@@ -1233,6 +1233,9 @@ Robert
 
 (use-package mermaid-mode)
 
+(use-package nix-mode
+  :mode "\\.nix\\'")
+
 (use-package bicep-mode
   :straight (:type git :host github :repo "christiaan-janssen/bicep-mode"))
 
