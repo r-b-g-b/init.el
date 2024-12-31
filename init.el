@@ -486,30 +486,8 @@
 
 (use-package hydra)
 
-(use-package undo-tree
-  :init
-  (global-undo-tree-mode)
-  (define-key undo-tree-mode-map (kbd "C-x u") nil)
-  :config
-  (defun my/undo-tree-visualize ()
-    (interactive)
-    (undo-tree-visualize)
-    (undo-tree-hydra/body))
-  :pretty-hydra
-  ((:title "Undo" :color pink)
-   ("Navigate"
-    (
-     ("k" undo-tree-visualize-undo "Undo")
-     ("j" undo-tree-visualize-redo "Next")
-     ("p" undo-tree-visualize-undo "Undo")
-     ("n" undo-tree-visualize-redo "Next")
-     ("h" undo-tree-visualize-switch-branch-left "Left")
-     ("l" undo-tree-visualize-switch-branch-right "Right")
-     ("q" undo-tree-visualizer-quit "Quit" :color blue))))
-  :custom
-  (undo-tree-auto-save-history t)
-  (undo-tree-history-directory-alist '(("." . "~/.emacs.d/undo")))
-  :bind (("C-x u" . my/undo-tree-visualize)))
+(use-package vundo
+  :bind (("C-x u" . vundo)))
 
 (setq browse-url-browser-function 'browse-url-firefox)
 (setq browse-url-secondary-browser-function 'eww-browse-url)
