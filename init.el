@@ -23,12 +23,12 @@
 (add-to-list 'load-path "~/.emacs.d/src")
 (add-to-list 'exec-path "~/anaconda3/bin" t)
 (add-to-list 'exec-path "~/.rbenv/shims" t)
+(setenv "PATH" (concat "/home/robert/go/bin:" (getenv "PATH")))
+
 (recentf-mode 1)
 (hl-line-mode 1)
 (which-function-mode 1)
-(setq recentf-max-menu-items 25)
-(setq recentf-max-saved-items 25)
-(set-face-attribute 'default nil :height 86)
+
 (setq-default flycheck-disabled-checkers '(python-pylint))
 (setq-default electric-indent-inhibit t)
 (setq-default default-tab-width 4)
@@ -43,6 +43,8 @@
 (setq markdown-fontify-code-blocks-natively t)
 (setq python-shell-interpreter "python"
       python-shell-interpreter-args "-i")
+(setq recentf-max-menu-items 25)
+(setq recentf-max-saved-items 25)
 (setq ring-bell-function 'ignore)
 (setq scroll-conservatively 5)
 (setq scroll-margin 10)
@@ -50,6 +52,8 @@
 (setq user-full-name "Robert Gibboni")
 (setq user-mail-address "galileo@gmail.com")
 (setq which-func-unknown "n/a")
+
+(set-face-attribute 'default nil :height 86)
 
 (use-package straight
   :custom
@@ -1211,9 +1215,6 @@ Robert
 
 (use-package mermaid-mode)
 
-(use-package nix-mode
-  :mode "\\.nix\\'")
-
 (use-package bicep-mode
   :straight (:type git :host github :repo "christiaan-janssen/bicep-mode"))
 
@@ -1705,7 +1706,6 @@ With ARG, do this that many times."
     ("0" (text-scale-mode -1) "Default"))))
 
 (bind-key (kbd "C-x +") 'my-window/body)
-(setenv "PATH" (concat "/home/robert/anaconda3/bin:" "/home/robert/go/bin:" (getenv "PATH")))
 
 (defun lsp-booster--advice-json-parse (old-fn &rest args)
   "Try to parse bytecode instead of json."
