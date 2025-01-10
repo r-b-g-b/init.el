@@ -1140,10 +1140,16 @@ Robert
 (use-package python-black
   :after python)
 
+(use-package uv-mode
+  :straight (:type git :host github :repo "z80dev/uv-mode")
+  :hook (python-mode . uv-mode-auto-activate-hook))
+
 (use-package docker
   :bind ("C-c d" . docker))
 
-(use-package keychain-environment)
+(use-package keychain-environment
+  :config
+  (keychain-refresh-environment))
 
 (use-package browse-at-remote
   :bind ("C-c g g" . 'browse-at-remote))
@@ -1230,7 +1236,8 @@ Robert
   (scad-preview-window-size 90)
   :defines scad-preview-image-size scad-preview-window-size)
 
-(use-package scel
+
+(use-package sclang
   :straight ( :type git
               :host github
               :repo "supercollider/scel"
@@ -1239,7 +1246,8 @@ Robert
   (require 'sclang))
 
 (use-package sclang-extensions
-  :hook sclang-mode)
+  :hook sclang-mode
+  :bind (:map sclang-extensions-mode-map ("C-c C-c" . sclang-eval-line)))
 
 (use-package fasta-mode
   :straight (:type git :host github :repo "vaiteaopuu/emacs-fasta-mode" :files ("fasta-mode.el" "sequence-alignement.el")))
@@ -1583,18 +1591,6 @@ With ARG, do this that many times."
     (push-mark)
     (insert random-string)))
 
-(global-set-key (read-kbd-macro "<M-DEL>") 'backward-delete-word)
-
-(global-so-long-mode t)
-(add-hook 'tree-sitter-after-on-hook #'tree-sitter-hl-mode)
-(show-paren-mode t)
-(tab-bar-mode t)
-(which-key-mode t)
-(winner-mode t)
-(keychain-refresh-environment)
-(desktop-read)
-(pyvenv-workon "py3")
-
 (use-package move-border
   :straight ( :host github
               :repo "ramnes/move-border"
@@ -1735,6 +1731,15 @@ With ARG, do this that many times."
           (cons "emacs-lsp-booster" orig-result))
       orig-result)))
 (advice-add 'lsp-resolve-final-command :around #'lsp-booster--advice-final-command)
+
+(global-set-key (read-kbd-macro "<M-DEL>") 'backward-delete-word)
+(global-so-long-mode t)
+(add-hook 'tree-sitter-after-on-hook #'tree-sitter-hl-mode)
+(show-paren-mode t)
+(tab-bar-mode t)
+(which-key-mode t)
+(winner-mode t)
+(desktop-read)
 
 (custom-set-variables
  ;; custom-set-variables was added by Custom.
