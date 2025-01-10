@@ -686,7 +686,7 @@
      ("o" (jupyter-org-clone-block t) "Clone")
      ("m" jupyter-org-merge-blocks "Merge")
      ("s" jupyter-org-split-src-block "Split")
-     ("u" undo-tree-undo "Undo")
+     ("u" undo "Undo")
      ("a" (jupyter-org-insert-src-block nil current-prefix-arg) "Insert above")
      ("b" (jupyter-org-insert-src-block t current-prefix-arg) "Insert below")
      ("l" org-babel-remove-result "Clear result")
@@ -1243,11 +1243,14 @@ Robert
               :repo "supercollider/scel"
               :files ("el/*"))
   :config
-  (require 'sclang))
+  (require 'sclang)
+  :bind ("C-z" . sclang-switch-to-post))
 
 (use-package sclang-extensions
   :hook sclang-mode
   :bind (:map sclang-extensions-mode-map ("C-c C-c" . sclang-eval-line)))
+
+(use-package djvu)
 
 (use-package fasta-mode
   :straight (:type git :host github :repo "vaiteaopuu/emacs-fasta-mode" :files ("fasta-mode.el" "sequence-alignement.el")))
