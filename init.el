@@ -704,6 +704,7 @@
   (:map jupyter-org-interaction-mode-map ("C-c j" . jupyter-hydra/body)))
 
 (use-package orgit
+  :after org
   :straight (:host github
                    :repo "magit/orgit"
                    :files ("orgit.el")))
@@ -794,6 +795,7 @@ Robert
   (org-msg-mode))
 
 (use-package org-ref
+  :after org
   :custom
   (bibtex-completion-bibliography '("~/org-roam/bibliography/references.bib"))
   (bibtex-completion-library-path '("~/org-roam/bibliography/bibtex-pdfs/"))
