@@ -633,9 +633,11 @@
     ("P" . org-agenda-do-date-earlier)))
 
 (use-package jupyter
+  :straight (:type git :host github :repo "r-b-g-b/jupyter" :branch "remap-hydra")
   :after org
   :custom
   (jupyter-repl-echo-eval-p t)
+
   :config
   (defun my/jupyter-execute-and-insert ()
     (interactive)
@@ -700,8 +702,20 @@
      ("t" org-babel-tangle "Tangle")
      ("T" article-treat-ansi-sequences "Treat ANSI")
      ("q" hydra-pop "exit" :color blue))))
+
   :bind
   (:map jupyter-org-interaction-mode-map ("C-c j" . jupyter-hydra/body)))
+
+(use-package ob-async
+  :after jupyter
+  :config
+  (setq ob-async-no-async-languages-alist '("jupyter-python" "jupyter-R" "jupyter-julia")))
+
+(use-package ob-http
+  :after org
+  :config
+  (add-to-list 'org-babel-load-languages '(http . t))
+  (org-babel-do-load-languages 'org-babel-load-languages org-babel-load-languages))
 
 (use-package orgit
   :after org
@@ -829,19 +843,10 @@ Robert
   :config
   (require 'org-ref))
 
-(use-package org-sidebar)
+(use-package org-sidebar
+  :after org)
 
 (use-package org-variable-pitch)
-
-(use-package ob-async
-  :after jupyter
-  :config
-  (setq ob-async-no-async-languages-alist '("jupyter-python" "jupyter-R" "jupyter-julia")))
-
-(use-package ob-http
-  :config
-  (add-to-list 'org-babel-load-languages '(http . t))
-  (org-babel-do-load-languages 'org-babel-load-languages org-babel-load-languages))
 
 (use-package org-roam-ui
   :after org-roam
@@ -1035,12 +1040,11 @@ Robert
 (use-package eww
   :bind (:map eww-mode-map ("C-<return>" . eww-open-in-new-buffer)))
 
+
 (use-package company
-  :after lsp-mode
-  :hook (lsp-mode . company-mode)
-  :bind (:map company-active-map ("<tab>" . company-complete-selection)
-         :map lsp-mode-map ("<tab>" . company-indent-or-complete-common))
+  :hook (after-init . global-company-mode)
   :custom
+  (company-idle-delay 1)
   (company-minimum-prefix-length 2))
 
 (use-package company-box
