@@ -545,6 +545,14 @@
 (use-package doom-modeline
   :init (doom-modeline-mode 1))
 
+(use-package olivetti
+  :custom
+  (olivetti-minimum-body-width 150)
+  :hook
+  (eww-mode . olivetti-mode)
+  (markdown-mode . olivetti-mode)
+  (org-mode . olivetti-mode))
+
 (use-package nerd-icons)
 
 (use-package rainbow-delimiters
@@ -717,6 +725,11 @@
   (add-to-list 'org-babel-load-languages '(http . t))
   (org-babel-do-load-languages 'org-babel-load-languages org-babel-load-languages))
 
+(use-package ob-mermaid
+  :after org
+  :custom
+  (ob-mermaid-cli-path "~/.local/bin/mmdc"))
+
 (use-package orgit
   :after org
   :straight (:host github
@@ -729,59 +742,6 @@
                    :files ("*.el" "filters" "preprocessors"))
   :custom
   (org-pandoc-import-markdown-args '(:wrap "preserve")))
-
-(unbind-key "C-c h" global-map)
-
-(use-package org-roam
-  :config
-  (defun org-roam-node-insert-immediate (arg &rest args)
-    (interactive "P")
-    (let ((args (cons arg args))
-          (org-roam-capture-templates (list (append (car org-roam-capture-templates)
-                                                    '(:immediate-finish t)))))
-      (apply #'org-roam-node-insert args)))
-
-  (defun my/org-roam-filter-by-tag (tag-name)
-    (lambda (node)
-      (member tag-name (org-roam-node-tags node))))
-
-  (defun my/org-roam-list-notes-by-tag (tag-name)
-    (mapcar #'org-roam-node-file
-            (seq-filter
-             (my/org-roam-filter-by-tag tag-name)
-             (org-roam-node-list))))
-  (defun my/org-roam-refresh-agenda-list ()
-    (interactive)
-    (setq org-agenda-files (my/org-roam-list-notes-by-tag "project"))
-    (add-to-list 'org-agenda-files "~/org-roam/schedule.org"))
-
-  (my/org-roam-refresh-agenda-list)
-  :custom
-  (org-roam-v2-ack t)
-  (org-roam-completion-everywhere t)
-  (org-roam-directory "~/org-roam")
-  (org-roam-graph-executable "neato")
-  (org-roam-capture-templates
-   '(("d" "default" plain
-      "%?"
-      :target (file+head "%<%Y%m%d%H%M%S>-${slug}.org" "#+title: ${title}\n")
-      :unnarrowed t)
-     ("p" "project" plain
-      "* Goals\n\n%?\n\n* Tasks\n\n** TODO Add initial tasks\n\n* Dates\n\n"
-      :if-new (file+head "%<%Y%m%d%H%M%S>-${slug}.org" "#+title: ${title}\n#+category: ${title}\n#+filetags: project\n")
-      :unnarrowed t)))
-  :bind (("C-c n l" . org-roam-buffer-toggle)
-         ("C-c n f" . org-roam-node-find)
-         ("C-c n i" . org-roam-node-insert)
-         ("C-c n t" . org-roam-dailies-goto-today)
-         ("C-c n y" . org-roam-dailies-goto-yesterday)
-         ("C-c n I" . org-roam-node-insert-immediate)
-         ("C-c n s" . org-store-link)
-         :map org-mode-map
-         ("C-M-i" . completion-at-point))
-  :config
-  (org-roam-db-autosync-mode)
-  :commands (org-roam-node-list))
 
 (use-package org-msg
   :straight ( :host github
@@ -807,6 +767,13 @@ Best,
 Robert
 #+end_signature")
   (org-msg-mode))
+
+(use-package org-pomodoro
+  :after org
+  :custom
+  (org-pomodoro-audio-player "/usr/bin/play")
+  (org-pomodoro-finished-sound-args "-v 0.2")
+  (org-pomodoro-short-break-sound-args "-v 0.2"))
 
 (use-package org-ref
   :after org
@@ -838,15 +805,61 @@ Robert
   (define-key bibtex-mode-map (kbd "H-b") 'org-ref-bibtex-hydra/body)
   )
 
-(use-package org-roam-bibtex
-  :after (org-roam org-ref)
+(use-package org-roam
   :config
-  (require 'org-ref))
+  (defun org-roam-node-insert-immediate (arg &rest args)
+    (interactive "P")
+    (let ((args (cons arg args))
+          (org-roam-capture-templates (list (append (car org-roam-capture-templates)
+                                                    '(:immediate-finish t)))))
+      (apply #'org-roam-node-insert args)))
+  (defun my/org-roam-filter-by-tag (tag-name)
+    (lambda (node)
+      (member tag-name (org-roam-node-tags node))))
 
-(use-package org-sidebar
-  :after org)
+  (defun my/org-roam-list-notes-by-tag (tag-name)
+    (mapcar #'org-roam-node-file
+            (seq-filter
+             (my/org-roam-filter-by-tag tag-name)
+             (org-roam-node-list))))
+  (defun my/org-roam-refresh-agenda-list ()
+    (interactive)
+    (setq org-agenda-files (my/org-roam-list-notes-by-tag "project"))
+    (add-to-list 'org-agenda-files "~/org-roam/schedule.org"))
+  (my/org-roam-refresh-agenda-list)
 
-(use-package org-variable-pitch)
+  :custom
+  (org-roam-v2-ack t)
+  (org-roam-completion-everywhere t)
+  (org-roam-directory "~/org-roam")
+  (org-roam-graph-executable "neato")
+  (org-roam-capture-templates
+   '(("d" "default" plain
+      "%?"
+      :target (file+head "%<%Y%m%d%H%M%S>-${slug}.org" "#+title: ${title}\n")
+      :unnarrowed t)
+     ("p" "project" plain
+      "* Goals\n\n%?\n\n* Tasks\n\n** TODO Add initial tasks\n\n* Dates\n\n"
+      :if-new (file+head "%<%Y%m%d%H%M%S>-${slug}.org" "#+title: ${title}\n#+category: ${title}\n#+filetags: project\n")
+      :unnarrowed t)))
+
+  :bind (("C-c n l" . org-roam-buffer-toggle)
+         ("C-c n f" . org-roam-node-find)
+         ("C-c n i" . org-roam-node-insert)
+         ("C-c n t" . org-roam-dailies-goto-today)
+         ("C-c n y" . org-roam-dailies-goto-yesterday)
+         ("C-c n I" . org-roam-node-insert-immediate)
+         ("C-c n s" . org-store-link)
+         :map org-mode-map
+         ("C-M-i" . completion-at-point))
+
+  :config
+  (org-roam-db-autosync-mode)
+
+  :commands (org-roam-node-list))
+
+(use-package org-roam-bibtex
+  :after (org-roam org-ref))
 
 (use-package org-roam-ui
   :after org-roam
@@ -856,43 +869,34 @@ Robert
   (org-roam-ui-update-on-save t)
   (org-roam-ui-open-on-start t))
 
-(use-package org-pomodoro
-  :custom
-  (org-pomodoro-audio-player "/usr/bin/play")
-  (org-pomodoro-finished-sound-args "-v 0.2")
-  (org-pomodoro-short-break-sound-args "-v 0.2"))
+(use-package org-sidebar
+  :after org)
 
-(use-package org-tree-slide)
+(use-package org-tree-slide
+  :after org)
 
-(use-package olivetti
-  :custom
-  (olivetti-minimum-body-width 150)
-  :hook
-  (eww-mode . olivetti-mode)
-  (markdown-mode . olivetti-mode)
-  (org-mode . olivetti-mode))
+(use-package org-variable-pitch
+  :after org)
 
 (use-package ox-gfm
+  :after org
   :config
   (require 'ox-gfm nil t))
-
-(use-package ob-mermaid
-  :custom
-  (ob-mermaid-cli-path "~/.local/bin/mmdc"))
-
-(use-package ox-reveal)
-
-(use-package ox-slack)
-
-(use-package ox-pandoc
-  :custom
-  (org-pandoc-options-for-gfm '(:wrap . "none"))
-  (org-pandoc-import-global-args '(:wrap "none")))
 
 (use-package ox-ipynb
   :straight ( :host github
               :repo "jkitchin/ox-ipynb"
-              :files ("ox-ipynb.el")))
+              :files ("ox-ipynb.el"))
+  :after org)
+
+(use-package ox-pandoc
+  :after org
+  :custom
+  (org-pandoc-options-for-gfm '(:wrap . "none"))
+  (org-pandoc-import-global-args '(:wrap "none")))
+
+(use-package ox-reveal
+  :after org)
 
 (use-package gptel
   :defer t
@@ -1128,6 +1132,9 @@ Robert
     ("s" consult-imenu "Search")
     ("q" nil "Quit" :color blue :column "Quit")))
 
+(use-package python-black
+  :after python)
+
 (use-package pyvenv
   :init (setenv "WORKON_HOME" "~/anaconda3/envs/")
   :config
@@ -1142,9 +1149,6 @@ Robert
 
 (use-package flycheck
   :config (global-flycheck-mode))
-
-(use-package python-black
-  :after python)
 
 (use-package uv-mode
   :straight (:type git :host github :repo "z80dev/uv-mode")
@@ -1229,6 +1233,26 @@ Robert
 
 (use-package bicep-mode
   :straight (:type git :host github :repo "christiaan-janssen/bicep-mode"))
+
+(use-package hs-minor-mode
+  :straight nil
+  :hook (json-mode prog-mode yaml-mode))
+
+(use-package column-number-mode
+  :straight nil
+  :hook prog-mode)
+
+(use-package subword-mode
+  :straight nil
+  :hook python-mode)
+
+(use-package display-fill-column-indicator-mode
+  :straight nil
+  :hook python-mode)
+
+(use-package visual-line-mode
+  :straight nil
+  :hook org-mode)
 
 (use-package yaml-mode
   :config
@@ -1318,26 +1342,6 @@ Robert
 (use-package editorconfig
   :config
   (editorconfig-mode 1))
-
-(use-package hs-minor-mode
-  :straight nil
-  :hook (json-mode prog-mode yaml-mode))
-
-(use-package column-number-mode
-  :straight nil
-  :hook prog-mode)
-
-(use-package subword-mode
-  :straight nil
-  :hook python-mode)
-
-(use-package display-fill-column-indicator-mode
-  :straight nil
-  :hook python-mode)
-
-(use-package visual-line-mode
-  :straight nil
-  :hook org-mode)
 
 (use-package kubernetes
   :config
