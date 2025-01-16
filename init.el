@@ -22,8 +22,10 @@
 
 (add-to-list 'load-path "~/.emacs.d/src")
 (add-to-list 'exec-path "~/anaconda3/bin" t)
+(add-to-list 'exec-path "~/.local/bin" t)
 (add-to-list 'exec-path "~/.rbenv/shims" t)
-(setenv "PATH" (concat "/home/robert/go/bin:" (getenv "PATH")))
+(add-to-list 'exec-path "~/go/bin" t)
+(setenv "PATH" (concat "~/.local/bin:" "~/.rbenv/shims:" "~/go/bin:" (getenv "PATH")))
 
 (recentf-mode 1)
 (hl-line-mode 1)
