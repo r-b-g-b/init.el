@@ -21,7 +21,6 @@
 (require 'notifications)
 
 (add-to-list 'load-path "~/.emacs.d/src")
-(add-to-list 'exec-path "~/anaconda3/bin" t)
 (add-to-list 'exec-path "~/.local/bin" t)
 (add-to-list 'exec-path "~/.rbenv/shims" t)
 (add-to-list 'exec-path "~/go/bin" t)
@@ -1056,54 +1055,13 @@ Robert
 (use-package company-box
   :hook (company-mode . company-box-mode))
 
-(use-package lsp-mode
-  :defines lsp-highlight-symbol-at-point
-  :commands (lsp lsp-deferred)
-  :hook (
-         (bicep-mode . lsp)
-         (csharp-mode . lsp)
-         (css-mode . lsp)
-         (dockerfile-mode . lsp)
-         (js-mode . lsp)
-         (python-mode . lsp)
-         (ruby-mode . lsp)
-         (sh-mode . lsp)
-         (sql-mode . lsp)
-         (typescript-mode . lsp)
-         (web-mode . lsp))
-  :custom
-  (lsp-eldoc-render-all nil)
-  (lsp-highlight-symbol-at-point nil)
-  (lsp-idle-delay 0.25)
-  (lsp-keymap-prefix "C-c l")
-  (lsp-lens-enable t)
-  (lsp-log-io nil)
-  (lsp-pylsp-server-command (executable-find "pylsp"))
-  (lsp-ruff-lsp-server-command (executable-find "ruff-lsp"))
-  (lsp-sqls-server "/home/robert/go/bin/sqls")
+(use-package eglot
+  :ensure t
   :config
-  (lsp-register-custom-settings
-   '(
-     ("pylsp.plugins.black.enabled" nil t)
-     ("pylsp.plugins.flake8.enabled" nil t)
-     ("pylsp.plugins.isort.enabled" nil t)
-     ("pylsp.plugins.mccabe.enabled" nil t)
-     ("pylsp.plugins.pycodestyle.enabled" nil t)
-     ("pylsp.plugins.pydocstyle.enabled" nil t)
-     ("pylsp.plugins.pyflakes.enabled" nil t)
-     ("pylsp.plugins.ruff.enabled" nil t))))
-
-(use-package lsp-ui
-  :hook (lsp-mode . lsp-ui-mode)
-  :custom
-  (lsp-ui-doc-enable nil)
-  (lsp-ui-doc-show-with-cursor nil))
-
-(use-package lsp-treemacs
-  :after lsp)
-
-;; lsp-doctor suggests
-(setq read-process-output-max (* 1024 1024)) ;; 1mb
+  (add-to-list 'eglot-server-programs
+               '(python-mode . ("ruff" "server")))
+  :hook
+  ((python-mode . eglot-ensure)))
 
 (use-package yasnippet
   :hook ((text-mode
@@ -1116,17 +1074,9 @@ Robert
 
 ;; python
 (use-package python
-  :hook
-  (python-mode . lsp-deferred)
   :custom
   (dap-python-debugger 'debugpy)
-  (python-shell-interpreter "ipython")
-  (python-shell-interpreter-args "--simple-prompt -i")
-  (python-shell-prompt-regexp "In \\[[0-9]+\\]: ")
-  (python-shell-prompt-output-regexp "Out\\[[0-9]+\\]: ")
-  (python-shell-completion-setup-code "from IPython.core.completerlib import module_completion")
-  (python-shell-completion-module-string-code "';'.join(module_completion('''%s'''))\n")
-  (python-shell-completion-string-code "';'.join(get_ipython().Completer.all_completions('''%s'''))\n")
+  (python-shell-interpreter "python3")
   :config
   (defhydra python:hydra (python-mode-map "C-c h" :color pink)
     ("n" end-of-defun "Next" :column "Navigate")
@@ -1136,11 +1086,6 @@ Robert
 
 (use-package python-black
   :after python)
-
-(use-package pyvenv
-  :init (setenv "WORKON_HOME" "~/anaconda3/envs/")
-  :config
-  (pyvenv-mode 1))
 
 (use-package dap-mode
   :custom
@@ -1155,6 +1100,41 @@ Robert
 (use-package uv-mode
   :straight (:type git :host github :repo "z80dev/uv-mode")
   :hook (python-mode . uv-mode-auto-activate-hook))
+
+(defun uv-activate ()
+  "Activate Python environment managed by uv based on current project directory.
+Looks for .venv directory in project root and activates the Python interpreter."
+  (interactive)
+  (let* ((project-root (project-root (project-current t)))
+         (venv-path (expand-file-name ".venv" project-root))
+         (python-path (expand-file-name
+                       (if (eq system-type 'windows-nt)
+                           "Scripts/python.exe"
+                         "bin/python")
+                       venv-path)))
+    (if (file-exists-p python-path)
+        (progn
+          ;; Set Python interpreter path
+          (setq python-shell-interpreter python-path)
+
+          ;; Update exec-path to include the venv's bin directory
+          (let ((venv-bin-dir (file-name-directory python-path)))
+            (setq exec-path (cons venv-bin-dir
+                                  (remove venv-bin-dir exec-path))))
+
+          ;; Update PATH environment variable
+          (setenv "PATH" (concat (file-name-directory python-path)
+                                 path-separator
+                                 (getenv "PATH")))
+
+          ;; Update VIRTUAL_ENV environment variable
+          (setenv "VIRTUAL_ENV" venv-path)
+
+          ;; Remove PYTHONHOME if it exists
+          (setenv "PYTHONHOME" nil)
+
+          (message "Activated UV Python environment at %s" venv-path))
+      (error "No UV Python environment found in %s" project-root))))
 
 (use-package docker
   :bind ("C-c d" . docker))
@@ -1338,8 +1318,7 @@ Robert
   (web-mode-css-indent-offset 2)
   (web-mode-code-indent-offset 4)
   :mode
-  ("\\.html?\\'" "\\.phtml\\'" "\\.tpl\\.php\\'" "\\.[agj]sp\\'" "\\.as[cp]x\\'" "\\.erb\\'" "\\.mustache\\'" "\\.djhtml\\'" "\\.vue\\'")
-  :hook lsp)
+  ("\\.html?\\'" "\\.phtml\\'" "\\.tpl\\.php\\'" "\\.[agj]sp\\'" "\\.as[cp]x\\'" "\\.erb\\'" "\\.mustache\\'" "\\.djhtml\\'" "\\.vue\\'"))
 
 (use-package editorconfig
   :config
@@ -1718,35 +1697,6 @@ With ARG, do this that many times."
 
 (bind-key (kbd "C-x +") 'my-window/body)
 
-(defun lsp-booster--advice-json-parse (old-fn &rest args)
-  "Try to parse bytecode instead of json."
-  (or
-   (when (equal (following-char) ?#)
-     (let ((bytecode (read (current-buffer))))
-       (when (byte-code-function-p bytecode)
-         (funcall bytecode))))
-   (apply old-fn args)))
-(advice-add (if (progn (require 'json)
-                       (fboundp 'json-parse-buffer))
-                'json-parse-buffer
-              'json-read)
-            :around
-            #'lsp-booster--advice-json-parse)
-
-(defun lsp-booster--advice-final-command (old-fn cmd &optional test?)
-  "Prepend emacs-lsp-booster command to lsp CMD."
-  (let ((orig-result (funcall old-fn cmd test?)))
-    (if (and (not test?)                             ;; for check lsp-server-present?
-             (not (file-remote-p default-directory)) ;; see lsp-resolve-final-command, it would add extra shell wrapper
-             lsp-use-plists
-             (not (functionp 'json-rpc-connection))  ;; native json-rpc
-             (executable-find "emacs-lsp-booster"))
-        (progn
-          (message "Using emacs-lsp-booster for %s!" orig-result)
-          (cons "emacs-lsp-booster" orig-result))
-      orig-result)))
-(advice-add 'lsp-resolve-final-command :around #'lsp-booster--advice-final-command)
-
 (global-set-key (read-kbd-macro "<M-DEL>") 'backward-delete-word)
 (global-so-long-mode t)
 (add-hook 'tree-sitter-after-on-hook #'tree-sitter-hl-mode)
@@ -1771,10 +1721,8 @@ With ARG, do this that many times."
  '(fill-column 100)
  '(indent-tabs-mode nil)
  '(initial-buffer-choice "~/projects")
- '(lsp-openscad-server "~/.cargo/bin/openscad-lsp")
  '(org-agenda-files nil)
- '(org-babel-load-languages '((emacs-lisp . t) (python . t) (shell . t)))
- '(org-babel-python-command "ipython --no-banner --classic --no-confirm-exit")
+ '(org-babel-python-command "python3")
  '(org-edit-src-content-indentation 0)
  '(send-mail-function 'smtpmail-send-it)
  '(shr-max-image-proportion 0.7)
