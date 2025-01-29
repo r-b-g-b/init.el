@@ -1045,6 +1045,7 @@ Robert
 (use-package eww
   :bind (:map eww-mode-map ("C-<return>" . eww-open-in-new-buffer)))
 
+(use-package elpher)
 
 (use-package company
   :hook (after-init . global-company-mode)
@@ -1059,7 +1060,7 @@ Robert
   :ensure t
   :config
   (add-to-list 'eglot-server-programs
-               '(python-mode . ("ruff" "server")))
+               '(python-mode . ("pylsp")))
   :hook
   ((python-mode . eglot-ensure)))
 
@@ -1087,6 +1088,8 @@ Robert
 (use-package python-black
   :after python)
 
+(use-package pyvenv)
+
 (use-package dap-mode
   :custom
   (dap-python-debugger 'debugpy)
@@ -1099,42 +1102,7 @@ Robert
 
 (use-package uv-mode
   :straight (:type git :host github :repo "z80dev/uv-mode")
-  :hook (python-mode . uv-mode-auto-activate-hook))
-
-(defun uv-activate ()
-  "Activate Python environment managed by uv based on current project directory.
-Looks for .venv directory in project root and activates the Python interpreter."
-  (interactive)
-  (let* ((project-root (project-root (project-current t)))
-         (venv-path (expand-file-name ".venv" project-root))
-         (python-path (expand-file-name
-                       (if (eq system-type 'windows-nt)
-                           "Scripts/python.exe"
-                         "bin/python")
-                       venv-path)))
-    (if (file-exists-p python-path)
-        (progn
-          ;; Set Python interpreter path
-          (setq python-shell-interpreter python-path)
-
-          ;; Update exec-path to include the venv's bin directory
-          (let ((venv-bin-dir (file-name-directory python-path)))
-            (setq exec-path (cons venv-bin-dir
-                                  (remove venv-bin-dir exec-path))))
-
-          ;; Update PATH environment variable
-          (setenv "PATH" (concat (file-name-directory python-path)
-                                 path-separator
-                                 (getenv "PATH")))
-
-          ;; Update VIRTUAL_ENV environment variable
-          (setenv "VIRTUAL_ENV" venv-path)
-
-          ;; Remove PYTHONHOME if it exists
-          (setenv "PYTHONHOME" nil)
-
-          (message "Activated UV Python environment at %s" venv-path))
-      (error "No UV Python environment found in %s" project-root))))
+  :hook ((python-mode . uv-mode-auto-activate-hook)))
 
 (use-package docker
   :bind ("C-c d" . docker))
