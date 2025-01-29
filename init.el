@@ -1675,6 +1675,13 @@ With ARG, do this that many times."
     ("s" ace-swap-window "Swap")
     ("a" ace-select-window "Select"))
 
+   "Font size"
+   (("1" (set-face-attribute 'default nil :height 70) "small")
+    ("2" (set-face-attribute 'default nil :height 90) "normal")
+    ("3" (set-face-attribute 'default nil :height 110) "large")
+    ("4" (set-face-attribute 'default nil :height 130) "xlarge")
+    ("5" (set-face-attribute 'default nil :height 160) "xxlarge"))
+
    "Resize"
    (("h" move-border-left "←")
     ("j" move-border-down "↓")
