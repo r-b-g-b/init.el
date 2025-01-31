@@ -1038,14 +1038,13 @@ Robert
   (erc-track-shorten-start 8)
   (erc-user-full-name "rKAST"))
 
-(use-package elpher)
-
 (use-package which-key)
 
 (use-package eww
   :bind (:map eww-mode-map ("C-<return>" . eww-open-in-new-buffer)))
 
-(use-package elpher)
+(use-package elpher
+  :bind (:map elpher-mode-map (("n" . next-line) ("p" . previous-line) ("v" . push-button) ("q" . elpher-back))))
 
 (use-package company
   :hook (after-init . global-company-mode)
