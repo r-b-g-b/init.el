@@ -1025,6 +1025,7 @@ Robert
         ("https://sburris.xyz/atom.xml" code)
         ("https://drew.silcock.dev/rss.xml" code)
         ("https://emacsrocks.com/atom.xml" code emacs)
+        ("https://www.data-is-plural.com/feed.xml" code)
         ("https://lilianweng.github.io/index.xml" ml code)
         ("https://waxy.org/feed/" culture)
         ("http://feeds.kottke.org/main" culture)
