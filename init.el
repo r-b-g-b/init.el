@@ -1029,7 +1029,8 @@ Robert
         ("https://waxy.org/feed/" culture)
         ("http://feeds.kottke.org/main" culture)
         ("https://www.polygon.com/rss/index.xml" games)))
-  (elfeed-search-title-max-width 100))
+  (elfeed-search-title-max-width 100)
+  :bind (:map elfeed-search-mode-map ("g" . elfeed-update)))
 
 (use-package erc
   :custom
@@ -1045,7 +1046,7 @@ Robert
 (use-package which-key)
 
 (use-package eww
-  :bind (:map eww-mode-map ("C-<return>" . eww-open-in-new-buffer)))
+  :bind (:map eww-mode-map (("C-<return>" . eww-open-in-new-buffer) ("S-<space>" . scroll-up-command))))
 
 (use-package elpher
   :bind (:map elpher-mode-map (("n" . next-line) ("p" . previous-line) ("v" . push-button) ("q" . elpher-back))))
