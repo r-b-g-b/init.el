@@ -731,6 +731,9 @@
   :custom
   (ob-mermaid-cli-path "~/.local/bin/mmdc"))
 
+(use-package ob-bigquery
+  :straight (:type git :host github :repo "lhernanz/ob-bigquery"))
+
 (use-package orgit
   :after org
   :straight (:host github
@@ -1021,6 +1024,7 @@ Robert
         ("https://planet.emacslife.com/atom.xml" code emacs)
         ("https://sburris.xyz/atom.xml" code)
         ("https://drew.silcock.dev/rss.xml" code)
+        ("https://emacsrocks.com/atom.xml" code emacs)
         ("https://lilianweng.github.io/index.xml" ml code)
         ("https://waxy.org/feed/" culture)
         ("http://feeds.kottke.org/main" culture)
