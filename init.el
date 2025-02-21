@@ -637,6 +637,7 @@
     ("<f6>" . org-capture)
     :map org-mode-map
     ("C-c h" . org-hydra/body)
+    ("C-c C-s" . org-schedule)
     :map org-agenda-mode-map
     ("N" . org-agenda-do-date-later)
     ("P" . org-agenda-do-date-earlier)))
@@ -1066,6 +1067,15 @@ Robert
   :config
   (add-to-list 'eglot-server-programs
                '(python-mode . ("pylsp")))
+  :custom
+  (eglot-workspace-configuration
+      '((pylsp
+         (plugins
+          (mccabe (enabled . nil)) ; Remove this if you want mccabe.
+          (pycodestyle (enabled . nil))
+          (pyflakes (enabled . nil))
+          (flake8 (enabled . nil))))))
+
   :hook
   ((python-mode . eglot-ensure)))
 
