@@ -1,0 +1,15 @@
+# key: pythonpandasgbqquery
+# name: python-pandas-gbq-query
+# --
+"""
+TODO: this is a yas-snippet for python-mode in emacs. give the df variable a two character suffix that is programmatically generated to be (usually) unique. like df1e dfs2 df7k
+"""
+
+df = pandas_gbq.read_gbq(
+    """
+    select
+        ${1:<select>}
+    from
+        ${2:<table>}
+    """
+)
