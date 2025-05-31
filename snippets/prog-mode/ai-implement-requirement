@@ -1,0 +1,7 @@
+# -*- mode: snippet; name: ai-implement-requirement; provide: (python-mode org-mode); -*-
+# key: aiimplementrequirement
+# name: ai-implement-requirement
+# --
+"""
+TODO: ${1:insertion point here}
+"""

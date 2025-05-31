@@ -74,6 +74,8 @@
   :straight nil
   :bind (:map dired-mode-map ("<SPC>" . dired-view-file-other-window)))
 
+(use-package dired-preview)
+
 (use-package ibuffer
   :straight nil
   :bind (("C-x C-b" . ibuffer)))
@@ -348,7 +350,6 @@
   ;; m Bookmarks
   ;; p Project
   ;; Custom other sources configured in consult-buffer-sources.
-
 )
 
 (use-package marginalia
@@ -532,9 +533,12 @@
   :config
   (require 'magit-extras)
   :custom
-  (magit-display-buffer-function 'magit-display-buffer-same-window-except-diff-v1))
+  (magit-display-buffer-function 'magit-display-buffer-same-window-except-diff-v1)
+  (magit-log-margin '(t "%a, %b %d, %Y" magit-log-margin-width t 20))
+  )
 
 (use-package forge
+  :straight (:type git :host github :repo "magit/forge" :branch "main")
   :after magit)
 
 (use-package github-review
@@ -647,7 +651,7 @@
   :after org
   :custom
   (jupyter-repl-echo-eval-p t)
-
+  (add-hook 'org-babel-after-execute-hook 'org-redisplay-inline-images)
   :config
   (defun my/jupyter-execute-and-insert ()
     (interactive)
@@ -715,6 +719,10 @@
 
   :bind
   (:map jupyter-org-interaction-mode-map ("C-c j" . jupyter-hydra/body)))
+(use-package quarto-mode
+  :straight (:host github :repo "quarto-dev/quarto-emacs")
+  :mode (("\\.qmd" . poly-quarto-mode))
+  )
 
 (use-package ob-async
   :after jupyter
@@ -834,6 +842,10 @@ Robert
   (my/org-roam-refresh-agenda-list)
 
   :custom
+  (org-roam-dailies-capture-templates
+   '(("d" "default" entry
+      "* %<%H:%M> %?"
+      :target (file+datetree "log.org" week))))
   (org-roam-v2-ack t)
   (org-roam-completion-everywhere t)
   (org-roam-directory "~/org-roam")
@@ -888,6 +900,11 @@ Robert
   :config
   (require 'ox-gfm nil t))
 
+(use-package ox-quarto
+  :straight (:host github :repo "jrgant/ox-quarto")
+  :after org
+  )
+
 (use-package ox-ipynb
   :straight ( :host github
               :repo "jkitchin/ox-ipynb"
@@ -906,8 +923,39 @@ Robert
 (use-package gptel
   :defer t
   :custom
-  (gptel-api-key (plist-get (nth 0 (auth-source-search :max 1 :host "api.openai.com")) :secret))
+  (gptel-model "gpt-4o-mini")
+  (gptel-api-key (auth-info-password (nth 0 (auth-source-search :max 1 :host "platform.openai.com"))))
   (gptel-default-mode 'org-mode))
+
+;; (use-package aidermacs
+;;   :straight (:host github :repo "MatthewZMD/aidermacs")
+;;   :bind (("C-x p a" . aidermacs-transient-menu))
+;;   :custom
+;;   ; See the Configuration section below
+;;   (aidermacs-use-architect-mode t)
+;;   (aidermacs-default-model "4o")
+;;   :hook ((
+;;          aidermacs-before-run-backend .
+;;           (lambda ()
+;;             (setenv "OPENAI_API_KEY" (auth-info-password (nth 0 (auth-source-search :max 1 :host "platform.openai.com")))))
+;;          )))
+
+(use-package aider
+  :straight (:host github :repo "tninja/aider.el")
+  :config
+  ;; (setq aider-args '("--model" "sonnet" "--no-auto-accept-architect"))
+  ;; (setenv "ANTHROPIC_API_KEY" anthropic-api-key)
+  ;; Or chatgpt model
+  (setq aider-args '("--model" "4o"))
+  (setenv "OPENAI_API_KEY" (auth-info-password (nth 0 (auth-source-search :max 1 :host "platform.openai.com"))))
+  ;; Or gemini model
+  ;; (setq aider-args '("--model" "gemini-exp"))
+  ;; (setenv "GEMINI_API_KEY" <your-gemini-api-key>)
+  ;; Or use your personal config file
+  ;; (setq aider-args `("--config" ,(expand-file-name "~/.aider.conf.yml")))
+  ;; ;;
+  ;; Optional: Set a key binding for the transient menu
+  :bind (("C-x p a" . aider-transient-menu)))
 
 (use-package ellama
   :commands (make-llm-ollama)
@@ -978,7 +1026,7 @@ Robert
      "^\\*Python.*\\*$" inferior-python-mode
      "\\*Messages\\*"
      "Output\\*$"
-     ("\\*Async Shell Command\\*" . hide)
+     ;; ("\\*Async Shell Command\\*" . hide)
      ("\\*Warnings\\*" . hide)
      help-mode
      compilation-mode))
@@ -1024,13 +1072,15 @@ Robert
       '(("http://nullprogram.com/feed/" code)
         ("https://planet.emacslife.com/atom.xml" code emacs)
         ("https://sburris.xyz/atom.xml" code)
+        ("https://www.seangoedecke.com/rss.xml" ai code)
         ("https://drew.silcock.dev/rss.xml" code)
         ("https://emacsrocks.com/atom.xml" code emacs)
         ("https://www.data-is-plural.com/feed.xml" code)
         ("https://lilianweng.github.io/index.xml" ml code)
         ("https://waxy.org/feed/" culture)
         ("http://feeds.kottke.org/main" culture)
-        ("https://www.polygon.com/rss/index.xml" games)))
+        ("https://www.polygon.com/rss/index.xml" games)
+        ("https://p.bauherren.ovh/rss" emacs)))
   (elfeed-search-title-max-width 100)
   :bind (:map elfeed-search-mode-map ("g" . elfeed-update)))
 
@@ -1115,9 +1165,9 @@ Robert
 (use-package flycheck
   :config (global-flycheck-mode))
 
-(use-package uv-mode
-  :straight (:type git :host github :repo "z80dev/uv-mode")
-  :hook ((python-mode . uv-mode-auto-activate-hook)))
+;; (use-package uv-mode
+;;   :straight (:type git :host github :repo "z80dev/uv-mode")
+;;   :hook ((python-mode . uv-mode-auto-activate-hook)))
 
 (use-package docker
   :bind ("C-c d" . docker))
@@ -1721,7 +1771,14 @@ With ARG, do this that many times."
  '(w3m-home-page "https://lite.duckduckgo.com/lite")
  '(warning-suppress-log-types '((comp) (comp)))
  '(warning-suppress-types '((comp)))
- '(web-mode-enable-control-block-indentation t))
+ '(web-mode-enable-control-block-indentation t)
+ '(world-clock-list
+   '(("America/New_York" "New York")
+     ("America/Phoenix" "Phoenix")
+     ("America/Denver" "Denver")
+     ("America/Los_Angeles" "Los Angeles")
+     ("Europe/London" "London")
+     ("Asia/Manila" "Philippines"))))
 (custom-set-faces
  ;; custom-set-faces was added by Custom.
  ;; If you edit it by hand, you could mess it up, so be careful.

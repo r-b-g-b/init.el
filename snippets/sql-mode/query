@@ -1,0 +1,7 @@
+# -*- mode: snippet -*-
+# name: query
+# key: query
+# --
+select
+    ${1:select}
+from ${2:table}

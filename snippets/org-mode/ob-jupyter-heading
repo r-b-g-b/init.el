@@ -1,0 +1,11 @@
+# key: objupyterheading
+# name: ob-jupyter-heading
+# --
+:PROPERTIES:
+:header-args:jupyter-python: :session *`(concat (my/yank-buffer-name) "-jupyter")`* :results scalar :display image/svg+xml image/jpeg image/png text/plain text/html :exports both :eval no-export :tangle yes :comments link
+:END:
+
+#+begin_src jupyter-python
+import sys
+print(sys.executable)
+#+end_src
