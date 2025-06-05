@@ -634,17 +634,19 @@
             (hydra-push '(org-hydra/body)))
       "Jupyter" :color blue)
      ("q" hydra-pop "exit" :color blue))))
-   :bind
-   (
-    ("C-c C-j" . nil)
-    ("C-c a" . org-agenda)
-    ("<f6>" . org-capture)
-    :map org-mode-map
-    ("C-c h" . org-hydra/body)
-    ("C-c C-s" . org-schedule)
-    :map org-agenda-mode-map
-    ("N" . org-agenda-do-date-later)
-    ("P" . org-agenda-do-date-earlier)))
+  :bind
+  (
+   ("C-c C-j" . nil)
+   ("C-c a" . org-agenda)
+   ("<f6>" . org-capture)
+   :map org-mode-map
+   ("C-c h" . org-hydra/body)
+   ("C-c C-s" . org-schedule))
+  :config
+  ;; Only evaluate this after org-agenda is loaded
+  (with-eval-after-load 'org-agenda
+    (define-key org-agenda-mode-map (kbd "N") #'org-agenda-do-date-later)
+    (define-key org-agenda-mode-map (kbd "P") #'org-agenda-do-date-earlier)))
 
 (use-package jupyter
   :straight (:type git :host github :repo "r-b-g-b/jupyter" :branch "remap-hydra")
