@@ -1,13 +1,16 @@
+import os
+from pathlib import Path
+
 import pandas as pd
 import polars as pl
 import matplotlib.pyplot as plt
 
-pd.options.display.max_colwidth = 200
-pd.options.display.max_rows = 1_000
-pd.options.display.width = 500
+pd.options.display.max_colwidth = 100
+pd.options.display.max_rows = 20
+pd.options.display.width = 1_000
 
 pl.Config.set_fmt_str_lengths(100)
+pl.Config.set_tbl_rows(20)
 pl.Config.set_tbl_cols(50)
 pl.Config.set_tbl_hide_column_data_types(True)
-pl.Config.set_tbl_rows(100)
 pl.Config.set_tbl_width_chars(1_000)

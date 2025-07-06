@@ -6,6 +6,11 @@
 :END:
 
 #+begin_src jupyter-python
+%load_ext autoreload
+%autoreload 2
+#+end_src
+
+#+begin_src jupyter-python
 import sys
 print(sys.executable)
 #+end_src

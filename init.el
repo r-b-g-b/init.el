@@ -925,7 +925,7 @@ Robert
 (use-package gptel
   :defer t
   :custom
-  (gptel-model "gpt-4o-mini")
+  (gptel-model "o3")
   (gptel-api-key (auth-info-password (nth 0 (auth-source-search :max 1 :host "platform.openai.com"))))
   (gptel-default-mode 'org-mode))
 
@@ -948,7 +948,7 @@ Robert
   ;; (setq aider-args '("--model" "sonnet" "--no-auto-accept-architect"))
   ;; (setenv "ANTHROPIC_API_KEY" anthropic-api-key)
   ;; Or chatgpt model
-  (setq aider-args '("--model" "4o"))
+  (setq aider-args '("--model" "o3"))
   (setenv "OPENAI_API_KEY" (auth-info-password (nth 0 (auth-source-search :max 1 :host "platform.openai.com"))))
   ;; Or gemini model
   ;; (setq aider-args '("--model" "gemini-exp"))
@@ -1079,6 +1079,7 @@ Robert
         ("https://emacsrocks.com/atom.xml" code emacs)
         ("https://www.data-is-plural.com/feed.xml" code)
         ("https://lilianweng.github.io/index.xml" ml code)
+        ("https://www.data-is-plural.com/feed.xml" data)
         ("https://waxy.org/feed/" culture)
         ("http://feeds.kottke.org/main" culture)
         ("https://www.polygon.com/rss/index.xml" games)
@@ -1118,16 +1119,12 @@ Robert
   :ensure t
   :config
   (add-to-list 'eglot-server-programs
-               '(python-mode . ("pylsp")))
+               `(python-mode . ,(eglot-alternatives
+                                 '(("pylsp")
+                                   ("ruff" "server")))))
   :custom
   (eglot-workspace-configuration
-      '((pylsp
-         (plugins
-          (mccabe (enabled . nil)) ; Remove this if you want mccabe.
-          (pycodestyle (enabled . nil))
-          (pyflakes (enabled . nil))
-          (flake8 (enabled . nil))))))
-
+   '((:pylsp . (:plugins (:flake8 (:enabled :json-false))))))
   :hook
   ((python-mode . eglot-ensure)))
 
