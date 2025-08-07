@@ -1,0 +1,7 @@
+# -*- mode: snippet -*-
+# name: polars-context
+# key: polars
+# --
+with pl.Config() as cfg:
+    cfg.${1:set_tbl_rows}(${2:100})
+    display(${3})
