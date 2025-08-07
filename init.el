@@ -1243,7 +1243,9 @@ Robert
 
 (use-package poly-markdown)
 
-(use-package mermaid-mode)
+(use-package mermaid-mode
+  :mode
+  ("\\.mermaid\\'" "\\.mmjs\\'"))
 
 (use-package bicep-mode
   :straight (:type git :host github :repo "christiaan-janssen/bicep-mode"))
