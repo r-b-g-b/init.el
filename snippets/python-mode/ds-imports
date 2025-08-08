@@ -3,6 +3,7 @@ from pathlib import Path
 
 import pandas as pd
 import polars as pl
+import polars.selectors as cs
 import matplotlib.pyplot as plt
 
 pd.options.display.max_colwidth = 100

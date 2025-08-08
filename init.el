@@ -537,6 +537,9 @@
   (magit-log-margin '(t "%a, %b %d, %Y" magit-log-margin-width t 20))
   )
 
+(use-package magit-delta
+  :hook (magit-mode . magit-delta-mode))
+
 (use-package forge
   :straight (:type git :host github :repo "magit/forge" :branch "main")
   :after magit)
