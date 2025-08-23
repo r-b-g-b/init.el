@@ -1052,15 +1052,6 @@ Robert
   ;;				      parenthesized_expression subscript)))
   :hook ((python-base-mode yaml-mode) . indent-bars-mode))
 
-(use-package lemon
-  :straight (:host codeberg :repo "emacs-weirdware/lemon")
-  :config
-  (lemon-mode 1)
-  :custom
-  (lemon-delay 1)
-  :custom-face
-  (lemon-time-face ((t (:foreground "Pink")))))
-
 (use-package tp
   :straight (:host codeberg :repo "martianh/tp.el"))
 
@@ -1788,4 +1779,4 @@ With ARG, do this that many times."
  ;; If you edit it by hand, you could mess it up, so be careful.
  ;; Your init file should contain only one such instance.
  ;; If there is more than one, they won't work right.
- )
+ '(jupyter-repl-traceback ((t (:background "black")))))
