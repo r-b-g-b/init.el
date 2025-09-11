@@ -393,6 +393,17 @@
   :hook
   (embark-collect-mode . consult-preview-at-point-mode))
 
+(use-package consult-gh
+  :after consult)
+(use-package consult-gh-embark
+  :after consult-gh
+  :config
+  (consult-gh-embark-mode +1))
+(use-package consult-gh-forge
+  :after consult-gh
+  :config
+  (consult-gh-forge-mode +1))
+
 (use-package orderless
   :custom
   (completion-styles '(orderless basic))
@@ -538,7 +549,8 @@
   )
 
 (use-package magit-delta
-  :hook (magit-mode . magit-delta-mode))
+;;   :hook (magit-mode . magit-delta-mode)
+)
 
 (use-package forge
   :straight (:type git :host github :repo "magit/forge" :branch "main")
@@ -928,7 +940,7 @@ Robert
 (use-package gptel
   :defer t
   :custom
-  (gptel-model "o3")
+  (gptel-model "gpt-5")
   (gptel-api-key (auth-info-password (nth 0 (auth-source-search :max 1 :host "platform.openai.com"))))
   (gptel-default-mode 'org-mode))
 
@@ -951,7 +963,6 @@ Robert
   ;; (setq aider-args '("--model" "sonnet" "--no-auto-accept-architect"))
   ;; (setenv "ANTHROPIC_API_KEY" anthropic-api-key)
   ;; Or chatgpt model
-  (setq aider-args '("--model" "o3"))
   (setenv "OPENAI_API_KEY" (auth-info-password (nth 0 (auth-source-search :max 1 :host "platform.openai.com"))))
   ;; Or gemini model
   ;; (setq aider-args '("--model" "gemini-exp"))
