@@ -13,8 +13,20 @@
 
 (setq gc-cons-threshold 100000000)
 
+
+(defvar rbgb/font "CaskaydiaMono Nerd Font Mono-12"
+  "Default font for all Emacs frames.")
+
+(defun rbgb/set-font ()
+  (when (display-graphic-p)
+    (set-face-attribute 'default nil :font rbgb/font)
+    (set-fontset-font t 'unicode "CaskaydiaMono Nerd Font" nil 'prepend)))
+
+(add-hook 'server-after-make-frame-hook #'rbgb/set-font)
+(add-hook 'after-init-hook #'rbgb/set-font)
 (add-to-list 'default-frame-alist
-             '(background-color . "#292b2e"))
+             '(font . "CaskaydiaMono Nerd Font Mono-12"))
+
 
 ;; Disable package.el in favor of straight.el
 (setq package-enable-at-startup nil)

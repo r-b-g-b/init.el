@@ -1775,7 +1775,7 @@ With ARG, do this that many times."
  '(split-height-threshold 100)
  '(vc-follow-symlinks t)
  '(w3m-home-page "https://lite.duckduckgo.com/lite")
- '(warning-suppress-log-types '((comp) (comp)))
+ '(warning-suppress-log-types '((native-compiler) (comp) (comp)))
  '(warning-suppress-types '((comp)))
  '(web-mode-enable-control-block-indentation t)
  '(world-clock-list
