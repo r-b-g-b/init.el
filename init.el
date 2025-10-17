@@ -35,6 +35,8 @@
 (setq-default default-tab-width 4)
 
 (setq auth-source-debug t)
+(setq auth-sources '("~/.authinfo.gpg"))
+
 (setq backup-directory-alist '(("" . "~/.emacs.d/backups")))
 (setq bidi-inhibit-bpa t)
 (setq company-show-quick-access t)
