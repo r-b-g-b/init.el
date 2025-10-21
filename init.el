@@ -599,6 +599,7 @@
       (funcall x))))
 
 (use-package org
+  :straight (:host github :repo "emacs-straight/org-mode" :branch "release_9.6.30")
   :custom
   (org-babel-load-languages '((emacs-lisp . t) (shell . t) (python . t) (jupyter . t) (sql . t)))
   (org-babel-python-command "python")
@@ -670,8 +671,17 @@
   :after org
   :custom
   (jupyter-repl-echo-eval-p t)
-  (add-hook 'org-babel-after-execute-hook 'org-redisplay-inline-images)
+  (org-babel-default-header-args:jupyter-python '((:async . "yes")))
   :config
+  (defun my/org-babel-jupyter-handle-result-ansi-escapes ()
+    "Handle ANSI escapes in Jupyter src-block result."
+    (org-babel-map-src-blocks nil
+      (when (org-babel-jupyter-language-p lang)
+        (goto-char (org-babel-where-is-src-block-result))
+        (ansi-color-apply-on-region (point) (org-babel-result-end)))))
+  (add-hook 'org-babel-after-execute-hook #'my/org-babel-jupyter-handle-result-ansi-escapes)
+  (add-hook 'org-babel-after-execute-hook #'org-redisplay-inline-images)
+  (org-babel-jupyter-aliases-from-kernelspecs)
   (defun my/jupyter-execute-and-insert ()
     (interactive)
     (org-ctrl-c-ctrl-c)
@@ -738,6 +748,7 @@
 
   :bind
   (:map jupyter-org-interaction-mode-map ("C-c j" . jupyter-hydra/body)))
+
 (use-package quarto-mode
   :straight (:host github :repo "quarto-dev/quarto-emacs")
   :mode (("\\.qmd" . poly-quarto-mode))
