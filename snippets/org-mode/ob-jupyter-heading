@@ -2,15 +2,23 @@
 # name: ob-jupyter-heading
 # --
 :PROPERTIES:
-:header-args:jupyter-python: :session *`(concat (my/yank-buffer-name) "-jupyter")`* :results scalar :display image/svg+xml image/jpeg image/png text/plain text/html :exports both :eval no-export :tangle yes :comments link
+:header-args:jupyter-python: :session /jpy:${1:localhost}#${2:8888}:${3} :results scalar :display image/svg+xml image/jpeg image/png text/plain text/html :exports both :eval no-export :tangle yes :comments link
 :END:
 
-#+begin_src jupyter-python
+#+begin_src jupyter-python :async
 %load_ext autoreload
 %autoreload 2
 #+end_src
 
-#+begin_src jupyter-python
+#+begin_src jupyter-python :async
 import sys
 print(sys.executable)
+#+end_src
+
+#+begin_src jupyter-python :async
+try:
+    import ipykernel
+    print(ipykernel.get_connection_file())
+except ModuleNotFoundError:
+    pass
 #+end_src
