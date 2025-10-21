@@ -1698,6 +1698,10 @@ With ARG, do this that many times."
 
 (use-package w3m)
 
+(use-package time-zones
+  :straight ( :host github
+              :repo "xenodium/time-zones"))
+
 (use-package svg-lib)
 (use-package svg-tag-mode
   :requires svg-lib
@@ -1803,4 +1807,5 @@ With ARG, do this that many times."
  ;; If you edit it by hand, you could mess it up, so be careful.
  ;; Your init file should contain only one such instance.
  ;; If there is more than one, they won't work right.
+ '(header-line ((t (:background "#262626"))))
  '(jupyter-repl-traceback ((t (:background "black")))))
