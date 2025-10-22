@@ -14,16 +14,16 @@
 (setq gc-cons-threshold 100000000)
 
 
-(defvar rbgb/font "CaskaydiaMono Nerd Font Mono-12"
+(defvar my/font "CaskaydiaMono Nerd Font Mono-12"
   "Default font for all Emacs frames.")
 
-(defun rbgb/set-font ()
+(defun my/set-font ()
   (when (display-graphic-p)
-    (set-face-attribute 'default nil :font rbgb/font)
+    (set-face-attribute 'default nil :font my/font)
     (set-fontset-font t 'unicode "CaskaydiaMono Nerd Font" nil 'prepend)))
 
-(add-hook 'server-after-make-frame-hook #'rbgb/set-font)
-(add-hook 'after-init-hook #'rbgb/set-font)
+(add-hook 'server-after-make-frame-hook #'my/set-font)
+(add-hook 'after-init-hook #'my/set-font)
 (add-to-list 'default-frame-alist
              '(font . "CaskaydiaMono Nerd Font Mono-12"))
 

@@ -599,7 +599,6 @@
       (funcall x))))
 
 (use-package org
-  :straight (:host github :repo "emacs-straight/org-mode" :branch "release_9.6.30")
   :custom
   (org-babel-load-languages '((emacs-lisp . t) (shell . t) (python . t) (jupyter . t) (sql . t)))
   (org-babel-python-command "python")
