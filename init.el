@@ -1217,22 +1217,28 @@ Robert
 (use-package diminish)
 
 (use-package ligature
+  :straight (:host "github" :repo "ligature.el")
   :config
-  ;; ;; Enable the "www" ligature in every possible major mode
-  ;; (ligature-set-ligatures 't '("www"))
-
-  ;; Enable ligatures in programming modes
-  (ligature-set-ligatures 'prog-mode '("www" "**" "***" "**/" "*>" "*/" "\\\\" "\\\\\\"
-                                       "{-" "[]" "::" ":::" ":=" "!!" "!=" "!==" "-}"
-                                       "--" "---" "-->" "->" "->>" "-<" "-<<" "-~"
-                                       "#{" "#[" "##" "###" "####" "#(" "#?" "#_" "#_("
-                                       "/**" "/=" "/==" "/>" "//" "///" "&&" "||" "||="
-                                       "|=" "|>" "^=" "$>" "++" "+++" "+>" "=:=" "=="
-                                       "===" "==>" "=>" "=>>" "<=" "=<<" "=/=" ">-" ">="
-                                       ">=>" ">>" ">>-" ">>=" ">>>" "<*" "<*>" "<|" "<|>"
-                                       "<$" "<$>" "<!--" "<-" "<--" "<->" "<+" "<+>" "<="
-                                       "<==" "<=>" "<=<" "<>" "<<" "<<-" "<<=" "<<<" "<~"
-                                       "<~~" "</" "</>" "~@" "~-" "~=" "~>" "~~" "~~>" "%%"))
+  ;; Enable the "www" ligature in every possible major mode
+  (ligature-set-ligatures 't '("www"))
+  ;; Enable traditional ligature support in eww-mode, if the
+  ;; `variable-pitch' face supports it
+  (ligature-set-ligatures 'eww-mode '("ff" "fi" "ffi"))
+  ;; Enable all Cascadia Code ligatures in programming modes
+  (ligature-set-ligatures '(prog-mode org-mode) '("|||>" "<|||" "<==>" "<!--" "####" "~~>" "***" "||=" "||>"
+                                       ":::" "::=" "=:=" "===" "==>" "=!=" "=>>" "=<<" "=/=" "!=="
+                                       "!!." ">=>" ">>=" ">>>" ">>-" ">->" "->>" "-->" "---" "-<<"
+                                       "<~~" "<~>" "<*>" "<||" "<|>" "<$>" "<==" "<=>" "<=<" "<->"
+                                       "<--" "<-<" "<<=" "<<-" "<<<" "<+>" "</>" "###" "#_(" "..<"
+                                       "..." "+++" "/==" "///" "_|_" "www" "&&" "^=" "~~" "~@" "~="
+                                       "~>" "~-" "**" "*>" "*/" "||" "|}" "|]" "|=" "|>" "|-" "{|"
+                                       "[|" "]#" "::" ":=" ":>" ":<" "$>" "==" "=>" "!=" "!!" ">:"
+                                       ">=" ">>" ">-" "-~" "-|" "->" "--" "-<" "<~" "<*" "<|" "<:"
+                                       "<$" "<=" "<>" "<-" "<<" "<+" "</" "#{" "#[" "#:" "#=" "#!"
+                                       "##" "#(" "#?" "#_" "%%" ".=" ".-" ".." ".?" "+>" "++" "?:"
+                                       "?=" "?." "??" ";;" "/*" "/=" "/>" "//" "__" "~~" "(*" "*)"
+                                       "\\\\" "://"))
+  ;; Enables ligature checks globally in all buffers. You can also do it per mode with `ligature-mode'.
   (global-ligature-mode t))
 
 (use-package indent-tools)
@@ -1345,16 +1351,6 @@ Robert
 (use-package arduino-mode)
 
 (use-package sqlite3)
-
-(use-package emms
-  :custom
-  (emms-player-list '(emms-player-mpv))
-  (emms-player-mpv-parameters '("--quiet" "--really-quiet" "--no-config" "--save-position-on-quit" "--no-audio-display" ))
-  (emms-info-asynchronously t)
-  (emms-show-format "♪ %s")
-  (emms-source-file-default-directory "/mnt/uplandvault/music"))
-
-(emms-all)
 
 (use-package ready-player
   :straight ( :type git
