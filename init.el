@@ -56,7 +56,7 @@
 (setq user-mail-address "galileo@gmail.com")
 (setq which-func-unknown "n/a")
 
-(set-face-attribute 'default nil :height 86)
+(set-face-attribute 'default nil :height 150)
 
 (use-package straight
   :custom
@@ -1782,7 +1782,6 @@ With ARG, do this that many times."
  '(all-the-icons-dired-monochrome nil)
  '(column-number-mode t)
  '(csv-separators '("," "	" ";"))
- '(dired-listing-switches "-alh")
  '(ediff-window-setup-function 'ediff-setup-windows-plain)
  '(fill-column 100)
  '(indent-tabs-mode nil)
