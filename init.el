@@ -74,7 +74,8 @@
 
 (use-package dired
   :straight nil
-  :bind (:map dired-mode-map ("<SPC>" . dired-view-file-other-window)))
+  :bind (:map dired-mode-map ("<SPC>" . dired-view-file-other-window))
+  :hook (dired-mode . dired-hide-details-mode))
 
 (use-package dired-preview)
 
