@@ -75,9 +75,16 @@
 (use-package dired
   :straight nil
   :bind (:map dired-mode-map ("<SPC>" . dired-view-file-other-window))
-  :hook (dired-mode . dired-hide-details-mode))
+  :hook (dired-mode . dired-hide-details-mode)
+  :custom
+  (dired-listing-switches "-lah --group-directories-first"))
 
 (use-package dired-preview)
+
+(use-package dired-hacks
+  :straight (:host github :repo "Fuco1/dired-hacks")
+  :bind (:map dired-mode-map ("i" . dired-subtree-toggle))
+  :hook (dired-mode . dired-collapse-mode))
 
 (use-package ibuffer
   :straight nil
