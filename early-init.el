@@ -14,18 +14,18 @@
 (setq gc-cons-threshold 100000000)
 
 
-(defvar my/font "CaskaydiaMono Nerd Font Mono-12"
+(defvar my/font "CaskaydiaCove Nerd Font Mono-12"
   "Default font for all Emacs frames.")
 
 (defun my/set-font ()
   (when (display-graphic-p)
     (set-face-attribute 'default nil :font my/font)
-    (set-fontset-font t 'unicode "CaskaydiaMono Nerd Font" nil 'prepend)))
+    (set-fontset-font t 'unicode "CaskaydiaCove Nerd Font" nil 'prepend)))
 
 (add-hook 'server-after-make-frame-hook #'my/set-font)
 (add-hook 'after-init-hook #'my/set-font)
 (add-to-list 'default-frame-alist
-             '(font . "CaskaydiaMono Nerd Font Mono-12"))
+             '(font . "CaskaydiaCove Nerd Font Mono-12"))
 
 
 ;; Disable package.el in favor of straight.el
