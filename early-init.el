@@ -13,20 +13,15 @@
 
 (setq gc-cons-threshold 100000000)
 
-
-(defvar my/font "CaskaydiaCove Nerd Font Mono-12"
-  "Default font for all Emacs frames.")
-
-(defun my/set-font ()
-  (when (display-graphic-p)
-    (set-face-attribute 'default nil :font my/font)
-    (set-fontset-font t 'unicode "CaskaydiaCove Nerd Font" nil 'prepend)))
-
-(add-hook 'server-after-make-frame-hook #'my/set-font)
-(add-hook 'after-init-hook #'my/set-font)
-(add-to-list 'default-frame-alist
-             '(font . "CaskaydiaCove Nerd Font Mono-12"))
-
+;; Check if Caskaydia Cove is installed, otherwise use a fallback
+(let ((preferred-font "CaskaydiaCove Nerd Font")
+      (fallback-fonts '("Cascadia Code" "DejaVu Sans Mono" "Consolas" "Menlo" "Monaco" "Courier New")))
+  (set-face-attribute 'default nil
+                      :font (or (car (seq-filter
+                                      (lambda (f) (member f (font-family-list)))
+                                      (cons preferred-font fallback-fonts)))
+                                "Monospace")
+                      :height 110))
 
 ;; Disable package.el in favor of straight.el
 (setq package-enable-at-startup nil)
