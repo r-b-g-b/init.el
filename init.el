@@ -619,6 +619,7 @@
   (org-hide-emphasis-markers t)
   (org-startup-indented t)
   (org-support-shift-select t)
+  (org-use-speed-commands t)
   :pretty-hydra
   ((:title "Org" :color pink :quit-key ("q" "C-g"))
    ("Navigate"
@@ -672,6 +673,110 @@
   (with-eval-after-load 'org-agenda
     (define-key org-agenda-mode-map (kbd "N") #'org-agenda-do-date-later)
     (define-key org-agenda-mode-map (kbd "P") #'org-agenda-do-date-earlier)))
+
+(use-package code-cells
+  :straight (:type git :host github :repo "astoff/code-cells.el")
+  :preface
+  (declare-function code-cells--bounds "code-cells")
+  (declare-function code-cells-forward-cell "code-cells")
+  (defun my/code-cells-insert-above ()
+    "Insert a new `code-cells' boundary above the current cell.
+Moves point and mark to the blank line under the freshly inserted \"# %%\"."
+    (interactive)
+    (pcase-let ((`(,start ,_) (code-cells--bounds)))
+      (goto-char start)
+      (unless (or (bobp) (eq (char-before) ?\n))
+        (insert "\n"))
+      (let ((blank-pos (progn
+                         (insert "# %%\n")
+                         (point))))
+        (unless (eq (char-after) ?\n)
+          (insert "\n"))
+        (goto-char blank-pos)
+        (set-mark blank-pos))))
+  (defun my/code-cells-forward-cell ()
+    "Move to the next cell and place point below its boundary marker."
+    (interactive)
+    (let ((origin (point)))
+      (code-cells-forward-cell)
+      (when (and (< origin (point))
+                 (not (eobp)))
+        (forward-line 1)
+        (back-to-indentation))))
+  (defun my/code-cells-backward-cell ()
+    "Move to the previous cell and place point below its boundary marker."
+    (interactive)
+    (let ((origin (point)))
+      (code-cells-backward-cell)
+      (when (and (< origin (point))
+                 (not (eobp)))
+        (forward-line 1)
+        (back-to-indentation))))
+  (defun my/code-cells-insert-below ()
+    "Insert a new `code-cells' boundary below the current cell.
+Moves point (and mark) to the blank line right under the freshly
+inserted \"# %%\" marker."
+    (interactive)
+    (pcase-let ((`(,_ ,end) (code-cells--bounds)))
+      (goto-char end)
+      (unless (bolp)
+        (goto-char (line-end-position))
+        (insert "\n"))
+      (let ((blank-pos (progn
+                         (insert "# %%\n")
+                         (point))))
+        (unless (eq (char-after) ?\n)
+          (insert "\n"))
+        (goto-char blank-pos)
+        (set-mark blank-pos))))
+  (defun my/new-code-cell-notebook (notebook-name &optional kernel)
+    "Creates an empty notebook in the current directory with an associated kernel."
+    (interactive "sEnter the notebook name: ")
+    (when (file-name-extension notebook-name)
+      (setq notebook-name (file-name-sans-extension notebook-name)))
+    (unless kernel
+      (setq kernel
+            (jupyter-kernelspec-name
+             (jupyter-completing-read-kernelspec))))
+    (unless (executable-find "jupytext")
+      (error "Can't find \"jupytext\""))
+    (let ((notebook-py (concat notebook-name ".py")))
+      (shell-command (concat "touch " notebook-py))
+      (shell-command
+       (concat "jupytext --set-kernel " kernel " " notebook-py))
+      (shell-command (concat "jupytext --to notebook " notebook-py))
+      (shell-command (concat "rm " notebook-py))
+      (message
+       (concat
+        "Notebook successfully created at " notebook-name ".ipynb"))))
+  :pretty-hydra
+  ((:title "Code Cells" :color pink :quit-key ("q" "C-g"))
+   ("Navigate"
+    (
+     ("p" my/code-cells-backward-cell "Previous")
+     ("n" my/code-cells-forward-cell "Next")
+     ("k" my/code-cells-backward-cell "Previous")
+     ("j" my/code-cells-forward-cell "Next")
+     ("P" code-cells-move-cell-up "Move up")
+     ("N" code-cells-move-cell-down "Move down")
+     ("@" code-cells-mark-cell "Mark cell"))
+    "Edit"
+    (("w" code-cells-copy "Copy")
+     ("o" code-cells-duplicate "Duplicate")
+     ("a" my/code-cells-insert-above "Insert above")
+     ("b" my/code-cells-insert-below "Insert below")
+     ("<prior>" code-cells-move-cell-up "Move up")
+     ("<next>" code-cells-move-cell-down "Move down")
+     ("d" code-cells-kill "Kill")
+     (";" code-cells-comment-or-uncomment "Comment")
+     ("\\" code-cells-indent "indent"))
+    "Evaluate"
+    (("e" code-cells-eval-and-step "Execute cell")
+     ("C-e" code-cells-eval "Execute & stay")
+     ("B" code-cells-eval-whole-buffer "eval buffer"))))
+  :bind (:map code-cells-mode-map
+              ("C-c j" . code-cells-hydra/body)
+              ("C-c C-c" . code-cells-eval)))
 
 (use-package jupyter
   :straight (:type git :host github :repo "r-b-g-b/jupyter" :branch "remap-hydra")
