@@ -1255,15 +1255,6 @@ Robert
 (use-package elpher
   :bind (:map elpher-mode-map (("n" . next-line) ("p" . previous-line) ("v" . push-button) ("q" . elpher-back))))
 
-(use-package company
-  :hook (after-init . global-company-mode)
-  :custom
-  (company-idle-delay 1)
-  (company-minimum-prefix-length 2))
-
-(use-package company-box
-  :hook (company-mode . company-box-mode))
-
 (use-package eglot
   :ensure t
   :config
@@ -1481,6 +1472,8 @@ Robert
               :host github
               :repo "xenodium/ready-player"
               :files ("ready-player.el"))
+  :custom
+  (ready-player-my-media-collection-location "/mnt/uplandvault/music")
   :config
   (ready-player-mode +1))
 
