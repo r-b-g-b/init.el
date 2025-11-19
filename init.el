@@ -51,6 +51,7 @@
 (setq ring-bell-function 'ignore)
 (setq scroll-conservatively 5)
 (setq scroll-margin 10)
+(setq tab-always-indent 'complete)
 (setq use-short-answers t)
 (setq user-full-name "Robert Gibboni")
 (setq user-mail-address "galileo@gmail.com")
