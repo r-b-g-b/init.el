@@ -1097,35 +1097,6 @@ Robert
   (gptel-api-key (auth-info-password (nth 0 (auth-source-search :max 1 :host "platform.openai.com"))))
   (gptel-default-mode 'org-mode))
 
-;; (use-package aidermacs
-;;   :straight (:host github :repo "MatthewZMD/aidermacs")
-;;   :bind (("C-x p a" . aidermacs-transient-menu))
-;;   :custom
-;;   ; See the Configuration section below
-;;   (aidermacs-use-architect-mode t)
-;;   (aidermacs-default-model "4o")
-;;   :hook ((
-;;          aidermacs-before-run-backend .
-;;           (lambda ()
-;;             (setenv "OPENAI_API_KEY" (auth-info-password (nth 0 (auth-source-search :max 1 :host "platform.openai.com")))))
-;;          )))
-
-(use-package aider
-  :straight (:host github :repo "tninja/aider.el")
-  :config
-  ;; (setq aider-args '("--model" "sonnet" "--no-auto-accept-architect"))
-  ;; (setenv "ANTHROPIC_API_KEY" anthropic-api-key)
-  ;; Or chatgpt model
-  (setenv "OPENAI_API_KEY" (auth-info-password (nth 0 (auth-source-search :max 1 :host "platform.openai.com"))))
-  ;; Or gemini model
-  ;; (setq aider-args '("--model" "gemini-exp"))
-  ;; (setenv "GEMINI_API_KEY" <your-gemini-api-key>)
-  ;; Or use your personal config file
-  ;; (setq aider-args `("--config" ,(expand-file-name "~/.aider.conf.yml")))
-  ;; ;;
-  ;; Optional: Set a key binding for the transient menu
-  :bind (("C-x p a" . aider-transient-menu)))
-
 (use-package codex-cli
   :straight (:host github :repo "bennfocus/codex-cli.el")
   :bind (("C-c c t" . codex-cli-toggle)
@@ -1360,7 +1331,7 @@ Robert
 (use-package diminish)
 
 (use-package ligature
-  :straight (:host "github" :repo "ligature.el")
+  :straight (:type git :host github :repo "mickeynp/ligature.el")
   :config
   ;; Enable the "www" ligature in every possible major mode
   (ligature-set-ligatures 't '("www"))
