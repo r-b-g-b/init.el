@@ -361,7 +361,7 @@
   ;; m Bookmarks
   ;; p Project
   ;; Custom other sources configured in consult-buffer-sources.
-)
+  )
 
 (use-package marginalia
   :ensure t
@@ -587,8 +587,8 @@
   )
 
 (use-package magit-delta
-;;   :hook (magit-mode . magit-delta-mode)
-)
+  ;;   :hook (magit-mode . magit-delta-mode)
+  )
 
 (use-package forge
   :straight (:type git :host github :repo "magit/forge" :branch "main")
@@ -1097,6 +1097,31 @@ Robert
   (gptel-api-key (auth-info-password (nth 0 (auth-source-search :max 1 :host "platform.openai.com"))))
   (gptel-default-mode 'org-mode))
 
+(use-package copilot
+  :straight (:host github :repo "copilot-emacs/copilot.el" :files ("*.el"))
+  :hook (prog-mode . copilot-mode)
+  :bind (("<backtab>" . copilot-accept-completion))
+  :config
+  (add-to-list 'copilot-indentation-alist '(makefile-gmake-mode 8))
+  (add-to-list 'copilot-indentation-alist '(emacs-lisp-mode 2))
+  (add-to-list 'copilot-indentation-alist '(sql-mode 4)))
+
+(use-package aider
+  :straight (:host github :repo "tninja/aider.el")
+  :config
+  ;; (setq aider-args '("--model" "sonnet" "--no-auto-accept-architect"))
+  ;; (setenv "ANTHROPIC_API_KEY" anthropic-api-key)
+  ;; Or chatgpt model
+  (setenv "OPENAI_API_KEY" (auth-info-password (nth 0 (auth-source-search :max 1 :host "platform.openai.com"))))
+  ;; Or gemini model
+  ;; (setq aider-args '("--model" "gemini-exp"))
+  ;; (setenv "GEMINI_API_KEY" <your-gemini-api-key>)
+  ;; Or use your personal config file
+  ;; (setq aider-args `("--config" ,(expand-file-name "~/.aider.conf.yml")))
+  ;; ;;
+  ;; Optional: Set a key binding for the transient menu
+  :bind (("C-x p a" . aider-transient-menu)))
+
 (use-package codex-cli
   :straight (:host github :repo "bennfocus/codex-cli.el")
   :bind (("C-c c t" . codex-cli-toggle)
@@ -1121,9 +1146,9 @@ Robert
   :init
   (require 'llm-ollama)
   (setopt ellama-provider
-                    (make-llm-ollama
-                     :chat-model "llama3:8b-instruct-q4_0"
-                     :embedding-model "llama3:8b-instruct-q4_K_M"))
+          (make-llm-ollama
+           :chat-model "llama3:8b-instruct-q4_0"
+           :embedding-model "llama3:8b-instruct-q4_K_M"))
   :custom
   (ellama-keymap-prefix "C-c l")
   (ellama-user-nick (getenv "USER"))
@@ -1136,14 +1161,22 @@ Robert
 
 (use-package eshell-git-prompt)
 
+(defun my/vterm-backward-kill-word ()
+  (interactive)
+  (vterm-send-key (kbd "C-w")))
+
 (use-package vterm
   :custom
   (vterm-always-compile-module t)
-  :bind (:map vterm-mode-map ("C-<backspace>" . (lambda () (interactive) (vterm-send-key (kbd "C-w"))))
-         :map project-prefix-map ("v" . multi-vterm-project)))
+  :bind
+  (:map vterm-mode-map
+        ("C-<backspace>" . my/vterm-backward-kill-word)))
 
 (use-package multi-vterm
-  :after vterm)
+  :after vterm
+  :bind
+  (:map project-prefix-map
+        ("v" . multi-vterm-project)))
 
 (use-package vterm-toggle
   :after vterm)
@@ -1180,16 +1213,12 @@ Robert
   (popper-reference-buffers
    '("^\\*eshell.*\\*$" eshell-mode
      "^\\*shell.*\\*$" shell-mode
-     "^\\*term.*\\*$" term-mode
-     "^\\*vterm.*\\*$" vterm-mode
-     "^\\*Python.*\\*$" inferior-python-mode
      "\\*Messages\\*"
      "Output\\*$"
      ;; ("\\*Async Shell Command\\*" . hide)
      ("\\*Warnings\\*" . hide)
      help-mode
-     compilation-mode))
-)
+     compilation-mode)))
 
 (use-package indent-bars
   :straight (:host github :repo "jdtsmith/indent-bars")
@@ -1198,7 +1227,7 @@ Robert
   (indent-bars-treesit-ignore-blank-lines-types '("module"))
   ;; Add other languages as needed
   (indent-bars-treesit-scope '((python function_definition class_definition for_statement
-          if_statement with_statement while_statement)))
+                                       if_statement with_statement while_statement)))
   ;; Note: wrap may not be needed if no-descend-list is enough
   ;;(indent-bars-treesit-wrap '((python argument_list parameters ; for python, as an example
   ;;				      list list_comprehension
@@ -1219,19 +1248,19 @@ Robert
 (use-package elfeed
   :custom
   (elfeed-feeds
-      '(("http://nullprogram.com/feed/" code)
-        ("https://planet.emacslife.com/atom.xml" code emacs)
-        ("https://sburris.xyz/atom.xml" code)
-        ("https://www.seangoedecke.com/rss.xml" ai code)
-        ("https://drew.silcock.dev/rss.xml" code)
-        ("https://emacsrocks.com/atom.xml" code emacs)
-        ("https://www.data-is-plural.com/feed.xml" code)
-        ("https://lilianweng.github.io/index.xml" ml code)
-        ("https://www.data-is-plural.com/feed.xml" data)
-        ("https://waxy.org/feed/" culture)
-        ("http://feeds.kottke.org/main" culture)
-        ("https://www.polygon.com/rss/index.xml" games)
-        ("https://p.bauherren.ovh/rss" emacs)))
+   '(("http://nullprogram.com/feed/" code)
+     ("https://planet.emacslife.com/atom.xml" code emacs)
+     ("https://sburris.xyz/atom.xml" code)
+     ("https://www.seangoedecke.com/rss.xml" ai code)
+     ("https://drew.silcock.dev/rss.xml" code)
+     ("https://emacsrocks.com/atom.xml" code emacs)
+     ("https://www.data-is-plural.com/feed.xml" code)
+     ("https://lilianweng.github.io/index.xml" ml code)
+     ("https://www.data-is-plural.com/feed.xml" data)
+     ("https://waxy.org/feed/" culture)
+     ("http://feeds.kottke.org/main" culture)
+     ("https://www.polygon.com/rss/index.xml" games)
+     ("https://p.bauherren.ovh/rss" emacs)))
   (elfeed-search-title-max-width 100)
   :bind (:map elfeed-search-mode-map ("g" . elfeed-update)))
 
@@ -1311,6 +1340,7 @@ Robert
   :bind ("C-c d" . docker))
 
 (use-package keychain-environment
+  :straight (:type git :host github :repo "emacsorphanage/keychain-environment")
   :config
   (keychain-refresh-environment))
 
@@ -1340,18 +1370,18 @@ Robert
   (ligature-set-ligatures 'eww-mode '("ff" "fi" "ffi"))
   ;; Enable all Cascadia Code ligatures in programming modes
   (ligature-set-ligatures '(prog-mode org-mode) '("|||>" "<|||" "<==>" "<!--" "####" "~~>" "***" "||=" "||>"
-                                       ":::" "::=" "=:=" "===" "==>" "=!=" "=>>" "=<<" "=/=" "!=="
-                                       "!!." ">=>" ">>=" ">>>" ">>-" ">->" "->>" "-->" "---" "-<<"
-                                       "<~~" "<~>" "<*>" "<||" "<|>" "<$>" "<==" "<=>" "<=<" "<->"
-                                       "<--" "<-<" "<<=" "<<-" "<<<" "<+>" "</>" "###" "#_(" "..<"
-                                       "..." "+++" "/==" "///" "_|_" "www" "&&" "^=" "~~" "~@" "~="
-                                       "~>" "~-" "**" "*>" "*/" "||" "|}" "|]" "|=" "|>" "|-" "{|"
-                                       "[|" "]#" "::" ":=" ":>" ":<" "$>" "==" "=>" "!=" "!!" ">:"
-                                       ">=" ">>" ">-" "-~" "-|" "->" "--" "-<" "<~" "<*" "<|" "<:"
-                                       "<$" "<=" "<>" "<-" "<<" "<+" "</" "#{" "#[" "#:" "#=" "#!"
-                                       "##" "#(" "#?" "#_" "%%" ".=" ".-" ".." ".?" "+>" "++" "?:"
-                                       "?=" "?." "??" ";;" "/*" "/=" "/>" "//" "__" "~~" "(*" "*)"
-                                       "\\\\" "://"))
+                                                  ":::" "::=" "=:=" "===" "==>" "=!=" "=>>" "=<<" "=/=" "!=="
+                                                  "!!." ">=>" ">>=" ">>>" ">>-" ">->" "->>" "-->" "---" "-<<"
+                                                  "<~~" "<~>" "<*>" "<||" "<|>" "<$>" "<==" "<=>" "<=<" "<->"
+                                                  "<--" "<-<" "<<=" "<<-" "<<<" "<+>" "</>" "###" "#_(" "..<"
+                                                  "..." "+++" "/==" "///" "_|_" "www" "&&" "^=" "~~" "~@" "~="
+                                                  "~>" "~-" "**" "*>" "*/" "||" "|}" "|]" "|=" "|>" "|-" "{|"
+                                                  "[|" "]#" "::" ":=" ":>" ":<" "$>" "==" "=>" "!=" "!!" ">:"
+                                                  ">=" ">>" ">-" "-~" "-|" "->" "--" "-<" "<~" "<*" "<|" "<:"
+                                                  "<$" "<=" "<>" "<-" "<<" "<+" "</" "#{" "#[" "#:" "#=" "#!"
+                                                  "##" "#(" "#?" "#_" "%%" ".=" ".-" ".." ".?" "+>" "++" "?:"
+                                                  "?=" "?." "??" ";;" "/*" "/=" "/>" "//" "__" "~~" "(*" "*)"
+                                                  "\\\\" "://"))
   ;; Enables ligature checks globally in all buffers. You can also do it per mode with `ligature-mode'.
   (global-ligature-mode t))
 
@@ -1391,6 +1421,8 @@ Robert
 (use-package mermaid-mode
   :mode
   ("\\.mermaid\\'" "\\.mmjs\\'"))
+
+(use-package terraform-mode)
 
 (use-package bicep-mode
   :straight (:type git :host github :repo "christiaan-janssen/bicep-mode"))
@@ -1574,44 +1606,44 @@ Robert
   (mu4e-notification-support t)
   (mu4e-search-include-related nil)
   (mu4e-sent-messages-behavior 'delete)
-  (mu4e-split-view 'vertical)
+  (mu4e-split-view 'nil)
   (mu4e-update-interval (* 60 5))
   (mu4e-use-fancy-chars t)
   (mu4e-view-show-images t)
   (mu4e-bookmarks
    '(
-      (
-        :name "Galileo"
-        :query "(m:/galileo/Inbox or m:\"/galileo/Sent Mail\" or (from:galileo@gmail.com and not (m:/galileo/Trash or m:/galileo/Drafts))) and date:45d..now and not flag:trashed"
-        :key ?g
+     (
+      :name "Galileo"
+      :query "(m:/galileo/Inbox or m:\"/galileo/Sent Mail\" or (from:galileo@gmail.com and not (m:/galileo/Trash or m:/galileo/Drafts))) and date:45d..now and not flag:trashed"
+      :key ?g
       )
-      (
-        :name "Galileo all"
-        :query "(m:/galileo/Inbox or m:\"/galileo/Sent Mail\" or m:/galileo/Archive) and date:90d..now and not flag:trashed"
-        :key ?G
+     (
+      :name "Galileo all"
+      :query "(m:/galileo/Inbox or m:\"/galileo/Sent Mail\" or m:/galileo/Archive) and date:90d..now and not flag:trashed"
+      :key ?G
       )
-      (
-        :name "DrivenData"
-        :query "(m:/drivendata/Inbox or m:\"/drivendata/Sent Mail\" or (from:robert@drivendata.org and not (m:/drivendata/Trash or m:/drivendata/Drafts))) and date:45d..now and not flag:trashed"
-        :key ?d
+     (
+      :name "DrivenData"
+      :query "(m:/drivendata/Inbox or m:\"/drivendata/Sent Mail\" or (from:robert@drivendata.org and not (m:/drivendata/Trash or m:/drivendata/Drafts))) and date:45d..now and not flag:trashed"
+      :key ?d
       )
-      (
-        :name "DrivenData all"
-        :query "(m:/drivendata/Inbox or m:\"/drivendata/Sent Mail\" or m:/drivendata/Archive) and date:90d..now and not flag:trashed"
-        :key ?D
+     (
+      :name "DrivenData all"
+      :query "(m:/drivendata/Inbox or m:\"/drivendata/Sent Mail\" or m:/drivendata/Archive) and date:90d..now and not flag:trashed"
+      :key ?D
       )
-      (
-        :name "All"
-        :query "not m:/galileo/Spam and not m:/galileo/Trash and not m:/drivendata/Spam and not m:/drivendata/Trash and date:21d..now"
-        :key ?a
+     (
+      :name "All"
+      :query "not m:/galileo/Spam and not m:/galileo/Trash and not m:/drivendata/Spam and not m:/drivendata/Trash and date:21d..now"
+      :key ?a
       )
-      (
-        :name "Unread messages"
-        :query "flag:unread and not m:/galileo/Spam and not m:/galileo/Trash and not m:/drivendata/Spam and not m:/drivendata/Trash and date:21d..now"
-        :key ?u
+     (
+      :name "Unread messages"
+      :query "flag:unread and not m:/galileo/Spam and not m:/galileo/Trash and not m:/drivendata/Spam and not m:/drivendata/Trash and date:21d..now"
+      :key ?u
       )
-    )
-  )
+     )
+   )
   :config
   (advice-add 'org-msg-preview :around #'my/org-msg-no-temp-buffer)
   (advice-add 'org-msg-ctrl-c-ctrl-c :around #'my/org-msg-no-temp-buffer)
@@ -1673,22 +1705,22 @@ Robert
                  :dyn-target (lambda (target msg) (s-replace "Trash" "Spam" (mu4e-get-trash-folder msg)))
                  :action      (lambda (docid msg target)
                                 (mu4e--server-move docid (mu4e--mark-check-target target) "+S-u-N")
-)))
+                                )))
   (defun my/contact-processor (contact)
     (cond
-      ((string-match-p "CashApp" contact) nil)
-      ((string-match-p "[🚀⭐🎉🎁🎲🌻📦💰💌💘💲🚚🔻]" contact) nil)
-      ((string-match-p "^[A-Z\.]*@gmail.com$" contact) nil)
-      ((string-match-p "^[Gg][Aa].*@gmail.com$" contact) nil)
-      ((string-match-p "^[Gg]alileo.*" contact) nil)
-      ((string-match-p "autozone@em\.autozone\.com\.mx" contact) nil)
-      ((string-match-p "discoursemail\.com$" contact) nil)
-      ((string-match-p "docs\.google\.com$" contact) nil)
-      ((string-match-p "mg1\.substack\.com$" contact) nil)
-      ((string-match-p "onf\.ru$" contact) nil)
-      ((string-match-p "reply" contact) nil)
-      ((string-match-p "unsubscribe" contact) nil)
-      (t contact)))
+     ((string-match-p "CashApp" contact) nil)
+     ((string-match-p "[🚀⭐🎉🎁🎲🌻📦💰💌💘💲🚚🔻]" contact) nil)
+     ((string-match-p "^[A-Z\.]*@gmail.com$" contact) nil)
+     ((string-match-p "^[Gg][Aa].*@gmail.com$" contact) nil)
+     ((string-match-p "^[Gg]alileo.*" contact) nil)
+     ((string-match-p "autozone@em\.autozone\.com\.mx" contact) nil)
+     ((string-match-p "discoursemail\.com$" contact) nil)
+     ((string-match-p "docs\.google\.com$" contact) nil)
+     ((string-match-p "mg1\.substack\.com$" contact) nil)
+     ((string-match-p "onf\.ru$" contact) nil)
+     ((string-match-p "reply" contact) nil)
+     ((string-match-p "unsubscribe" contact) nil)
+     (t contact)))
   (setq mu4e-contact-process-function 'my/contact-processor)
   (defun my/mu4e-view-message-with-message-id ()
     (interactive)
@@ -1696,9 +1728,9 @@ Robert
       (mu4e-view-message-with-message-id (replace-regexp-in-string "^mu4e:msgid:" "" input))))
   :bind (
          :map mu4e-headers-mode-map
-              ("i" . my/mu4e-view-message-with-message-id)
-              ("v" . mu4e-headers-view-message)
-              ("@" . my/mu4e-mark-spam)))
+         ("i" . my/mu4e-view-message-with-message-id)
+         ("v" . mu4e-headers-view-message)
+         ("@" . my/mu4e-mark-spam)))
 
 (defun my/yank-buffer-name ()
   (interactive)
@@ -1851,11 +1883,11 @@ With ARG, do this that many times."
     ("a" ace-select-window "Select"))
 
    "Font size"
-   (("1" (set-face-attribute 'default nil :height 70) "small")
-    ("2" (set-face-attribute 'default nil :height 90) "normal")
-    ("3" (set-face-attribute 'default nil :height 110) "large")
-    ("4" (set-face-attribute 'default nil :height 130) "xlarge")
-    ("5" (set-face-attribute 'default nil :height 160) "xxlarge"))
+   (("1" (set-face-attribute 'default nil :height 90) "small")
+    ("2" (set-face-attribute 'default nil :height 110) "normal")
+    ("3" (set-face-attribute 'default nil :height 130) "large")
+    ("4" (set-face-attribute 'default nil :height 150) "xlarge")
+    ("5" (set-face-attribute 'default nil :height 170) "xxlarge"))
 
    "Resize"
    (("h" move-border-left "←")
