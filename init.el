@@ -57,8 +57,6 @@
 (setq user-mail-address "galileo@gmail.com")
 (setq which-func-unknown "n/a")
 
-(set-face-attribute 'default nil :height 150)
-
 (use-package straight
   :custom
   (straight-use-package-by-default t)
@@ -94,6 +92,11 @@
 (use-package plstore
   :config
   (add-to-list 'plstore-encrypt-to "A09542E9140692F4"))
+
+(use-package elisp-demos
+  :straight (:host github :repo "xuchunyang/elisp-demos")
+  :config
+  (advice-add 'describe-function-1 :after #'elisp-demos-advice-describe-function-1))
 
 (use-package emacs-async
   :hook
@@ -574,6 +577,11 @@
 (use-package multiple-cursors
   :custom (mc/insert-numbers-default 1))
 
+(use-package physical-font-size
+  :straight (:type git :host github :repo "r-b-g-b/emacs-physical-font-size")
+  :config
+  (physical-font-size-setup))
+
 (use-package magit
   :bind
   ("C-x g" . magit-status)
@@ -707,21 +715,71 @@
   :preface
   (declare-function code-cells--bounds "code-cells")
   (declare-function code-cells-forward-cell "code-cells")
-  (defun my/code-cells-insert-above ()
-    "Insert a new `code-cells' boundary above the current cell.
-Moves point and mark to the blank line under the freshly inserted \"# %%\"."
+  (defun my/code-cells-split ()
+    "Split the current code cell at point."
     (interactive)
-    (pcase-let ((`(,start ,_) (code-cells--bounds)))
-      (goto-char start)
-      (unless (or (bobp) (eq (char-before) ?\n))
-        (insert "\n"))
-      (let ((blank-pos (progn
-                         (insert "# %%\n")
-                         (point))))
-        (unless (eq (char-after) ?\n)
-          (insert "\n"))
-        (goto-char blank-pos)
-        (set-mark blank-pos))))
+    (pcase-let ((`(,start ,end) (code-cells--bounds)))
+      (goto-char (point))
+      (let ((split-pos (point)))
+        (if (or (<= split-pos start)
+                (>= split-pos end))
+            (message "Point is outside the current cell.")
+          (progn
+            ;; Insert cell boundary
+            (unless (bolp)
+              (goto-char split-pos)
+              (end-of-line)
+              (insert "\n"))
+            (let ((blank-pos (progn (insert "# %%\n") (point))))
+              (unless (eq (char-after) ?\n)
+                (insert "\n"))
+              (goto-char blank-pos)
+              (set-mark blank-pos)))))))
+  (defun my/code-cells-insert (cell-type &optional arg)
+    "Insert a new `code-cells' boundary relative to the current cell.
+
+By default, insert *below* the current cell.
+With universal argument ARG (C-u), insert *above* the current cell.
+
+CELL-TYPE defaults to nil (code cell: \"# %%\").
+If CELL-TYPE is \"markdown\", insert a markdown cell header
+(\"# %% [markdown]\") instead.
+
+Moves point and mark to the blank line under the freshly inserted cell."
+    (interactive
+     (list (when current-prefix-arg "markdown")
+           current-prefix-arg))
+    (let* ((header (if (and (stringp cell-type)
+                            (string= cell-type "markdown"))
+                       "# %% [markdown]\n"
+                     "# %%\n")))
+      (pcase-let ((`(,start ,end) (code-cells--bounds)))
+        (if arg
+            ;; Insert above
+            (progn
+              (goto-char start)
+              (unless (or (bobp) (eq (char-before) ?\n))
+                (insert "\n"))
+              (let ((blank-pos (progn (insert header) (point))))
+                (unless (eq (char-after) ?\n)
+                  (insert "\n"))
+                (goto-char blank-pos)
+                (set-mark blank-pos)))
+          ;; Insert below
+          (progn
+            (goto-char end)
+            (unless (bolp)
+              (goto-char (line-end-position))
+              (insert "\n"))
+            (let ((blank-pos (progn (insert header) (point))))
+              (unless (eq (char-after) ?\n)
+                (insert "\n"))
+              (goto-char blank-pos)
+              (set-mark blank-pos)))))))
+  (defun my/code-cell-black ()
+    "Format the current cell using black-macchiato"
+    (interactive)
+    )
   (defun my/code-cells-forward-cell ()
     "Move to the next cell and place point below its boundary marker."
     (interactive)
@@ -740,23 +798,6 @@ Moves point and mark to the blank line under the freshly inserted \"# %%\"."
                  (not (eobp)))
         (forward-line 1)
         (back-to-indentation))))
-  (defun my/code-cells-insert-below ()
-    "Insert a new `code-cells' boundary below the current cell.
-Moves point (and mark) to the blank line right under the freshly
-inserted \"# %%\" marker."
-    (interactive)
-    (pcase-let ((`(,_ ,end) (code-cells--bounds)))
-      (goto-char end)
-      (unless (bolp)
-        (goto-char (line-end-position))
-        (insert "\n"))
-      (let ((blank-pos (progn
-                         (insert "# %%\n")
-                         (point))))
-        (unless (eq (char-after) ?\n)
-          (insert "\n"))
-        (goto-char blank-pos)
-        (set-mark blank-pos))))
   (defun my/new-code-cell-notebook (notebook-name &optional kernel)
     "Creates an empty notebook in the current directory with an associated kernel."
     (interactive "sEnter the notebook name: ")
@@ -791,8 +832,13 @@ inserted \"# %%\" marker."
     "Edit"
     (("w" code-cells-copy "Copy")
      ("o" code-cells-duplicate "Duplicate")
-     ("a" my/code-cells-insert-above "Insert above")
-     ("b" my/code-cells-insert-below "Insert below")
+     ("s" my/code-cells-split "Split")
+     ("a" (lambda () (interactive) (my/code-cells-insert nil t)) "Insert above")
+     ("b" my/code-cells-insert "Insert below")
+     ("A" (lambda () (interactive) (my/code-cells-insert "markdown" t))
+      "Insert Markdown above")
+     ("B" (lambda () (interactive) (my/code-cells-insert "markdown"))
+      "Insert Markdown below")
      ("<prior>" code-cells-move-cell-up "Move up")
      ("<next>" code-cells-move-cell-down "Move down")
      ("d" code-cells-kill "Kill")
@@ -800,8 +846,7 @@ inserted \"# %%\" marker."
      ("\\" code-cells-indent "indent"))
     "Evaluate"
     (("e" code-cells-eval-and-step "Execute cell")
-     ("C-e" code-cells-eval "Execute & stay")
-     ("B" code-cells-eval-whole-buffer "eval buffer"))))
+     ("C-e" code-cells-eval "Execute & stay"))))
   :bind (:map code-cells-mode-map
               ("C-c j" . code-cells-hydra/body)
               ("C-c C-c" . code-cells-eval)))
@@ -1200,26 +1245,6 @@ Robert
   :custom
   (reb-re-syntax 'string))
 
-(use-package popper
-  :bind (("C-`" . popper-toggle)
-         ("M--" . popper-cycle)
-         ("C-M-`" . popper-toggle-type))
-  :init
-  (setq popper-group-function #'popper-group-by-directory) ; group by project.el project root, with fall back to default-directory
-  :custom
-  (popper-echo-dispatch-keys '("M-a" "M-s" "M-d" "M-f" "M-g"))
-  (popper-mode +1)
-  (popper-echo-mode +1)  ; For echo area hints
-  (popper-reference-buffers
-   '("^\\*eshell.*\\*$" eshell-mode
-     "^\\*shell.*\\*$" shell-mode
-     "\\*Messages\\*"
-     "Output\\*$"
-     ;; ("\\*Async Shell Command\\*" . hide)
-     ("\\*Warnings\\*" . hide)
-     help-mode
-     compilation-mode)))
-
 (use-package indent-bars
   :straight (:host github :repo "jdtsmith/indent-bars")
   :custom
@@ -1387,11 +1412,8 @@ Robert
 
 (use-package indent-tools)
 
-(use-package pdf-tools
-  :magic ("%PDF" . pdf-view-mode)
-  :config
-  (pdf-loader-install :no-query)
-  :bind (:map pdf-view-mode-map ("C-s" . isearch-forward) ("C" . pdf-view-center-in-window)))
+(use-package reader
+  :straight (:type git :host codeberg :repo "divyaranjan/emacs-reader" :files ("*.el" "render-core.so") :pre-build ("make" "all")))
 
 ;; modes
 ;; (use-package json-mode
@@ -1468,6 +1490,9 @@ Robert
   :config
   (require 'sclang)
   :bind ("C-z" . sclang-switch-to-post))
+
+(use-package sfz-mode
+  :straight (:type git :host github :repo "sfztools/emacs-sfz-mode"))
 
 (use-package sclang-extensions
   :hook sclang-mode
@@ -1883,11 +1908,11 @@ With ARG, do this that many times."
     ("a" ace-select-window "Select"))
 
    "Font size"
-   (("1" (set-face-attribute 'default nil :height 90) "small")
-    ("2" (set-face-attribute 'default nil :height 110) "normal")
-    ("3" (set-face-attribute 'default nil :height 130) "large")
-    ("4" (set-face-attribute 'default nil :height 150) "xlarge")
-    ("5" (set-face-attribute 'default nil :height 170) "xxlarge"))
+   (("1" (physical-font-size-set-point-size 9) "small")
+    ("2" (physical-font-size-set-point-size 11) "normal")
+    ("3" (physical-font-size-set-point-size 13) "large")
+    ("4" (physical-font-size-set-point-size 15) "xlarge")
+    ("5" (physical-font-size-set-point-size 17) "xxlarge"))
 
    "Resize"
    (("h" move-border-left "←")
@@ -1905,9 +1930,9 @@ With ARG, do this that many times."
     ("V" split-window-vertically-instead "Vertically instead"))
 
    "Zoom"
-   (("+" text-scale-increase "In")
-    ("-" text-scale-decrease "Out")
-    ("0" (text-scale-mode -1) "Default"))))
+   (("+" (physical-font-size-increase 1) "In")
+    ("-" (physical-font-size-increase -1) "Out")
+    ("0" (physical-font-size-set-point-size 11) "Default"))))
 
 (bind-key (kbd "C-x +") 'my-window/body)
 

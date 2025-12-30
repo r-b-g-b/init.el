@@ -14,14 +14,13 @@
 (setq gc-cons-threshold 100000000)
 
 ;; Check if Caskaydia Cove is installed, otherwise use a fallback
-(let ((preferred-font "CaskaydiaCove Nerd Font")
-      (fallback-fonts '("Cascadia Code" "DejaVu Sans Mono" "Consolas" "Menlo" "Monaco" "Courier New")))
-  (set-face-attribute 'default nil
-                      :font (or (car (seq-filter
-                                      (lambda (f) (member f (font-family-list)))
-                                      (cons preferred-font fallback-fonts)))
-                                "Monospace")
-                      :height 110))
+(let* ((preferred-font "CaskaydiaCove Nerd Font")
+       (fallback-fonts '("Cascadia Code" "DejaVu Sans Mono" "Consolas" "Menlo" "Monaco" "Courier New"))
+       (family (or (car (seq-filter
+                         (lambda (f) (member f (font-family-list)))
+                         (cons preferred-font fallback-fonts)))
+                   "Monospace")))
+  (set-face-attribute 'default nil :family family))
 
 ;; Disable package.el in favor of straight.el
 (setq package-enable-at-startup nil)
