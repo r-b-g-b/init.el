@@ -24,11 +24,27 @@
 (add-to-list 'exec-path "~/.local/bin" t)
 (add-to-list 'exec-path "~/.rbenv/shims" t)
 (add-to-list 'exec-path "~/go/bin" t)
-(setenv "PATH" (concat "~/.local/bin:" "~/.rbenv/shims:" "~/go/bin:" (getenv "PATH")))
+(setenv "PATH"
+        (mapconcat
+         #'identity
+         (list (expand-file-name "~/.local/bin")
+               (expand-file-name "~/.rbenv/shims")
+               (expand-file-name "~/go/bin")
+               (getenv "PATH"))
+         path-separator))
 
 (recentf-mode 1)
 (hl-line-mode 1)
 (which-function-mode 1)
+
+(when (and (fboundp 'treesit-available-p)
+           (treesit-available-p))
+  (add-to-list 'major-mode-remap-alist
+               '(python-mode . python-ts-mode)))
+
+(add-hook 'python-ts-mode-hook
+          (lambda ()
+            (run-hooks 'python-mode-hook)))
 
 (setq-default flycheck-disabled-checkers '(python-pylint))
 (setq-default electric-indent-inhibit t)
@@ -969,7 +985,49 @@ Moves point and mark to the blank line under the freshly inserted cell."
                    :repo "tecosaur/org-pandoc-import"
                    :files ("*.el" "filters" "preprocessors"))
   :custom
-  (org-pandoc-import-markdown-args '(:wrap "preserve")))
+  (org-pandoc-import-markdown-args '(:wrap "preserve"))
+  :bind
+  (:map org-mode-map
+        ("C-c M-y" . my/org-yank-markdown-from-clipboard))
+  :config
+  (defun my/org--clipboard-string ()
+    "Return clipboard text, or nil if unavailable."
+    (or (and (fboundp 'gui-get-selection)
+             (gui-get-selection 'CLIPBOARD 'STRING))
+        (condition-case nil
+            (current-kill 0 t)
+          (error nil))))
+
+  (defun my/org-yank-markdown-from-clipboard ()
+    "Yank clipboard markdown into the current Org buffer as Org."
+    (interactive)
+    (require 'org-pandoc-import)
+    (let ((markdown (my/org--clipboard-string)))
+      (unless (and markdown (> (length markdown) 0))
+        (user-error "Clipboard is empty"))
+      (let* ((in-file (make-temp-file "org-pandoc-import-" nil ".md"))
+             (out-file (make-temp-file "org-pandoc-import-" nil ".org")))
+        (when (file-exists-p out-file)
+          (delete-file out-file))
+        (unwind-protect
+            (progn
+              (with-temp-file in-file
+                (insert markdown))
+              (org-pandoc-import-convert
+               nil
+               out-file
+               "markdown"
+               in-file
+               org-pandoc-import-markdown-extensions
+               org-pandoc-import-markdown-args
+               org-pandoc-import-markdown-filters
+               t)
+              (unless (file-exists-p out-file)
+                (user-error "Pandoc failed to produce output"))
+              (insert-file-contents out-file))
+          (ignore-errors (delete-file in-file))
+          (ignore-errors (delete-file out-file)))))))
+
 
 (use-package org-msg
   :straight ( :host github
@@ -1145,46 +1203,23 @@ Robert
 (use-package copilot
   :straight (:host github :repo "copilot-emacs/copilot.el" :files ("*.el"))
   :hook (prog-mode . copilot-mode)
-  :bind (("<backtab>" . copilot-accept-completion))
+  :bind (:map copilot-completion-map
+              ("<backtab>" . copilot-accept-completion))
   :config
+  (add-to-list 'copilot-indentation-alist '(python-ts-mode 4))
   (add-to-list 'copilot-indentation-alist '(makefile-gmake-mode 8))
   (add-to-list 'copilot-indentation-alist '(emacs-lisp-mode 2))
   (add-to-list 'copilot-indentation-alist '(sql-mode 4)))
 
-(use-package aider
-  :straight (:host github :repo "tninja/aider.el")
-  :config
-  ;; (setq aider-args '("--model" "sonnet" "--no-auto-accept-architect"))
-  ;; (setenv "ANTHROPIC_API_KEY" anthropic-api-key)
-  ;; Or chatgpt model
-  (setenv "OPENAI_API_KEY" (auth-info-password (nth 0 (auth-source-search :max 1 :host "platform.openai.com"))))
-  ;; Or gemini model
-  ;; (setq aider-args '("--model" "gemini-exp"))
-  ;; (setenv "GEMINI_API_KEY" <your-gemini-api-key>)
-  ;; Or use your personal config file
-  ;; (setq aider-args `("--config" ,(expand-file-name "~/.aider.conf.yml")))
-  ;; ;;
-  ;; Optional: Set a key binding for the transient menu
-  :bind (("C-x p a" . aider-transient-menu)))
-
-(use-package codex-cli
-  :straight (:host github :repo "bennfocus/codex-cli.el")
-  :bind (("C-c c t" . codex-cli-toggle)
-         ("C-c c s" . codex-cli-start)
-         ("C-c c q" . codex-cli-stop)
-         ("C-c c Q" . codex-cli-stop-all)
-         ("C-c c p" . codex-cli-send-prompt)
-         ("C-c c r" . codex-cli-send-region)
-         ("C-c c f" . codex-cli-send-file)
-         ;; Show-all layout + paging
-         ("C-c c a" . codex-cli-toggle-all)
-         ("C-c c n" . codex-cli-toggle-all-next-page)
-         ("C-c c b" . codex-cli-toggle-all-prev-page))
-  :init
-  (setq codex-cli-executable "codex"
-        codex-cli-terminal-backend 'vterm
-        codex-cli-side 'right
-        codex-cli-width 90))
+(use-package acp)
+(use-package agent-shell
+  :straight (:host github :repo "xenodium/agent-shell")
+  :custom
+  (agent-shell-openai-authentication
+      (agent-shell-openai-make-authentication :login t))
+  (agent-shell-openai-codex-environment
+   (agent-shell-make-environment-variables :inherit-env t))
+  :bind (("C-x p a" . agent-shell)))
 
 (use-package ellama
   :commands (make-llm-ollama)
@@ -1202,9 +1237,21 @@ Robert
 (use-package eshell
   :after eshell-git-prompt
   :config
-  (eshell-git-prompt-use-theme 'powerline))
+  (eshell-git-prompt-use-theme 'default))
 
 (use-package eshell-git-prompt)
+
+(use-package detached
+  :init (detached-init)
+  :bind (;; Replace `async-shell-command' with `detached-shell-command'
+         ([remap async-shell-command] . detached-shell-command)
+         ;; Replace `compile' with `detached-compile'
+         ([remap compile] . detached-compile)
+         ([remap recompile] . detached-compile-recompile)
+         ;; Replace built in completion of sessions with `consult'
+         ([remap detached-open-session] . detached-consult-session))
+  :custom ((detatched-show-ouput-on-attach t) (detached-terminal-data-command system-type))
+  :hook (eshell-mode . detached-eshell-mode) (shell-mode . detached-shell-mode))
 
 (defun my/vterm-backward-kill-word ()
   (interactive)
@@ -1313,7 +1360,8 @@ Robert
   :config
   (add-to-list 'eglot-server-programs
                `(python-mode . ,(eglot-alternatives
-                                 '(("pylsp")
+                                 '(("ty" "server")
+                                   ("pylsp")
                                    ("ruff" "server")))))
   :custom
   (eglot-workspace-configuration
@@ -1344,6 +1392,15 @@ Robert
 
 (use-package python-black
   :after python)
+
+
+(use-package auto-virtualenv
+  :straight (:type git :host github :repo "marcwebbie/auto-virtualenv")
+  :custom
+  (auto-virtualenv-verbose t)
+  (auto-virtualenv-activation-hooks '(find-file-hook))
+  :config
+  (auto-virtualenv-setup))
 
 (use-package pyvenv)
 
@@ -1440,6 +1497,20 @@ Robert
 
 (use-package poly-markdown)
 
+(use-package grip-mode
+  :ensure t
+  :bind (:map markdown-mode-command-map
+              ("g" . grip-mode))
+  :custom
+  (grip-update-after-change t)
+  (grip-command 'go-grip))
+
+(use-package justl
+  :custom
+  (justl-executable "/usr/bin/just"))
+
+(use-package just-mode)
+
 (use-package mermaid-mode
   :mode
   ("\\.mermaid\\'" "\\.mmjs\\'"))
@@ -1524,10 +1595,7 @@ Robert
 (use-package sqlite3)
 
 (use-package ready-player
-  :straight ( :type git
-              :host github
-              :repo "xenodium/ready-player"
-              :files ("ready-player.el"))
+  :straight (:type git :host github :repo "xenodium/ready-player")
   :custom
   (ready-player-my-media-collection-location "/mnt/uplandvault/music")
   :config
@@ -1553,47 +1621,11 @@ Robert
   (editorconfig-mode 1))
 
 (use-package kubernetes
+  :commands (kubernetes-overview)
   :config
-  (unbind-key "C-<tab>"  kubernetes-overview-mode-map)
-  ;; wider column width (21 to 40) for pvc name
-  (setq kubernetes-persistentvolumeclaims--column-heading
-        ["%-40s %10s %10s %15s %6s" "Mame Phase Capacity Class Age"])
-  (kubernetes-ast-define-component persistentvolumeclaim-line (state persistentvolumeclaim)
-    (-let* ((current-time (kubernetes-state--get state 'current-time))
-            (pending-deletion (kubernetes-state--get state 'persistentvolumeclaims-pending-deletion))
-            (marked-persistentvolumeclaims (kubernetes-state--get state 'marked-persistentvolumeclaims))
-            ((&alist 'spec (&alist 'storageClassName storage-class)
-                     'status (&alist 'phase phase 'capacity (&alist 'storage capacity))
-                     'metadata (&alist 'name name 'creationTimestamp created-time))
-             persistentvolumeclaim)
-            ([fmt] kubernetes-persistentvolumeclaims--column-heading)
-            (list-fmt (split-string fmt))
-            (line `(line ,(concat
-                           ;; Name
-                           (format (pop list-fmt) (s-truncate 40 name))
-                           " "
-                           ;; Phase
-                           (propertize (format (pop list-fmt) phase) 'face 'kubernetes-dimmed)
-                           " "
-                           ;; Capacity
-                           (propertize (format (pop list-fmt) capacity) 'face 'kubernetes-dimmed)
-                           " "
-                           ;; Storage Class
-                           (propertize (format (pop list-fmt) (s-truncate 12 storage-class)) 'face 'kubernetes-dimmed)
-                           " "
-                           ;; Age
-                           (let ((start (apply #'encode-time (kubernetes-utils-parse-utc-timestamp created-time))))
-                             (propertize (format (pop list-fmt) (kubernetes--time-diff-string start current-time))
-                                         'face 'kubernetes-dimmed))))))
-      `(nav-prop (:persistentvolumeclaim-name ,name)
-                 (copy-prop ,name
-                            ,(cond
-                              ((member name pending-deletion)
-                               `(propertize (face kubernetes-pending-deletion) ,line))
-                              ((member name marked-persistentvolumeclaims)
-                               `(mark-for-delete ,line))
-                              (t
-                               line)))))))
+  (setq kubernetes-poll-frequency 3600
+        kubernetes-redraw-frequency 3600)
+  :bind (:map kubernetes-overview-mode ("N" . kubernetes-set-namespace )))
 
 (use-package mu4e
   :straight ( :host github
@@ -1757,12 +1789,18 @@ Robert
          ("v" . mu4e-headers-view-message)
          ("@" . my/mu4e-mark-spam)))
 
-(defun my/yank-buffer-name ()
-  (interactive)
-  (let ((buffer-name* (buffer-name)))
-    (kill-new buffer-name*)
-    (message buffer-name*)
-    buffer-name*))
+(defun my/kill-buffer-name (arg)
+  "Copy the current buffer name; with prefix ARG, copy absolute file path."
+  (interactive "P")
+  (let* ((use-path arg)
+         (value (if use-path
+                    (if buffer-file-name
+                        (file-truename buffer-file-name)
+                      (user-error "Current buffer is not visiting a file"))
+                  (buffer-name))))
+    (kill-new value)
+    (message "%s" value)
+    value))
 
 (global-set-key (kbd "S-C-<down>") 'shrink-window)
 (global-set-key (kbd "S-C-<left>") 'shrink-window-horizontally)
@@ -1878,19 +1916,6 @@ With ARG, do this that many times."
   :straight ( :host github
               :repo "xenodium/time-zones"))
 
-(use-package svg-lib)
-(use-package svg-tag-mode
-  :requires svg-lib
-  :straight ( :host github
-              :repo "rougier/svg-tag-mode"
-              :branch "main"
-              :files ("svg-tag-mode.el"))
-  :hook (org-mode)
-  :custom
-  (svg-tag-tags '(
-                  ("TODO" . ((lambda (tag) (svg-tag-make "TODO" :face 'org-tag :radius 0 :inverse t :margin 0))))
-                  ("DONE" . ((lambda (tag) (svg-tag-make "DONE" :face 'font-lock-comment-face :radius 0 :inverse t :margin 0)))))))
-
 (use-package nano-mu4e
   :requires svg-tag-mode
   :straight ( :host github
@@ -1908,11 +1933,11 @@ With ARG, do this that many times."
     ("a" ace-select-window "Select"))
 
    "Font size"
-   (("1" (physical-font-size-set-point-size 9) "small")
-    ("2" (physical-font-size-set-point-size 11) "normal")
+   (("1" (physical-font-size-set-point-size 7) "small")
+    ("2" (physical-font-size-set-point-size 10) "normal")
     ("3" (physical-font-size-set-point-size 13) "large")
-    ("4" (physical-font-size-set-point-size 15) "xlarge")
-    ("5" (physical-font-size-set-point-size 17) "xxlarge"))
+    ("4" (physical-font-size-set-point-size 16) "xlarge")
+    ("5" (physical-font-size-set-point-size 19) "xxlarge"))
 
    "Resize"
    (("h" move-border-left "←")
@@ -1930,7 +1955,7 @@ With ARG, do this that many times."
     ("V" split-window-vertically-instead "Vertically instead"))
 
    "Zoom"
-   (("+" (physical-font-size-increase 1) "In")
+   (("=" (physical-font-size-increase 1) "In")
     ("-" (physical-font-size-increase -1) "Out")
     ("0" (physical-font-size-set-point-size 11) "Default"))))
 
@@ -1971,12 +1996,8 @@ With ARG, do this that many times."
  '(warning-suppress-types '((comp)))
  '(web-mode-enable-control-block-indentation t)
  '(world-clock-list
-   '(("America/New_York" "New York")
-     ("America/Phoenix" "Phoenix")
-     ("America/Denver" "Denver")
-     ("America/Los_Angeles" "Los Angeles")
-     ("Europe/London" "London")
-     ("Asia/Manila" "Philippines"))))
+   '(("America/New_York" "New York") ("America/Phoenix" "Phoenix") ("America/Denver" "Denver")
+     ("America/Los_Angeles" "Los Angeles") ("Europe/London" "London") ("Asia/Manila" "Philippines"))))
 (custom-set-faces
  ;; custom-set-faces was added by Custom.
  ;; If you edit it by hand, you could mess it up, so be careful.
