@@ -16,6 +16,7 @@
   (load bootstrap-file nil 'nomessage))
 
 (straight-use-package 'use-package)
+(straight-use-package 'org)
 
 (require 'dired-x)
 (require 'notifications)
@@ -24,12 +25,14 @@
 (add-to-list 'exec-path "~/.local/bin" t)
 (add-to-list 'exec-path "~/.rbenv/shims" t)
 (add-to-list 'exec-path "~/go/bin" t)
+(add-to-list 'exec-path "~/.npm-global/bin" t)
 (setenv "PATH"
         (mapconcat
          #'identity
          (list (expand-file-name "~/.local/bin")
                (expand-file-name "~/.rbenv/shims")
                (expand-file-name "~/go/bin")
+               (expand-file-name "~/.npm-global/bin")
                (getenv "PATH"))
          path-separator))
 
@@ -37,14 +40,14 @@
 (hl-line-mode 1)
 (which-function-mode 1)
 
-(when (and (fboundp 'treesit-available-p)
-           (treesit-available-p))
-  (add-to-list 'major-mode-remap-alist
-               '(python-mode . python-ts-mode)))
+;; (when (and (fboundp 'treesit-available-p)
+;;            (treesit-available-p))
+;;   (add-to-list 'major-mode-remap-alist
+;;                '(python-mode . python-ts-mode)))
 
-(add-hook 'python-ts-mode-hook
-          (lambda ()
-            (run-hooks 'python-mode-hook)))
+;; (add-hook 'python-ts-mode-hook
+;;           (lambda ()
+;;             (run-hooks 'python-mode-hook)))
 
 (setq-default flycheck-disabled-checkers '(python-pylint))
 (setq-default electric-indent-inhibit t)
@@ -87,6 +90,9 @@
                                       vertico-repeat
                                       vertico-reverse))))
 
+(use-package compat
+  :demand t)
+
 (use-package dired
   :straight nil
   :bind (:map dired-mode-map ("<SPC>" . dired-view-file-other-window))
@@ -100,6 +106,11 @@
   :straight (:host github :repo "Fuco1/dired-hacks")
   :bind (:map dired-mode-map ("i" . dired-subtree-toggle))
   :hook (dired-mode . dired-collapse-mode))
+
+(use-package view-mode
+  :straight nil
+  :custom (view-read-only t)
+  :bind (:map view-mode-map ("j" . scroll-up-line) ("k" . scroll-down-line)))
 
 (use-package ibuffer
   :straight nil
@@ -266,7 +277,7 @@
 
 ;; Example configuration for Consult
 (use-package consult
-  ;; Replace bindings. Lazily loaded due by `use-package'.
+  ;; Replace bindings. Lazily loaded by `use-package'.
   :bind (;; C-c bindings in `mode-specific-map'
          ("C-c M-x" . consult-mode-command)
          ("C-c h" . consult-history)
@@ -287,9 +298,11 @@
          ("M-'" . consult-register-store)          ;; orig. abbrev-prefix-mark (unrelated)
          ("C-M-#" . consult-register)
          ;; Other custom bindings
+         ("C-s" . consult-line)                    ;; orig. isearch-forward
          ("M-y" . consult-yank-pop)                ;; orig. yank-pop
          ;; M-g bindings in `goto-map'
          ("M-g e" . consult-compile-error)
+         ("M-g r" . consult-grep-match)
          ("M-g f" . consult-flymake)               ;; Alternative: consult-flycheck
          ("M-g g" . consult-goto-line)             ;; orig. goto-line
          ("M-g M-g" . consult-goto-line)           ;; orig. goto-line
@@ -297,7 +310,6 @@
          ("M-g m" . consult-mark)
          ("M-g k" . consult-global-mark)
          ("M-g i" . consult-imenu)
-         ("C-c C-j" . consult-imenu)
          ("M-g I" . consult-imenu-multi)
          ;; M-s bindings in `search-map'
          ("M-s d" . consult-find)                  ;; Alternative: consult-fd
@@ -306,7 +318,6 @@
          ("M-s G" . consult-git-grep)
          ("M-s r" . consult-ripgrep)
          ("M-s l" . consult-line)
-         ("C-s" . consult-line)
          ("M-s L" . consult-line-multi)
          ("M-s k" . consult-keep-lines)
          ("M-s u" . consult-focus-lines)
@@ -322,22 +333,15 @@
          ("M-s" . consult-history)                 ;; orig. next-matching-history-element
          ("M-r" . consult-history))                ;; orig. previous-matching-history-element
 
-  ;; Enable automatic preview at point in the *Completions* buffer. This is
-  ;; relevant when you use the default completion UI.
-  :hook (completion-list-mode . consult-preview-at-point-mode)
-
   ;; The :init configuration is always executed (Not lazy)
   :init
 
-  ;; Optionally configure the register formatting. This improves the register
-  ;; preview for `consult-register', `consult-register-load',
-  ;; `consult-register-store' and the Emacs built-ins.
-  (setq register-preview-delay 0.5
-        register-preview-function #'consult-register-format)
-
-  ;; Optionally tweak the register preview window.
-  ;; This adds thin lines, sorting and hides the mode line of the window.
+  ;; Tweak the register preview for `consult-register-load',
+  ;; `consult-register-store' and the built-in commands.  This improves the
+  ;; register formatting, adds thin separator lines, register sorting and hides
+  ;; the window mode line.
   (advice-add #'register-preview :override #'consult-register-window)
+  (setq register-preview-delay 0.5)
 
   ;; Use Consult to select xref locations with preview
   (setq xref-show-xrefs-function #'consult-xref
@@ -356,10 +360,10 @@
   ;; :preview-key on a per-command basis using the `consult-customize' macro.
   (consult-customize
    consult-theme :preview-key '(:debounce 0.2 any)
-   consult-ripgrep consult-git-grep consult-grep
+   consult-ripgrep consult-git-grep consult-grep consult-man
    consult-bookmark consult-recent-file consult-xref
-   consult--source-bookmark consult--source-file-register
-   consult--source-recent-file consult--source-project-recent-file
+   consult-source-bookmark consult-source-file-register
+   consult-source-recent-file consult-source-project-recent-file
    ;; :preview-key "M-."
    :preview-key '(:debounce 0.4 any))
 
@@ -369,18 +373,8 @@
 
   ;; Optionally make narrowing help available in the minibuffer.
   ;; You may want to use `embark-prefix-help-command' or which-key instead.
-  ;; (define-key consult-narrow-map (vconcat consult-narrow-key "?") #'consult-narrow-help)
-
-  ;; virtual buffers
-  ;; b Buffers
-  ;; SPC Hidden buffers
-  ;; * Modified buffers
-  ;; f Files (Requires recentf-mode)
-  ;; r File registers
-  ;; m Bookmarks
-  ;; p Project
-  ;; Custom other sources configured in consult-buffer-sources.
-  )
+  ;; (keymap-set consult-narrow-map (concat consult-narrow-key " ?") #'consult-narrow-help)
+)
 
 (use-package marginalia
   :ensure t
@@ -603,6 +597,8 @@
   ("C-x g" . magit-status)
   (:map magit-mode-map
         ("C-<tab>" . nil))
+  :hook
+  (magit-status-mode . visual-line-mode)
   :config
   (require 'magit-extras)
   :custom
@@ -615,7 +611,7 @@
   )
 
 (use-package forge
-  :straight (:type git :host github :repo "magit/forge" :branch "main")
+  :straight (:type git :host github :repo "magit/forge")
   :after magit)
 
 (use-package github-review
@@ -659,8 +655,9 @@
       (funcall x))))
 
 (use-package org
+  :straight (:type git :host github :repo "emacs-straight/org-mode")
   :custom
-  (org-babel-load-languages '((emacs-lisp . t) (shell . t) (python . t) (jupyter . t) (sql . t)))
+  (org-babel-load-languages '((emacs-lisp . t) (shell . t) (python . t) (sql . t)))
   (org-babel-python-command "python")
   (org-confirm-babel-evaluate nil)
   (org-export-with-sub-superscripts nil)
@@ -867,98 +864,10 @@ Moves point and mark to the blank line under the freshly inserted cell."
               ("C-c j" . code-cells-hydra/body)
               ("C-c C-c" . code-cells-eval)))
 
-(use-package jupyter
-  :straight (:type git :host github :repo "r-b-g-b/jupyter" :branch "remap-hydra")
-  :after org
-  :custom
-  (jupyter-repl-echo-eval-p t)
-  (org-babel-default-header-args:jupyter-python '((:async . "yes")))
-  :config
-  (defun my/org-babel-jupyter-handle-result-ansi-escapes ()
-    "Handle ANSI escapes in Jupyter src-block result."
-    (org-babel-map-src-blocks nil
-      (when (org-babel-jupyter-language-p lang)
-        (goto-char (org-babel-where-is-src-block-result))
-        (ansi-color-apply-on-region (point) (org-babel-result-end)))))
-  (add-hook 'org-babel-after-execute-hook #'my/org-babel-jupyter-handle-result-ansi-escapes)
-  (add-hook 'org-babel-after-execute-hook #'org-redisplay-inline-images)
-  (org-babel-jupyter-aliases-from-kernelspecs)
-  (defun my/jupyter-execute-and-insert ()
-    (interactive)
-    (org-ctrl-c-ctrl-c)
-    (jupyter-org-insert-src-block t current-prefix-arg))
-  (defun my/jupyter-org-kill-block-and-results ()
-    (interactive)
-    (jupyter-org-kill-block-and-results)
-    (org-babel-next-src-block))
-  (defun my/jupyter-org-restart-kernel ()
-    "Restart the kernel of the source block where point is."
-    (interactive)
-    (jupyter-org-with-src-block-client
-     (jupyter-repl-restart-kernel)))
-  (define-key jupyter-org-interaction-mode-map (kbd "C-c h") #'jupyter-org-hydra/body t)
-  (remove-hook 'org-mode-hook #'org-babel-jupyter-make-local-aliases)
-  (add-hook 'org-mode-hook #'org-babel-jupyter-make-local-aliases 10)
-  :pretty-hydra
-  ((:title "Jupyter" :color pink)
-   ("Execute"
-    (("e" jupyter-org-execute-and-next-block "Execute and advance")
-     ("C-e" org-ctrl-c-ctrl-c "Execute and stay")
-     ("M-e" my/jupyter-execute-and-insert "Execute and insert")
-     ("C-M-e" jupyter-org-execute-subtree "Subtree to point")
-     ("I" jupyter-org-interrupt-kernel "Interrupt")
-     ("0" my/jupyter-org-restart-kernel "Restart kernel"))
-    "Navigate"
-    (
-     ("p" org-babel-previous-src-block "Previous")
-     ("k" org-babel-previous-src-block "Previous")
-     ("P" jupyter-org-previous-busy-src-block "Previous busy")
-     ("n" org-babel-next-src-block "Next")
-     ("j" org-babel-next-src-block "Previous")
-     ("N" jupyter-org-next-busy-src-block "Next busy")
-     ("g" jupyter-org-jump-to-visible-block "Visible")
-     ("G" jupyter-org-jump-to-block "Any")
-     ("<" org-tree-slide-move-previous-tree "Previous tree")
-     (">" org-tree-slide-move-next-tree "Next tree")
-     ("/" org-tree-slide-mode :toggle t)
-     ("," org-tree-slide-move-previous-tree "Previous tree")
-     ("." org-tree-slide-move-next-tree "Next tree")
-     ("<tab>" org-cycle "Toggle fold"))
-    "Edit"
-    (("<prior>" jupyter-org-move-src-block "Move up")
-     ("<next>" (jupyter-org-move-src-block t) "Move down")
-     ("d" my/jupyter-org-kill-block-and-results "Kill")
-     ("w" jupyter-org-copy-block-and-results "Copy")
-     ("o" (jupyter-org-clone-block t) "Clone")
-     ("m" jupyter-org-merge-blocks "Merge")
-     ("s" jupyter-org-split-src-block "Split")
-     ("u" undo "Undo")
-     ("a" (jupyter-org-insert-src-block nil current-prefix-arg) "Insert above")
-     ("b" (jupyter-org-insert-src-block t current-prefix-arg) "Insert below")
-     ("l" org-babel-remove-result "Clear result")
-     ("L" jupyter-org-clear-all-results "Clear all results")
-     ("h" jupyter-org-edit-header "Header"))
-    "Misc"
-    (("?" jupyter-org-inspect-src-block "Inspect")
-     ("r" org-babel-hide-result-toggle "Toggle result")
-     ("C-s" org-babel-jupyter-scratch-buffer "Scratch")
-     ("i" org-toggle-inline-images "Toggle images")
-     ("t" org-babel-tangle "Tangle")
-     ("T" article-treat-ansi-sequences "Treat ANSI")
-     ("q" hydra-pop "exit" :color blue))))
-
-  :bind
-  (:map jupyter-org-interaction-mode-map ("C-c j" . jupyter-hydra/body)))
-
 (use-package quarto-mode
   :straight (:host github :repo "quarto-dev/quarto-emacs")
   :mode (("\\.qmd" . poly-quarto-mode))
   )
-
-(use-package ob-async
-  :after jupyter
-  :config
-  (setq ob-async-no-async-languages-alist '("jupyter-python" "jupyter-R" "jupyter-julia")))
 
 (use-package ob-http
   :after org
@@ -1159,6 +1068,27 @@ Robert
   (org-roam-ui-update-on-save t)
   (org-roam-ui-open-on-start t))
 
+(use-package org-download
+  :after org
+  :ensure t
+  :hook (org-mode . org-download-enable)
+  :bind (:map org-mode-map
+              ("C-c p" . org-download-clipboard))
+  :config
+  ;; Save images in ./images relative to the Org file
+  (setq org-download-method 'directory
+        org-download-image-dir "images"
+        org-download-heading-lvl nil
+        org-download-timestamp "%Y%m%d-%H%M%S_"
+        org-startup-with-inline-images t)
+
+  ;; Wayland clipboard support
+  (setq org-download-screenshot-method
+        "wl-paste --type image/png > %s")
+
+  ;; Refresh inline images automatically
+  (add-hook 'org-babel-after-execute-hook #'org-display-inline-images))
+
 (use-package org-sidebar
   :after org)
 
@@ -1209,16 +1139,20 @@ Robert
   (add-to-list 'copilot-indentation-alist '(python-ts-mode 4))
   (add-to-list 'copilot-indentation-alist '(makefile-gmake-mode 8))
   (add-to-list 'copilot-indentation-alist '(emacs-lisp-mode 2))
-  (add-to-list 'copilot-indentation-alist '(sql-mode 4)))
+  (add-to-list 'copilot-indentation-alist '(sql-mode 4))
+  (add-to-list 'copilot-indentation-alist '(markdown-mode 4)))
 
 (use-package acp)
 (use-package agent-shell
   :straight (:host github :repo "xenodium/agent-shell")
-  :custom
-  (agent-shell-openai-authentication
-      (agent-shell-openai-make-authentication :login t))
-  (agent-shell-openai-codex-environment
-   (agent-shell-make-environment-variables :inherit-env t))
+  :config
+  (setq agent-shell-openai-authentication
+        (agent-shell-openai-make-authentication :login t))
+  (setq agent-shell-openai-codex-environment
+        (agent-shell-make-environment-variables :inherit-env t))
+  (setq agent-shell-google-authentication
+        (agent-shell-google-make-authentication :login t))
+  (setq agent-shell-mcp-servers nil)
   :bind (("C-x p a" . agent-shell)))
 
 (use-package ellama
@@ -1367,7 +1301,9 @@ Robert
   (eglot-workspace-configuration
    '((:pylsp . (:plugins (:flake8 (:enabled :json-false))))))
   :hook
-  ((python-mode . eglot-ensure)))
+  ((python-mode . eglot-ensure)
+   (eglot-managed-mode . (lambda ()
+                           (eglot-inlay-hints-mode -1)))))
 
 (use-package yasnippet
   :hook ((text-mode
@@ -1410,9 +1346,6 @@ Robert
   :config
   (dap-mode 1)
   (require 'dap-python))
-
-(use-package flycheck
-  :config (global-flycheck-mode))
 
 ;; (use-package uv-mode
 ;;   :straight (:type git :host github :repo "z80dev/uv-mode")
@@ -1502,6 +1435,7 @@ Robert
   :bind (:map markdown-mode-command-map
               ("g" . grip-mode))
   :custom
+  (grip-theme 'light)
   (grip-update-after-change t)
   (grip-command 'go-grip))
 
@@ -1509,7 +1443,8 @@ Robert
   :custom
   (justl-executable "/usr/bin/just"))
 
-(use-package just-mode)
+(use-package just-mode
+  :mode ("\\.just\\'" . just-mode))
 
 (use-package mermaid-mode
   :mode
