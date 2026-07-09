@@ -93,6 +93,11 @@
 (use-package compat
   :demand t)
 
+(use-package ediff
+  :straight nil
+  :custom (ediff-window-setup-function 'ediff-setup-windows-plain)
+  :hook (ediff-quit . winner-undo))
+
 (use-package dired
   :straight nil
   :bind (:map dired-mode-map ("<SPC>" . dired-view-file-other-window))
@@ -1297,11 +1302,13 @@ Robert
                                  '(("ty" "server")
                                    ("pylsp")
                                    ("ruff" "server")))))
+  (add-to-list 'eglot-server-programs '(just-mode . ("just-lsp")))
   :custom
   (eglot-workspace-configuration
    '((:pylsp . (:plugins (:flake8 (:enabled :json-false))))))
   :hook
   ((python-mode . eglot-ensure)
+   (just-mode . eglot-ensure)
    (eglot-managed-mode . (lambda ()
                            (eglot-inlay-hints-mode -1)))))
 
@@ -1411,6 +1418,8 @@ Robert
 ;;   (add-hook 'json-mode-hook (lambda () (define-key json-mode-map (kbd "C-c >") 'indent-tools-hydra/body))))
 
 (use-package markdown-mode
+  :mode (("\\.md\\'" . markdown-mode)
+         ("\\.markdown\\'" . markdown-mode))
   :custom
   (markdown-nested-imenu-heading-index nil)
   :config
@@ -1786,12 +1795,6 @@ With ARG, do this that many times."
     (push-mark)
     (insert random-string)))
 
-(use-package move-border
-  :straight ( :host github
-              :repo "ramnes/move-border"
-              :branch "master"
-              :files ("move-border.el")))
-
 (defun my/lookup-password (&rest keys)
   (let ((result (apply #'auth-source-search keys)))
     (if result
@@ -1869,9 +1872,9 @@ With ARG, do this that many times."
 
    "Font size"
    (("1" (physical-font-size-set-point-size 7) "small")
-    ("2" (physical-font-size-set-point-size 10) "normal")
-    ("3" (physical-font-size-set-point-size 13) "large")
-    ("4" (physical-font-size-set-point-size 16) "xlarge")
+    ("2" (physical-font-size-set-point-size 9) "normal")
+    ("3" (physical-font-size-set-point-size 11) "large")
+    ("4" (physical-font-size-set-point-size 13) "xlarge")
     ("5" (physical-font-size-set-point-size 19) "xxlarge"))
 
    "Resize"
