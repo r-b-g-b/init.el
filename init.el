@@ -1,4 +1,4 @@
-;;; package --- Summary
+;;; init.el --- User init file  -*- lexical-binding: t; -*-
 ;;; Commentary:
 ;;; Code:
 
@@ -17,6 +17,7 @@
 
 (straight-use-package 'use-package)
 (straight-use-package 'org)
+(straight-use-package 'project)
 
 (require 'dired-x)
 (require 'notifications)
@@ -39,6 +40,17 @@
 (recentf-mode 1)
 (hl-line-mode 1)
 (which-function-mode 1)
+
+(defun my/which-func-update-all-windows ()
+  "Update the breadcrumb in every visible window.
+`which-func-update' refreshes only the selected window, so a window that
+another command scrolls keeps an old path.  Occur and grep both do this:
+you move in the results buffer, the source window follows, but its mode
+line still shows the path from the last time you selected it."
+  (let ((non-essential t))
+    (walk-windows #'which-func-update-1 nil 'visible)))
+
+(advice-add 'which-func-update :override #'my/which-func-update-all-windows)
 
 ;; (when (and (fboundp 'treesit-available-p)
 ;;            (treesit-available-p))
@@ -63,14 +75,20 @@
 (setq epg-pinentry-mode 'loopback)
 (setq mail-user-agent 'mu4e-user-agent)
 (setq markdown-fontify-code-blocks-natively t)
+(setq native-comp-async-report-warnings-errors 'silent)
+(with-eval-after-load 'warnings
+  (add-to-list 'warning-suppress-types '(native-compiler)))
 (setq python-shell-interpreter "python"
       python-shell-interpreter-args "-i")
 (setq recentf-max-menu-items 25)
 (setq recentf-max-saved-items 25)
 (setq ring-bell-function 'ignore)
-(setq scroll-conservatively 5)
-(setq scroll-margin 10)
+(setq    ;set reasonable scrolling
+ scroll-margin 10
+ scroll-conservatively 100000
+ scroll-preserve-screen-position 1)
 (setq tab-always-indent 'complete)
+(setq tramp-allow-unsafe-temporary-files t)
 (setq use-short-answers t)
 (setq user-full-name "Robert Gibboni")
 (setq user-mail-address "galileo@gmail.com")
@@ -103,7 +121,8 @@
   :bind (:map dired-mode-map ("<SPC>" . dired-view-file-other-window))
   :hook (dired-mode . dired-hide-details-mode)
   :custom
-  (dired-listing-switches "-lah --group-directories-first"))
+  (dired-listing-switches "-lah --group-directories-first")
+  (dired-hide-details-hide-symlink-targets nil))
 
 (use-package dired-preview)
 
@@ -111,6 +130,8 @@
   :straight (:host github :repo "Fuco1/dired-hacks")
   :bind (:map dired-mode-map ("i" . dired-subtree-toggle))
   :hook (dired-mode . dired-collapse-mode))
+
+(use-package sudo-edit)
 
 (use-package view-mode
   :straight nil
@@ -123,7 +144,10 @@
 
 (use-package plstore
   :config
-  (add-to-list 'plstore-encrypt-to "A09542E9140692F4"))
+  ;; This must name a key that is really in the keyring. When plstore cannot
+  ;; resolve the recipient, it falls back to passphrase encryption without
+  ;; saying so, and org-gcal then fails to read its token store.
+  (setq plstore-encrypt-to (quote ("CF4938784B2CD29155B8E12A0139FC600947E0D2"))))
 
 (use-package elisp-demos
   :straight (:host github :repo "xuchunyang/elisp-demos")
@@ -151,6 +175,18 @@
   (aw-scope 'frame))
 
 (use-package pretty-hydra)
+
+(use-package speedbar
+  :ensure nil
+  :if (> emacs-major-version 30)
+  :commands (speedbar)
+  :bind (:map speedbar-mode-map
+              ("q" . quit-window))
+  :config
+  ;; Without `speedbar-prefer-window' the `speedbar' shows up in a
+  ;; separate frame
+  (setq speedbar-prefer-window t)
+  (setq speedbar-use-images nil))
 
 ;; Flexible text folding
 (use-package hideshow
@@ -181,39 +217,10 @@
               ("C-S-<escape>" . hideshow-hydra/body))
   :hook (prog-mode . hs-minor-mode)
   :config
-  ;; More functions
-  ;; @see https://karthinks.com/software/simple-folding-with-hideshow/
-  (defun hs-cycle (&optional level)
-    (interactive "p")
-    (let (message-log-max
-          (inhibit-message t))
-      (if (= level 1)
-          (pcase last-command
-            ('hs-cycle
-             (hs-hide-level 1)
-             (setq this-command 'hs-cycle-children))
-            ('hs-cycle-children
-             (save-excursion (hs-show-block))
-             (setq this-command 'hs-cycle-subtree))
-            ('hs-cycle-subtree
-             (hs-hide-block))
-            (_
-             (if (not (hs-already-hidden-p))
-                 (hs-hide-block)
-               (hs-hide-level 1)
-               (setq this-command 'hs-cycle-children))))
-        (hs-hide-level level)
-        (setq this-command 'hs-hide-level))))
-
-  (defun hs-toggle-all ()
-    "Toggle hide/show all."
-    (interactive)
-    (pcase last-command
-      ('hs-toggle-all
-       (save-excursion (hs-show-all))
-       (setq this-command 'hs-global-show))
-      (_ (hs-hide-all))))
-
+  ;; Let TAB cycle a fold.  hideshow binds TAB itself, but only where
+  ;; `hs-cycle-filter' allows it, and that stays nil except where a buffer
+  ;; opts in.  See the json-ts-mode block.
+  (hs-add-cycle-binding nil "TAB" #'hs-cycle)
   ;; Display line counts
   (defun hs-display-code-line-counts (ov)
     "Display line counts when hiding codes."
@@ -600,12 +607,17 @@
 (use-package magit
   :bind
   ("C-x g" . magit-status)
+  (:map project-prefix-map
+        ("m" . magit-project-status))
   (:map magit-mode-map
-        ("C-<tab>" . nil))
+        ("C-<tab>" . nil)
+        ("M-r" . magit-diff-toggle-refine-hunk))
   :hook
   (magit-status-mode . visual-line-mode)
   :config
   (require 'magit-extras)
+  (require 'project)
+  (add-to-list 'project-switch-commands '(magit-project-status "Magit" ?m))
   :custom
   (magit-display-buffer-function 'magit-display-buffer-same-window-except-diff-v1)
   (magit-log-margin '(t "%a, %b %d, %Y" magit-log-margin-width t 20))
@@ -618,10 +630,6 @@
 (use-package forge
   :straight (:type git :host github :repo "magit/forge")
   :after magit)
-
-(use-package github-review
-  :custom
-  (define-key github-review-mode-map (kbd "M-o") nil))
 
 (use-package git-link)
 
@@ -641,8 +649,18 @@
 (use-package rainbow-delimiters
   :hook (prog-mode . rainbow-delimiters-mode))
 
+(use-package symbol-overlay
+  :custom
+  ;; Wait until point rests before highlighting, so the highlight does not
+  ;; flash on every cursor move.
+  (symbol-overlay-idle-time 0.2)
+  :hook (prog-mode . symbol-overlay-mode))
+
 (use-package nlinum
   :hook (prog-mode . nlinum-mode))
+
+(use-package journalctl
+  :straight (:type git :host github :repo "WJCFerguson/journalctl"))
 
 (use-package editorconfig)
 
@@ -661,6 +679,28 @@
 
 (use-package org
   :straight (:type git :host github :repo "emacs-straight/org-mode")
+  :preface
+  (defun my/org-babel-duplicate-block ()
+    "Duplicate the src block at point, inserting the copy directly below."
+    (interactive)
+    (let ((el (org-element-at-point)))
+      (unless (eq (org-element-type el) 'src-block)
+        (user-error "Not in a src block"))
+      (let* ((beg (org-element-property :begin el))
+             (end (org-element-property :end el))
+             (text (buffer-substring-no-properties beg end)))
+        (goto-char end)
+        (insert text))))
+  (defun my/org-babel-kill-block ()
+    "Kill the src block at point along with its results."
+    (interactive)
+    (let ((el (org-element-at-point)))
+      (unless (eq (org-element-type el) 'src-block)
+        (user-error "Not in a src block"))
+      (org-babel-remove-result)
+      (let ((el (org-element-at-point)))
+        (kill-region (org-element-property :begin el)
+                     (org-element-property :end el)))))
   :custom
   (org-babel-load-languages '((emacs-lisp . t) (shell . t) (python . t) (sql . t)))
   (org-babel-python-command "python")
@@ -721,7 +761,9 @@
    ("<f6>" . org-capture)
    :map org-mode-map
    ("C-c h" . org-hydra/body)
-   ("C-c C-s" . org-schedule))
+   ("C-c C-s" . org-schedule)
+   ("C-c M-d" . my/org-babel-duplicate-block)
+   ("C-c M-k" . my/org-babel-kill-block))
   :config
   ;; Only evaluate this after org-agenda is loaded
   (with-eval-after-load 'org-agenda
@@ -975,6 +1017,29 @@ Robert
   (org-pomodoro-finished-sound-args "-v 0.2")
   (org-pomodoro-short-break-sound-args "-v 0.2"))
 
+(use-package org-timegrid
+  :straight (:host github :repo "Gleek/org-timegrid")
+  :commands (org-timegrid-week)
+  :custom
+  (org-timegrid-org-files '("~/org-roam/schedule.org"))
+  (org-timegrid-start-hour 8)
+  (org-timegrid-end-hour 20)
+  :bind ("C-c c" . org-timegrid-week))
+
+(use-package org-timegrid-agenda
+  :straight nil
+  :after org-agenda
+  :demand t
+  :init
+  ;; nil inserts the strip at the top. To place it after a particular custom
+  ;; agenda block, use a regexp matching that block's heading instead.
+  (setq org-timegrid-agenda-insert-after nil
+        org-timegrid-agenda-separator t
+        org-timegrid-agenda-minutes-before 180
+        org-timegrid-agenda-minutes-after 180)
+  :config
+  (org-timegrid-agenda-mode 1))
+
 (use-package org-ref
   :after org
   :custom
@@ -1128,25 +1193,6 @@ Robert
 (use-package ox-reveal
   :after org)
 
-(use-package gptel
-  :defer t
-  :custom
-  (gptel-model "gpt-5")
-  (gptel-api-key (auth-info-password (nth 0 (auth-source-search :max 1 :host "platform.openai.com"))))
-  (gptel-default-mode 'org-mode))
-
-(use-package copilot
-  :straight (:host github :repo "copilot-emacs/copilot.el" :files ("*.el"))
-  :hook (prog-mode . copilot-mode)
-  :bind (:map copilot-completion-map
-              ("<backtab>" . copilot-accept-completion))
-  :config
-  (add-to-list 'copilot-indentation-alist '(python-ts-mode 4))
-  (add-to-list 'copilot-indentation-alist '(makefile-gmake-mode 8))
-  (add-to-list 'copilot-indentation-alist '(emacs-lisp-mode 2))
-  (add-to-list 'copilot-indentation-alist '(sql-mode 4))
-  (add-to-list 'copilot-indentation-alist '(markdown-mode 4)))
-
 (use-package acp)
 (use-package agent-shell
   :straight (:host github :repo "xenodium/agent-shell")
@@ -1158,7 +1204,13 @@ Robert
   (setq agent-shell-google-authentication
         (agent-shell-google-make-authentication :login t))
   (setq agent-shell-mcp-servers nil)
-  :bind (("C-x p a" . agent-shell)))
+  :bind (("C-x p a" . agent-shell)
+         :map agent-shell-mode-map
+         ;; A plain copy strips the hidden markup, so you get rendered text
+         ;; only. These recover the agent's original markdown.
+         ("C-c C-w" . agent-shell-copy-as-markdown)
+         ("C-c C-b" . agent-shell-copy-source-block-at-point)
+         ("C-c C-u" . agent-shell-copy-link-url-at-point)))
 
 (use-package ellama
   :commands (make-llm-ollama)
@@ -1173,12 +1225,35 @@ Robert
   (ellama-user-nick (getenv "USER"))
   (ellama-assistant-nick "ellama"))
 
+(use-package bash-completion
+  :config
+  (bash-completion-setup))
+
+(use-package exec-path-from-shell
+  :config
+  (exec-path-from-shell-initialize))
+
 (use-package eshell
   :after eshell-git-prompt
+  :hook ((eshell-mode . eshell-syntax-highlighting-global-mode)
+         (eshell-mode . esh-autosuggest-mode))
   :config
-  (eshell-git-prompt-use-theme 'default))
+  (eshell-git-prompt-use-theme 'robbyrussell))
 
-(use-package eshell-git-prompt)
+(use-package eshell-git-prompt
+  :config
+  (set-face-attribute 'eshell-git-prompt-robyrussell-git-face nil
+                      :foreground "#498bc5"))
+
+(use-package eshell-syntax-highlighting
+  :straight (:host github :repo "akreisher/eshell-syntax-highlighting" :branch "master")
+  :after eshell-mode
+  :ensure t ;; Install if not already installed.
+  :config
+  ;; Enable in all Eshell buffers.
+  (eshell-syntax-highlighting-global-mode +1))
+
+(use-package esh-autosuggest)
 
 (use-package detached
   :init (detached-init)
@@ -1276,15 +1351,18 @@ Robert
   :bind (:map elfeed-search-mode-map ("g" . elfeed-update)))
 
 (use-package erc
+  :config
+  (erc-services-mode 1)
+  (require 'erc-dcc)
   :custom
+  (erc-dcc-send-request 'auto)
   (erc-auto-query 'bury)
-  (erc-autojoin-channels-alist '(("irc.libera.chat" "#systemcrafters" "#emacs")))
-  (erc-dcc-get-default-directory "~/Downloads/erc")
+  (erc-dcc-get-default-directory (expand-file-name "~/Downloads/"))
   (erc-kill-buffer-on-part t)
-  (erc-nick "rbgb")
-  (erc-server "irc.libera.chat")
-  (erc-track-shorten-start 8)
-  (erc-user-full-name "rKAST"))
+  (erc-nickserv-identify-mode 'both)
+  (erc-prompt-for-nickserv-password nil)
+  (erc-use-auth-source-for-nickserv-password t)
+  (erc-track-shorten-start 8))
 
 (use-package which-key)
 
@@ -1417,6 +1495,37 @@ Robert
 ;;   :config
 ;;   (add-hook 'json-mode-hook (lambda () (define-key json-mode-map (kbd "C-c >") 'indent-tools-hydra/body))))
 
+(use-package json-ts-mode
+  :straight nil
+  ;; Navigation and folding need no setup here.  `treesit-major-mode-setup'
+  ;; wires the `list' and `sentence' things into C-M-u (go to parent), C-M-d,
+  ;; C-M-f, C-M-b, M-a, M-e and hideshow.  This block adds three things: the
+  ;; path in the mode line, TAB to cycle a fold, and a key for the built-in
+  ;; path command.
+  :preface
+  (defun my/json-ts-breadcrumb ()
+    "Return the JSON path at point in jq form, or \".\" at the top level."
+    (when-let* ((node (treesit-node-at (point))))
+      (let ((path (json-ts--path-to-jq (json-ts--get-path-at-node node))))
+        (if (string-empty-p path) "." path))))
+
+  (defun my/json-ts-setup ()
+    "Show the JSON path at point, and let TAB cycle a fold."
+    (add-hook 'which-func-functions #'my/json-ts-breadcrumb nil t)
+    ;; which-func stops working past `which-func-maxout', and a big file is
+    ;; where the path helps most.  0 removes the limit.
+    (setq-local which-func-maxout 0)
+    ;; TAB cycles the fold on any line that opens an object or array.  A line
+    ;; that holds only a scalar opens no block, so TAB still indents there.
+    ;; Keep this buffer-local: a global value would take TAB away from every
+    ;; other prog-mode buffer.
+    (setq-local hs-cycle-filter t))
+  :init
+  (add-to-list 'major-mode-remap-alist '(js-json-mode . json-ts-mode))
+  :bind (:map json-ts-mode-map
+              ("C-c C-p" . json-ts-jq-path-at-point))
+  :hook (json-ts-mode . my/json-ts-setup))
+
 (use-package markdown-mode
   :mode (("\\.md\\'" . markdown-mode)
          ("\\.markdown\\'" . markdown-mode))
@@ -1437,14 +1546,17 @@ Robert
 
 (use-package markdown-toc)
 
-(use-package poly-markdown)
+(use-package poly-markdown
+  ;; `poly-markdown-mode' eagerly picks inner modes for partial fences like
+  ;; ```m, which can freeze while typing a Mermaid block.
+  :disabled t)
 
 (use-package grip-mode
   :ensure t
   :bind (:map markdown-mode-command-map
               ("g" . grip-mode))
   :custom
-  (grip-theme 'light)
+  ;; (grip-theme 'light)
   (grip-update-after-change t)
   (grip-command 'go-grip))
 
@@ -1457,7 +1569,10 @@ Robert
 
 (use-package mermaid-mode
   :mode
-  ("\\.mermaid\\'" "\\.mmjs\\'"))
+  ("\\.mermaid\\'" "\\.mmjs\\'" "\\.mmd\\'")
+  :config
+  (with-eval-after-load 'markdown-mode
+    (add-to-list 'markdown-code-lang-modes '("mermaid" . mermaid-mode))))
 
 (use-package terraform-mode)
 
@@ -1536,8 +1651,6 @@ Robert
 
 (use-package arduino-mode)
 
-(use-package sqlite3)
-
 (use-package ready-player
   :straight (:type git :host github :repo "xenodium/ready-player")
   :custom
@@ -1550,6 +1663,38 @@ Robert
   (sqlformat-command 'sqlfmt))
 
 (use-package csv-mode)
+
+(use-package parquet-mode
+  :straight nil
+  :no-require t
+  :after csv-mode
+  :mode "\\.parquet\\'"
+  :bind (:map parquet-mode-map
+              ("TAB" . csv-forward-field)
+              ("<backtab>" . csv-backward-field))
+  :hook (parquet-mode . parquet-mode--disable-yas)
+  :preface
+  (defun parquet-mode--disable-yas ()
+    (when (bound-and-true-p yas-minor-mode)
+      (yas-minor-mode -1)))
+  (defun parquet-mode--refresh ()
+    (let ((inhibit-read-only t)
+          (file parquet-mode-file))
+      (erase-buffer)
+      (call-process "parquet-tools" nil t nil "csv" "-n" "20" file)
+      (goto-char (point-min))
+      (csv-align-mode 1)
+      (setq buffer-read-only t)
+      (set-buffer-modified-p nil)))
+  (define-derived-mode parquet-mode csv-mode "Parquet"
+    "View the head of a Parquet file as CSV via `parquet-tools csv'."
+    (let ((file (buffer-file-name)))
+      (setq buffer-file-name nil)
+      (setq-local parquet-mode-file file)
+      (setq-local truncate-lines t)
+      (setq-local revert-buffer-function
+                  (lambda (&rest _) (parquet-mode--refresh)))
+      (parquet-mode--refresh))))
 
 (use-package web-mode
   :custom
@@ -1568,8 +1713,31 @@ Robert
   :commands (kubernetes-overview)
   :config
   (setq kubernetes-poll-frequency 3600
-        kubernetes-redraw-frequency 3600)
+        kubernetes-redraw-frequency 3600
+        kubernetes-pods-display-completed t)
   :bind (:map kubernetes-overview-mode ("N" . kubernetes-set-namespace )))
+
+(with-eval-after-load 'kubernetes-overview
+  (require 'kubernetes-events))
+
+(with-eval-after-load 'kubernetes-events
+  (defun my/kubernetes-events--event-time (event)
+    "Best-effort event time: lastTimestamp, eventTime, then creationTimestamp."
+    (or (let ((v (alist-get 'lastTimestamp event)))
+          (and (stringp v) (> (length v) 0) v))
+        (let ((v (alist-get 'eventTime event)))
+          (and (stringp v) (> (length v) 0) v))
+        (let-alist event .metadata.creationTimestamp)
+        ""))
+  (define-advice kubernetes-events--redraw-buffer
+      (:around (orig events &optional title) sort-by-age)
+    "Normalize `lastTimestamp' on each event so the built-in sort ages consistently."
+    (when-let* ((items (alist-get 'items events))
+                (lst (if (vectorp items) (append items nil) items)))
+      (dolist (ev lst)
+        (setf (alist-get 'lastTimestamp ev)
+              (my/kubernetes-events--event-time ev))))
+    (funcall orig events title)))
 
 (use-package mu4e
   :straight ( :host github
@@ -1605,7 +1773,8 @@ Robert
   (mu4e-maildir "~/.mail")
   (mu4e-mu-binary (expand-file-name "build/mu/mu" (straight--repos-dir "mu")))
   (mu4e-notification-support t)
-  (mu4e-search-include-related nil)
+  (mu4e-search-include-related t)
+  (mu4e-search-threads t)
   (mu4e-sent-messages-behavior 'delete)
   (mu4e-split-view 'nil)
   (mu4e-update-interval (* 60 5))
@@ -1727,8 +1896,7 @@ Robert
     (interactive)
     (let ((input (read-string "Message ID: ")))
       (mu4e-view-message-with-message-id (replace-regexp-in-string "^mu4e:msgid:" "" input))))
-  :bind (
-         :map mu4e-headers-mode-map
+  :bind (:map mu4e-headers-mode-map
          ("i" . my/mu4e-view-message-with-message-id)
          ("v" . mu4e-headers-view-message)
          ("@" . my/mu4e-mark-spam)))
@@ -1820,46 +1988,62 @@ With ARG, do this that many times."
   :custom
   (mu4e-dashboard-mu-program "~/.emacs.d/straight/repos/mu/build/mu/mu"))
 
-(use-package mu4e-thread-folding
+(use-package nano-mu4e
   :after mu4e
-  :hook (mu4e-headers-mode . mu4e-thread-folding-mode)
   :straight ( :host github
-              :repo "rougier/mu4e-thread-folding"
+              :repo "rougier/nano-mu4e"
               :branch "master"
-              :files ("mu4e-thread-folding.el"))
-  :config
-  (add-to-list 'mu4e-header-info-custom
-               '(:empty . (:name "Empty"
-                                 :shortname ""
-                                 :function (lambda (msg) "  "))))
-  :custom-face
-  (mu4e-header-face ((t (:inherit default :background ,(color-lighten-name (face-background 'default) 0)))))
-  (mu4e-thread-folding-child-face ((t (:inherit default :background ,(color-darken-name (face-background 'default) 30)))))
-  (mu4e-thread-folding-root-unfolded-face ((t (:inherit default :background ,(color-lighten-name (face-background 'default) 0)))))
-  (mu4e-thread-folding-root-folded-face ((t (:inherit default :background ,(color-lighten-name (face-background 'default) 0)))))
-  :custom
-  (mu4e-thread-folding-default-view 'folded)
-  (mu4e-thread-folding-root-folded-prefix-string " ▶")
-  (mu4e-thread-folding-root-unfolded-prefix-string " ▼")
-  (mu4e-headers-fields '((:empty         .    2)
-                         (:human-date    .   12)
-                         (:from          .   22)
-                         (:subject       .   80)
-                         (:maildir       .   16)
-                         )))
+              :files ("nano-mu4e.el"))
+  :preface
+  (defun my/mu4e-update-mail-and-index-background ()
+    (interactive)
+    (mu4e-update-mail-and-index t))
+  :hook (mu4e-headers-mode . nano-mu4e-mode)
+  :bind (:map nano-mu4e-mode-map
+	      ("g" . my/mu4e-update-mail-and-index-background)
+	      ("n" . nano-mu4e-next-msg)
+	      ("p" . nano-mu4e-prev-msg)
+	      ("N" . nano-mu4e-next-unread-msg)
+	      ("P" . nano-mu4e-prev-unread-msg)
+              ("j" . nano-mu4e-next-thread)
+              ("k" . nano-mu4e-prev-thread)
+              ("@" . my/mu4e-mark-spam)))
 
 (use-package w3m)
 
 (use-package time-zones
   :straight ( :host github
-              :repo "xenodium/time-zones"))
+              :repo "xenodium/time-zones")
+  :config
+  ;; Upstream uses the slow, fragile elisp `json-read', which fails with
+  ;; `(json-number-format N)' on the ~47MB cities DB in some sessions.
+  ;; Swap in the native `json-parse-buffer'.
+  (defun time-zones--fetch-timezones ()
+    "Download and parse the countries+states+cities JSON data."
+    (let ((url-mime-charset-string "utf-8")
+          (url-automatic-caching nil)
+          (data-buffer (url-retrieve-synchronously time-zones--timezones-url)))
+      (with-current-buffer data-buffer
+        (goto-char (point-min))
+        (search-forward "\n\n")
+        (let ((compressed (buffer-substring-no-properties (point) (point-max))))
+          (with-temp-buffer
+            (set-buffer-multibyte nil)
+            (insert compressed)
+            (condition-case err
+                (progn
+                  (zlib-decompress-region (point-min) (point-max))
+                  (set-buffer-multibyte t)
+                  (decode-coding-region (point-min) (point-max) 'utf-8)
+                  (goto-char (point-min))
+                  (json-parse-buffer :object-type 'alist
+                                     :array-type 'array
+                                     :null-object nil
+                                     :false-object nil))
+              (error
+               (message "time-zones fetch failed: %s" err)
+               nil))))))))
 
-(use-package nano-mu4e
-  :requires svg-tag-mode
-  :straight ( :host github
-              :repo "rougier/nano-emacs"
-              :branch "master"
-              :files ("nano-mu4e.el")))
 
 (pretty-hydra-define my-window (:foreign-keys warn :title "Utilities" :quit-key "q")
   ("Actions"
